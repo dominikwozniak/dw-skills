@@ -1,8 +1,7 @@
 # dominikwozniak-skills — agent instructions
 
-This is **not** a code project — it's a personal bucket of Claude Code skills, distributed as an
-installable plugin marketplace. Scaffold and conventions copied from
-[`claude-kit`](https://github.com/dominikwozniak/claude-kit).
+A personal bucket of Claude Code skills, distributed as an installable plugin marketplace — not a
+code project.
 
 ## Repository layout
 
@@ -18,12 +17,10 @@ installable plugin marketplace. Scaffold and conventions copied from
 ## Conventions
 
 - Skills use YAML frontmatter; `disable-model-invocation: true` for explicit-invoke-only skills.
-- Skill names: kebab-case, match the directory name.
-- Canonical skill file: `skills/<name>/SKILL.md`. Each plugin pairs
-  `plugins/<name>/.claude-plugin/plugin.json` with a symlink `plugins/<name>/skills/<name>` →
-  `../../../skills/<name>`.
-- `marketplace.json[].version` must match each `<source>/.claude-plugin/plugin.json.version`
-  (enforced by `pnpm validate:manifests`).
+- Skill name: kebab-case, matches the directory name.
+- Canonical file is `skills/<name>/SKILL.md` — edit there, never via the plugin symlink.
+- `marketplace.json` version must match the plugin's `plugin.json` version (checked by
+  `pnpm validate:manifests`).
 
 ## When adding a new skill
 
@@ -38,21 +35,9 @@ installable plugin marketplace. Scaffold and conventions copied from
 
 ## CI
 
-- `pnpm lint` — `agnix .` validates `CLAUDE.md`, `SKILL.md`, manifests (config: `.agnix.toml`;
-  `.agent/` and `.claude/` excluded — local bootstrap drops).
-- `pnpm format` — `prettier --check` on md/json/yaml (`.prettierrc.json`, `proseWrap: preserve`).
-- `pnpm validate:manifests` — `claude plugin validate` + marketplace↔plugin version-sync.
-- `secrets-scan` — `trufflehog` (SHA-pinned), full-history checkout.
-- Workflows in `.github/workflows/` run on `pull_request` + `push` to `main`; actions SHA-pinned,
-  runner `ubuntu-latest`.
+Runs on every PR + push to `main`:
 
-## Repo prep (local, gitignored)
-
-This repo dogfoods claude-kit's `bootstrap.sh`: `CLAUDE.local.md`, `.claude/settings.local.json`,
-and `.claude/hooks/*.sh` are personal and **gitignored**. Re-running bootstrap is safe. No
-husky/lint-staged here — CI + local hooks are the whole quality story (mirrors claude-kit).
-
-## Future / not in scope
-
-- `docs/` — omitted for v1; add if public-facing docs are needed.
-- Re-hosting claude-kit's plugins — intentionally NOT here; they live in claude-kit.
+- `pnpm lint` — `agnix` validates `CLAUDE.md`/`SKILL.md`/manifests.
+- `pnpm format` — `prettier --check` (`proseWrap: preserve`).
+- `pnpm validate:manifests` — `claude plugin validate` + marketplace↔plugin version sync.
+- `trufflehog` secrets scan.
