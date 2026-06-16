@@ -17,6 +17,7 @@ claude plugin install dw-misc
 
 ## 🧩 Skills
 
+- **`dw-spec`** (plugin `dw-planning`) — write a persistent feature spec to `.ai/runs/` with an Open-Questions hard gate before planning or coding.
 - **`dw-handoff`** (plugin `dw-misc`) — compact the session into a handoff doc at `.ai/handoffs/` for the next agent.
 
 ## 🤝 Contributing
