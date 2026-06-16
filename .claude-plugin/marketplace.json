@@ -9,14 +9,6 @@
   },
   "plugins": [
     {
-      "name": "example-skill",
-      "version": "0.1.0",
-      "source": "./plugins/example-skill",
-      "keywords": ["example", "template", "starter"],
-      "category": "utilities",
-      "tags": ["template"]
-    },
-    {
       "name": "dw-misc",
       "version": "0.1.0",
       "source": "./plugins/dw-misc",

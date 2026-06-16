@@ -31,7 +31,7 @@ code project.
 4. Update the README skill list.
 5. `pnpm lint && pnpm format && pnpm validate:manifests`.
 
-`example-skill` is a working template — copy it.
+Copy an existing skill (e.g. `dw-handoff`) as a starting point.
 
 ## CI
 

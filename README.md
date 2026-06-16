@@ -13,12 +13,11 @@ claude plugin marketplace add git@github.com:dominikwozniak/dominikwozniak-skill
 claude plugin install dw-misc
 ```
 
-`dw-misc` bundles cross-cutting helpers (e.g. `dw-handoff`). `example-skill` is just a placeholder/template.
+`dw-misc` bundles cross-cutting helpers (e.g. `dw-handoff`).
 
 ## 🧩 Skills
 
 - **`dw-handoff`** (plugin `dw-misc`) — compact the session into a handoff doc at `.ai/handoffs/` for the next agent.
-- **`example-skill`** (plugin `example-skill`) — placeholder/template; copy it to start a real skill.
 
 ## 🤝 Contributing
 
