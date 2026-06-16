@@ -24,6 +24,7 @@ claude plugin install dw-misc
 - **`dw-handoff`** (plugin `dw-misc`) — compact the session into a handoff doc at `.ai/handoffs/` for the next agent.
 - **`dw-explain`** (plugin `dw-quality`) — explain what a change does and generate runnable, code-grounded verification scenarios in `.ai/verify/`, ready for `dw-verify` to run.
 - **`dw-verify`** (plugin `dw-quality`) — run the verification scenarios from `explain.md` and record PASS/FAIL/INCONCLUSIVE + evidence to `.ai/verify/`.
+- **`dw-risk`** (plugin `dw-quality`) — assess a change's blast radius, out-of-code impact (migrations/env/flags/infra/secrets), and follow-ups/rollback to `.ai/verify/`.
 
 ## 🤝 Contributing
 

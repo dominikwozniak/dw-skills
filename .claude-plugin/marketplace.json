@@ -26,7 +26,7 @@
     },
     {
       "name": "dw-quality",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "source": "./plugins/dw-quality",
       "keywords": ["explain", "verify", "review", "quality", "diff"],
       "category": "quality",
