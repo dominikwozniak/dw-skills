@@ -3,21 +3,22 @@
 A personal bucket of Claude Code skills I actually use or share — distributed as an installable
 plugin marketplace.
 
-Each skill lives once in `skills/<name>/SKILL.md` and is exposed as a plugin via
-`.claude-plugin/marketplace.json`. Install the marketplace once, then add the skills you want.
+Each skill lives once in `skills/<name>/SKILL.md` and ships inside a plugin (collection) listed in
+`.claude-plugin/marketplace.json`. Install the marketplace once, then add the plugins you want.
 
 ## 🚀 Quick start
 
 ```
 claude plugin marketplace add git@github.com:dominikwozniak/dominikwozniak-skills.git
-claude plugin install example-skill
+claude plugin install dw-misc
 ```
 
-`example-skill` is a placeholder/template — replace it with real skills over time.
+`dw-misc` bundles cross-cutting helpers (e.g. `dw-handoff`). `example-skill` is just a placeholder/template.
 
 ## 🧩 Skills
 
-- **`example-skill`** — placeholder/template; copy it to start a real skill.
+- **`dw-handoff`** (plugin `dw-misc`) — compact the session into a handoff doc at `.ai/handoffs/` for the next agent.
+- **`example-skill`** (plugin `example-skill`) — placeholder/template; copy it to start a real skill.
 
 ## 🤝 Contributing
 

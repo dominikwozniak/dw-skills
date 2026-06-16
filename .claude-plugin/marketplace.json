@@ -15,6 +15,14 @@
       "keywords": ["example", "template", "starter"],
       "category": "utilities",
       "tags": ["template"]
+    },
+    {
+      "name": "dw-misc",
+      "version": "0.1.0",
+      "source": "./plugins/dw-misc",
+      "keywords": ["handoff", "session", "context", "workflow"],
+      "category": "utilities",
+      "tags": ["handoff", "session"]
     }
   ]
 }
