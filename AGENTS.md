@@ -28,8 +28,11 @@ code project.
 2. Create `plugins/<name>/.claude-plugin/plugin.json` AND
    `ln -s ../../../skills/<name> plugins/<name>/skills/<name>` AND `git add` the symlink.
 3. Add a row to `.claude-plugin/marketplace.json` (version in sync with `plugin.json`).
-4. Update the README skill list.
-5. `pnpm lint && pnpm format && pnpm validate:manifests`.
+4. Bump the plugin's patch version in **both** `plugins/<name>/.claude-plugin/plugin.json` and the
+   matching `.claude-plugin/marketplace.json` entry — they must stay in sync (CI enforces it via
+   `validate-manifests.sh`).
+5. Update the README skill list.
+6. `pnpm lint && pnpm format && pnpm validate:manifests`.
 
 Copy an existing skill (e.g. `dw-handoff`) as a starting point.
 

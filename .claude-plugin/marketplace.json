@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "dw-misc",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "source": "./plugins/dw-misc",
       "keywords": ["handoff", "session", "context", "workflow"],
       "category": "utilities",

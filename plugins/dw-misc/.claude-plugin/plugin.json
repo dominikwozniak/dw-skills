@@ -1,6 +1,6 @@
 {
   "name": "dw-misc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Cross-cutting workflow helpers that don't fit dw-planning or dw-quality. Seed skill: dw-handoff (session handoff into .ai/handoffs/).",
   "author": {
     "name": "Dominik Wozniak"
