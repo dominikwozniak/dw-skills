@@ -30,20 +30,24 @@ mkdir -p .ai/handoffs
 
 Filename uses local time. Example: `.ai/handoffs/20260616-1430.md`.
 
-## Link the active run (back-pointer)
+## Workflow
+
+### 1. Link the active run (back-pointer)
 
 If the work belongs to a run under `.ai/runs/`, link it so the next agent lands
 on the plan, not just the prose:
 
-1. Get the current branch (`git rev-parse --abbrev-ref HEAD`).
-2. Glob `.ai/runs/*/` and match the run whose frontmatter `branch` equals the
-   current branch (the same match `dw-resume` uses).
-3. Put that run's `PLAN.md` (and `SPEC.md`) in **Pointers** as a back-pointer.
+- Get the current branch (`git rev-parse --abbrev-ref HEAD`).
+- Glob `.ai/runs/*/` and match the run whose frontmatter `branch` equals the
+  current branch (the same match `dw-resume` uses).
+- Put that run's `PLAN.md` (and `SPEC.md`) in **Pointers** as a back-pointer.
 
 If `.ai/runs/` is absent or has no run for this branch, say so in Pointers
 ("no active run") and continue — the handoff still stands on its own.
 
-## What to include
+### 2. Gather the content
+
+Include:
 
 - **Goal** — one sentence: what we're trying to accomplish (use `$ARGUMENTS` — the next session's focus — if provided)
 - **Current state** — what's been done, what's working, what's broken
@@ -53,11 +57,29 @@ If `.ai/runs/` is absent or has no run for this branch, say so in Pointers
 - **Pointers** — references to existing artifacts (active run, specs, plans, ADRs, PRs, issues) by path or URL. Don't duplicate their content
 - **Gotchas / context** — non-obvious things the next agent needs to know (env quirks, dependency versions, recent failures, etc.)
 
-## What to leave out
+Leave out:
 
 - Don't re-summarise content already in committed files, PR descriptions, specs, plans, or ADRs. Reference them by path
 - Redact secrets, API keys, PII, internal URLs that shouldn't be shared
 - Skip narrative play-by-play of the conversation. Focus on actionable state
+
+### 3. Write the handoff
+
+Copy the shape from the **Document template** below into
+`.ai/handoffs/<YYYYMMDD-HHMM>.md`, filling each section from step 2.
+
+### 4. Hand off to the next session
+
+Tell the user:
+
+> Handoff saved to `.ai/handoffs/<filename>`. Open a new Claude Code session and run:
+>
+> ```
+> Read the handoff at .ai/handoffs/<filename> and continue from there.
+> ```
+
+**Next:** in the fresh session, run `dw-resume` if an active run exists (it picks
+up the plan for this branch), or `dw-spec` to start a new one.
 
 ## Document template
 
@@ -99,13 +121,3 @@ If `.ai/runs/` is absent or has no run for this branch, say so in Pointers
 
 - <non-obvious context>
 ```
-
-## After writing
-
-Tell the user:
-
-> Handoff saved to `.ai/handoffs/<filename>`. Open a new Claude Code session and run:
->
-> ```
-> Read the handoff at .ai/handoffs/<filename> and continue from there.
-> ```

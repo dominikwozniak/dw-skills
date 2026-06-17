@@ -24,7 +24,8 @@ code project.
 
 ## When adding a new skill
 
-1. Create `skills/<name>/SKILL.md` (kebab-case `name`, `description` with trigger phrases).
+1. Create `skills/<name>/SKILL.md` (kebab-case `name`, `description` with trigger phrases),
+   following the shape in [`docs/SKILL-ANATOMY.md`](docs/SKILL-ANATOMY.md).
 2. Create `plugins/<name>/.claude-plugin/plugin.json` AND
    `ln -s ../../../skills/<name> plugins/<name>/skills/<name>` AND `git add` the symlink.
 3. Add a row to `.claude-plugin/marketplace.json` (version in sync with `plugin.json`).
