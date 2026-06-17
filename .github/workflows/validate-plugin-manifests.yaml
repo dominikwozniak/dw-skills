@@ -33,9 +33,7 @@ jobs:
 
       - name: Install Claude Code CLI
         shell: bash
-        run: |
-          curl -fsSL https://claude.ai/install.sh | bash
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+        run: npm install -g @anthropic-ai/claude-code@2.1.179
 
       - name: Validate manifests
         id: validate
