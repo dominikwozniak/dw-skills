@@ -1,39 +1,100 @@
 # 🧩 dominikwozniak-skills
 
-A personal bucket of Claude Code skills I actually use or share — distributed as an installable
-plugin marketplace.
+**A persistent, technology-agnostic spec → plan → build → verify workflow for Claude Code — as
+installable skills.**
 
-Each skill lives once in `skills/<name>/SKILL.md` and ships inside a plugin (collection) listed in
-`.claude-plugin/marketplace.json`. Install the marketplace once, then add the plugins you want.
+Plans and reviews land on disk under `.ai/` (tracked in git), so work survives a `/clear`, a new
+session, or a handoff to another agent. Every skill reads your project's own commands and
+conventions — nothing about a stack is baked in.
 
 ## 🚀 Quick start
 
 ```
 claude plugin marketplace add git@github.com:dominikwozniak/dominikwozniak-skills.git
-claude plugin install dw-misc
+claude plugin install dw-planning   # spec → plan → build → resume → sync
+claude plugin install dw-quality    # review · conform · prune · explain · verify · risk
+claude plugin install dw-misc       # session handoff (+ future cross-cutting helpers)
 ```
 
-`dw-misc` bundles cross-cutting helpers (e.g. `dw-handoff`).
+Then start a feature: `/dw-spec`. Resume after a `/clear`: `/dw-resume`.
 
-## 🧩 Skills
+## 🔁 The workflow
 
-- **`dw-spec`** (plugin `dw-planning`) — write a persistent feature spec to `.ai/runs/` with an Open-Questions hard gate before planning or coding.
-- **`dw-resume`** (plugin `dw-planning`) — read-only: reconstruct where work stands from the active `.ai/runs/` run (branch-matched) and report the first not-done step — your resume point after a `/clear`.
-- **`dw-plan`** (plugin `dw-planning`) — turn the active run's ready `SPEC.md` into a persistent `PLAN.md` status table of thin vertical slices (acceptance + verify per step), gated on your approval before writing — the anchor `dw-resume` and `dw-build` read.
-- **`dw-build`** (plugin `dw-planning`) — build the active run's `PLAN.md` one step at a time: take the first not-done row, run RED → GREEN → regression → commit, then flip it to `done` + short SHA and append `NOTES.md`. Reads test/lint/run commands and `## Git conventions` from the project; `auto` builds the whole plan.
-- **`dw-sync`** (plugin `dw-planning`) — re-align the active run's `PLAN.md` with the code and git after drift: flip rows to `done` + short SHA where a commit covers the step, append fresh-id rows for off-plan work, and flag divergences as `blocked` — proposing the plan diff and mutating only on explicit consent (per-row or batch). Never renumbers a committed step. Explicit-invoke only.
-- **`dw-handoff`** (plugin `dw-misc`) — compact the session into a handoff doc at `.ai/handoffs/` for the next agent.
-- **`dw-review`** (plugin `dw-quality`) — multi-axis review (correctness, readability, architecture, security, performance) of a change's diff, with findings as `file:line` + severity and an overall verdict, written to `.ai/verify/`.
-- **`dw-conform`** (plugin `dw-quality`) — check a change for drift against the repo's existing, pre-committed patterns (siblings confirmed via `git log`), each finding a `file:line` paired with the pre-existing pattern it diverges from, written to `.ai/verify/`.
-- **`dw-prune`** (plugin `dw-quality`) — trim redundant/overlapping/dead tests around a change into a keep/merge/delete plan in `.ai/verify/`, applying merges/deletes only on explicit consent and only when a named retained test still covers the behavior (coverage never drops), then re-running the project's test suite.
-- **`dw-explain`** (plugin `dw-quality`) — explain what a change does and generate runnable, code-grounded verification scenarios in `.ai/verify/`, ready for `dw-verify` to run.
-- **`dw-verify`** (plugin `dw-quality`) — run the verification scenarios from `explain.md` and record PASS/FAIL/INCONCLUSIVE + evidence to `.ai/verify/`.
-- **`dw-risk`** (plugin `dw-quality`) — assess a change's blast radius, out-of-code impact (migrations/env/flags/infra/secrets), and follow-ups/rollback to `.ai/verify/`.
+```
+  SPEC         PLAN         BUILD                   REVIEW · VERIFY           SHIP
+  /dw-spec  →  /dw-plan  →  /dw-build       →       /dw-review  /dw-explain → (open PR)
+                          ↺ /dw-resume (pick up)    /dw-conform /dw-verify
+                            /dw-sync (fix drift)    /dw-prune   /dw-risk
+  └────────────── .ai/runs/<id>/ ──────────────┘    └─ .ai/verify/<branch>/ ─┘
+
+  /dw-handoff — compact context for the next agent, at any point.
+```
+
+A recommendation, not a rail: every skill stands alone and is invoked when you need it. They
+compose through the shared `.ai/` artifacts + a "Next:" pointer at the end of each skill.
+
+## 🧭 Task router — which skill for which task
+
+A task may match several rows — read all that apply.
+
+| Task                                                        | Skill                                      | What you get                           |
+| ----------------------------------------------------------- | ------------------------------------------ | -------------------------------------- |
+| **Spec & plan**                                             |                                            |                                        |
+| Start a feature; capture intent with an open-questions gate | [`dw-spec`](skills/dw-spec/SKILL.md)       | `SPEC.md` under `.ai/runs/`            |
+| Pick up after a `/clear`; find the first not-done step      | [`dw-resume`](skills/dw-resume/SKILL.md)   | read-only status report                |
+| Turn a ready spec into thin vertical slices                 | [`dw-plan`](skills/dw-plan/SKILL.md)       | `PLAN.md` status table                 |
+| **Build**                                                   |                                            |                                        |
+| Build the next slice: RED → GREEN → regression → commit     | [`dw-build`](skills/dw-build/SKILL.md)     | code + `done` row + SHA                |
+| Re-align the plan with the code after drift                 | [`dw-sync`](skills/dw-sync/SKILL.md)       | reconciled `PLAN.md` (consent-gated)   |
+| **Review & verify**                                         |                                            |                                        |
+| Multi-axis review of a diff (correctness/security/perf/…)   | [`dw-review`](skills/dw-review/SKILL.md)   | `review.md` + verdict                  |
+| Check a change against the repo's existing patterns         | [`dw-conform`](skills/dw-conform/SKILL.md) | `conform.md` drift report              |
+| Trim redundant tests without dropping coverage              | [`dw-prune`](skills/dw-prune/SKILL.md)     | keep/merge/delete plan (consent-gated) |
+| Explain a change + generate runnable verification scenarios | [`dw-explain`](skills/dw-explain/SKILL.md) | `explain.md` scenarios                 |
+| Run those scenarios and record PASS/FAIL + evidence         | [`dw-verify`](skills/dw-verify/SKILL.md)   | `verify-run.md`                        |
+| Assess blast radius, out-of-code impact, rollback           | [`dw-risk`](skills/dw-risk/SKILL.md)       | `risk.md`                              |
+| **Handoff**                                                 |                                            |                                        |
+| Compact the session for the next agent                      | [`dw-handoff`](skills/dw-handoff/SKILL.md) | `.ai/handoffs/<ts>.md`                 |
+
+## 📦 Plugins (install what you need)
+
+- **`dw-planning`** — `dw-spec` · `dw-resume` · `dw-plan` · `dw-build` · `dw-sync`. The persistent
+  spec→plan→build loop; artifacts under `.ai/runs/<id>/`.
+- **`dw-quality`** — `dw-review` · `dw-conform` · `dw-prune` · `dw-explain` · `dw-verify` ·
+  `dw-risk`. A change-quality pipeline writing to `.ai/verify/<branch>/`.
+- **`dw-misc`** — `dw-handoff`, plus a bucket for future cross-cutting helpers.
+
+## 🛠️ How it works
+
+- **Persistence in the skill, not a wrapper.** Each `SKILL.md` bakes its `.ai/` paths in, so plans
+  land automatically and travel with the installed plugin — no `.claude/commands/` glue.
+- **`.ai/` is tracked, one folder per task, no central index.** Artifacts are real work docs
+  committed with the code; runs are matched to the current git branch (no merge-conflict magnet).
+- **Technology-agnostic.** Skills are pure procedures; test/lint/run commands and the commit
+  convention are read _from the project_ (a declared `## Commands` block → manifests → the code),
+  never hardcoded.
+- **Thin harness, fat skills.** A skill's weight tracks its procedure; bulky detail (templates,
+  taxonomies, stack examples) lives in `references/`, loaded on demand.
+- **Composable, not chained.** Skills stay separate (different axes) and link through shared `.ai/`
+  artifacts + a "Next:" pointer — a recommendation, never a forced sequence.
+- **Explicit-only skills** (`dw-handoff`, `dw-prune`, `dw-sync`) are invoked by name and never
+  auto-trigger; the rest can be model-invoked when the task fits.
+
+Full design rationale — the _why_ behind each choice — lives in [`docs/DESIGN.md`](docs/DESIGN.md).
+
+## 📁 Project structure
+
+```
+skills/<name>/SKILL.md          canonical skill (edit here)
+plugins/<collection>/           plugin.json + git-tracked symlinks → ../../../skills/<name>
+.claude-plugin/marketplace.json makes the repo installable
+docs/DESIGN.md                  design rationale (the "why")
+```
 
 ## 🤝 Contributing
 
-Layout, conventions, the add-a-skill checklist, CI, and repo prep all live in
-[`AGENTS.md`](AGENTS.md) (`CLAUDE.md` is a symlink to it).
+Layout, conventions, the add-a-skill checklist, and CI all live in [`AGENTS.md`](AGENTS.md)
+(`CLAUDE.md` is a symlink to it).
 
 ## 📜 License
 

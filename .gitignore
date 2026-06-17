@@ -9,8 +9,13 @@
 # Node / pnpm (CI tooling: agnix, prettier)
 node_modules/
 
-# Local agent state (this repo dogfoods claude-kit bootstrap — all local/gitignored)
+# Local agent state (all local / gitignored)
 /.agent/
 /CLAUDE.local.md
 /.claude/settings.local.json
 /.claude/hooks/
+
+# Editor vault / scratch (never published)
+.obsidian/
+/research.md
+/tmp-*.md

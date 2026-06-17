@@ -6,8 +6,8 @@ severity = "Warning"
 exclude = [
     "node_modules/**",
     ".git/**",
-    # Local agent state dropped by claude-kit bootstrap (gitignored). Not part of
-    # the marketplace surface — exclude so agnix doesn't lint the local drops.
+    # Local agent state (gitignored) — not part of the marketplace surface,
+    # so agnix doesn't lint the local drops.
     ".agent/**",
     ".claude/**",
 ]
