@@ -24,6 +24,7 @@ claude plugin install dw-misc
 - **`dw-handoff`** (plugin `dw-misc`) — compact the session into a handoff doc at `.ai/handoffs/` for the next agent.
 - **`dw-review`** (plugin `dw-quality`) — multi-axis review (correctness, readability, architecture, security, performance) of a change's diff, with findings as `file:line` + severity and an overall verdict, written to `.ai/verify/`.
 - **`dw-conform`** (plugin `dw-quality`) — check a change for drift against the repo's existing, pre-committed patterns (siblings confirmed via `git log`), each finding a `file:line` paired with the pre-existing pattern it diverges from, written to `.ai/verify/`.
+- **`dw-prune`** (plugin `dw-quality`) — trim redundant/overlapping/dead tests around a change into a keep/merge/delete plan in `.ai/verify/`, applying merges/deletes only on explicit consent and only when a named retained test still covers the behavior (coverage never drops), then re-running the project's test suite.
 - **`dw-explain`** (plugin `dw-quality`) — explain what a change does and generate runnable, code-grounded verification scenarios in `.ai/verify/`, ready for `dw-verify` to run.
 - **`dw-verify`** (plugin `dw-quality`) — run the verification scenarios from `explain.md` and record PASS/FAIL/INCONCLUSIVE + evidence to `.ai/verify/`.
 - **`dw-risk`** (plugin `dw-quality`) — assess a change's blast radius, out-of-code impact (migrations/env/flags/infra/secrets), and follow-ups/rollback to `.ai/verify/`.
