@@ -22,13 +22,17 @@ Then start a feature: `/dw-spec`. Resume after a `/clear`: `/dw-resume`.
 
 ```
   SPEC         PLAN         BUILD                   REVIEW · VERIFY           SHIP
-  /dw-spec  →  /dw-plan  →  /dw-build       →       /dw-review  /dw-explain → (open PR)
+  /dw-spec  →  /dw-plan  →  /dw-build       →       /dw-review  /dw-explain → (open PR — your own tooling)
                           ↺ /dw-resume (pick up)    /dw-conform /dw-verify
                             /dw-sync (fix drift)    /dw-prune   /dw-risk
-  └────────────── .ai/runs/<id>/ ──────────────┘    └─ .ai/verify/<branch>/ ─┘
+  └────────────── .ai/runs/<id>/ ──────────────┘    └─ .ai/verify/<branch-slug>/ ─┘
 
   /dw-handoff — compact context for the next agent, at any point.
 ```
+
+`<branch-slug>` = the current branch slugified, e.g. `ABC-123/password-reset` →
+`abc-123-password-reset`. SHIP (open PR) is intentionally outside this toolkit — see
+[`docs/DESIGN.md`](docs/DESIGN.md), "Composable, not chained."
 
 A recommendation, not a rail: every skill stands alone and is invoked when you need it. They
 compose through the shared `.ai/` artifacts + a "Next:" pointer at the end of each skill.
@@ -61,7 +65,7 @@ A task may match several rows — read all that apply.
 - **`dw-planning`** — `dw-spec` · `dw-resume` · `dw-plan` · `dw-build` · `dw-sync`. The persistent
   spec→plan→build loop; artifacts under `.ai/runs/<id>/`.
 - **`dw-quality`** — `dw-review` · `dw-conform` · `dw-prune` · `dw-explain` · `dw-verify` ·
-  `dw-risk`. A change-quality pipeline writing to `.ai/verify/<branch>/`.
+  `dw-risk`. A change-quality pipeline writing to `.ai/verify/<branch-slug>/`.
 - **`dw-misc`** — `dw-handoff`, plus a bucket for future cross-cutting helpers.
 
 ## 🛠️ How it works

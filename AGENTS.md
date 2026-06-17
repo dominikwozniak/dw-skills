@@ -31,7 +31,8 @@ code project.
 4. Bump the plugin's patch version in **both** `plugins/<name>/.claude-plugin/plugin.json` and the
    matching `.claude-plugin/marketplace.json` entry — they must stay in sync (CI enforces it via
    `validate-manifests.sh`).
-5. Update the README skill list.
+5. Update the README: add the skill to the **Plugins** section _and_ the **task-router table** (a new
+   row matching the skill's trigger phrase + output shape).
 6. `pnpm lint && pnpm format && pnpm validate:manifests`.
 
 Copy an existing skill (e.g. `dw-handoff`) as a starting point.
