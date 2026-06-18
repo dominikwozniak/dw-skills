@@ -27,7 +27,7 @@ disable-model-invocation: true # ONLY for explicit-invoke-only skills (see below
   (e.g. `dw-resume`).
 - **`disable-model-invocation: true`** — set this _only_ on skills that compact or mutate state, or
   that act on an explicit drift signal, so the model never reaches for them unbidden:
-  **`dw-handoff`, `dw-prune`, `dw-sync`**. Everything else is model-invocable.
+  **`dw-bootstrap`, `dw-handoff`, `dw-prune`, `dw-sync`**. Everything else is model-invocable.
 
 ## Body order
 

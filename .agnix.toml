@@ -10,6 +10,11 @@ exclude = [
     # so agnix doesn't lint the local drops.
     ".agent/**",
     ".claude/**",
+    # Skill template payloads — inert files copied verbatim INTO a target
+    # project (e.g. dw-bootstrap's settings.json / hooks / CLAUDE.local.md).
+    # They reference `.claude/` paths and hook scripts that only exist once
+    # dropped, so they're not validatable in place — same rationale as above.
+    "skills/*/references/templates/**",
 ]
 
 [rules]

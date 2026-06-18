@@ -1,0 +1,16 @@
+# >>> dw-bootstrap managed block >>>
+# Personal agent memory & local overrides — never committed.
+/CLAUDE.local.md
+/.claude/settings.local.json
+
+# Editor / OS scratch.
+.DS_Store
+*.swp
+.vscode/
+.idea/
+.obsidian/
+
+# NOTE: `.ai/`, `.claude/settings.json`, and `.claude/hooks/` are TRACKED on
+# purpose — dw-* treats agent infra (specs, plans, handoffs, guardrails) as
+# shared, committed work. Do NOT add them here.
+# <<< dw-bootstrap managed block <<<

@@ -10,11 +10,20 @@
   "plugins": [
     {
       "name": "dw-misc",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "./plugins/dw-misc",
-      "keywords": ["handoff", "session", "context", "workflow"],
+      "keywords": [
+        "bootstrap",
+        "setup",
+        "scaffold",
+        "init",
+        "handoff",
+        "session",
+        "context",
+        "workflow"
+      ],
       "category": "utilities",
-      "tags": ["handoff", "session"]
+      "tags": ["bootstrap", "handoff", "session"]
     },
     {
       "name": "dw-planning",
