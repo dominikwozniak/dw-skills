@@ -27,7 +27,7 @@ DANGEROUS_PATTERNS=(
 
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
   if echo "$COMMAND" | grep -qE "$pattern"; then
-    echo "BLOCKED: '$COMMAND' matches dangerous pattern '$pattern'. Refused by claude-kit guardrail. If you genuinely need this, the user must run it manually." >&2
+    echo "BLOCKED: '$COMMAND' matches dangerous pattern '$pattern'. Refused by dw-bootstrap guardrail. If you genuinely need this, the user must run it manually." >&2
     exit 2
   fi
 done

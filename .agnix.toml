@@ -8,7 +8,6 @@ exclude = [
     ".git/**",
     # Local agent state (gitignored) — not part of the marketplace surface,
     # so agnix doesn't lint the local drops.
-    ".agent/**",
     ".claude/**",
     # Skill template payloads — inert files copied verbatim INTO a target
     # project (e.g. dw-bootstrap's settings.json / hooks / CLAUDE.local.md).

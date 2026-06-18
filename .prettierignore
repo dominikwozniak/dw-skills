@@ -1,6 +1,5 @@
 node_modules/
 pnpm-lock.yaml
-.agent/
 .claude/
 CLAUDE.local.md
 LICENSE
