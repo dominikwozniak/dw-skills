@@ -10,20 +10,23 @@
   "plugins": [
     {
       "name": "dw-misc",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "source": "./plugins/dw-misc",
       "keywords": [
         "bootstrap",
         "setup",
         "scaffold",
         "init",
+        "git",
+        "commit",
+        "pr",
         "handoff",
         "session",
         "context",
         "workflow"
       ],
       "category": "utilities",
-      "tags": ["bootstrap", "handoff", "session"]
+      "tags": ["bootstrap", "git", "handoff", "session"]
     },
     {
       "name": "dw-planning",

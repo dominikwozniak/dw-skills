@@ -53,7 +53,7 @@ Include:
 - **Current state** — what's been done, what's working, what's broken
 - **Open questions** — decisions the next agent needs to make or surface to the user
 - **Next steps** — ordered list of concrete actions to take next
-- **Suggested skills** — Claude Code skills the next agent should invoke (e.g., `dw-resume`, `dw-build`, `git-workflow`, `debugging-and-error-recovery`)
+- **Suggested skills** — Claude Code skills the next agent should invoke (e.g., `dw-resume`, `dw-build`, `dw-git`, `debugging-and-error-recovery`)
 - **Pointers** — references to existing artifacts (active run, specs, plans, ADRs, PRs, issues) by path or URL. Don't duplicate their content
 - **Gotchas / context** — non-obvious things the next agent needs to know (env quirks, dependency versions, recent failures, etc.)
 

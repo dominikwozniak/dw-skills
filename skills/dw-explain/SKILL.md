@@ -75,7 +75,7 @@ Never assume a framework or invent a runner. Discover in this order:
 3. **The code itself** — when neither declares it, infer from the code you can read.
 
 If a command can't be resolved, **state the assumption you're making** and ask when
-it's genuinely ambiguous — exactly like a fallback in `git-workflow`. Never guess a
+it's genuinely ambiguous — exactly like a fallback in `dw-git`. Never guess a
 command silently and never paper over the gap with a made-up one; an unresolved
 command makes its scenario an open question (section E), not a fabrication.
 

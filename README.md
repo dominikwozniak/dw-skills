@@ -78,6 +78,8 @@ never auto-fires).
 | [`dw-verify`](skills/dw-verify/SKILL.md)           | Run those scenarios and record PASS/FAIL + evidence                                                | "verify this change", "prove the fix works"         | `verify-run.md`                        |
 | [`dw-risk`](skills/dw-risk/SKILL.md)               | Assess blast radius, out-of-code impact, rollback                                                  | "what's the blast radius", "is this migration safe" | `risk.md`                              |
 | [`dw-prune`](skills/dw-prune/SKILL.md) `⭑`         | Trim redundant tests without dropping coverage                                                     | "prune tests", "remove redundant tests"             | keep/merge/delete plan (consent-gated) |
+| **Git**                                            |                                                                                                    |                                                     |                                        |
+| [`dw-git`](skills/dw-git/SKILL.md)                 | All git ops — commit / push / PR / sync / branch / stash, by your conventions                      | "commit", "push", "open PR", "sync with main"       | commits / PR per `CLAUDE.local.md`     |
 | **Handoff**                                        |                                                                                                    |                                                     |                                        |
 | [`dw-handoff`](skills/dw-handoff/SKILL.md) `⭑`     | Compact the session for the next agent                                                             | "session handoff", "handoff"                        | `.ai/handoffs/<ts>.md`                 |
 
@@ -91,8 +93,9 @@ closes the pipeline.
   spec→plan→build loop; artifacts under `.ai/runs/<id>/`.
 - **`dw-quality`** — `dw-review` · `dw-conform` · `dw-prune` · `dw-explain` · `dw-verify` ·
   `dw-risk`. A change-quality pipeline writing to `.ai/verify/<branch-slug>/`.
-- **`dw-misc`** — `dw-bootstrap` · `dw-handoff`, plus a bucket for future cross-cutting helpers.
-  `dw-bootstrap` scaffolds a repo for this whole loop (tracked `.ai/` + `.claude/`).
+- **`dw-misc`** — `dw-bootstrap` · `dw-git` · `dw-handoff`, plus a bucket for future cross-cutting
+  helpers. `dw-bootstrap` scaffolds a repo for this whole loop (tracked `.ai/` + `.claude/`); `dw-git`
+  runs git ops by your `CLAUDE.local.md` conventions.
 
 ## 🛠️ How it works
 
