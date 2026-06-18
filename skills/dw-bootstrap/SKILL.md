@@ -30,6 +30,7 @@ thrown away.
 | Path                                      | Tracked?           | Purpose                                                                 |
 | ----------------------------------------- | ------------------ | ----------------------------------------------------------------------- |
 | `.ai/runs/` `.ai/handoffs/` `.ai/verify/` | **tracked**        | memory the dw-\* skills read/write (`.gitkeep` seeds empty dirs)        |
+| `.ai/README.md`                           | **tracked**        | self-documents the `.ai/` layout for teammates + non-Claude tools       |
 | `.claude/settings.json`                   | **tracked**        | permissions ask-list + hook wiring (shared with the team)               |
 | `.claude/hooks/*.sh`                      | **tracked**        | guardrail scripts the committed settings reference                      |
 | `CLAUDE.local.md`                         | personal / ignored | your About-me, preferences, project specifics, git conventions          |
@@ -66,8 +67,8 @@ there first (step 1) and present a diff before writing (step 4).
 ### 2. Pick mode + features — `AskUserQuestion`
 
 - Mode **A skeleton** vs **B tuned**.
-- Features to write (default all): `.ai/` memory · `settings.json` + hooks ·
-  `CLAUDE.local.md` · `.gitignore` block.
+- Features to write (default all): `.ai/` memory (dirs + `README.md`) ·
+  `settings.json` + hooks · `CLAUDE.local.md` · `.gitignore` block.
 - Hooks, filtered by detected stack: `block-dangerous-git` (always),
   `block-non-pnpm` + `lint-on-edit` + `typecheck-on-stop` (JS/TS), `lint-on-edit-rb`
   (Ruby). On stacks with no lint/typecheck hook, offer `block-dangerous-git` alone
@@ -88,7 +89,8 @@ a wrong clobber is expensive. Do not write before the user confirms.
 
 ### 5. Write
 
-- `mkdir -p .ai/{runs,handoffs,verify}` and seed each with `.gitkeep`.
+- `mkdir -p .ai/{runs,handoffs,verify}` and seed each with `.gitkeep`. Copy
+  `references/templates/ai-README.md` → `.ai/README.md` (static — no substitution).
 - Copy `references/templates/settings.json` → `.claude/settings.json`; **prune**
   the hook entries the user didn't select, then confirm the file still parses as
   valid JSON.
@@ -125,6 +127,7 @@ scaffold.
 `references/templates/` holds the exact files to copy:
 
 - `CLAUDE.local.md` — the personal-memory template (placeholders + prompts).
+- `ai-README.md` — the static `.ai/` layout doc, copied verbatim to `.ai/README.md`.
 - `settings.json` — tracked permissions + hooks (prune unselected hooks).
 - `gitignore-block.txt` — the marker-fenced managed block.
 - `hooks/block-dangerous-git.sh` · `hooks/block-non-pnpm.sh` · `hooks/lint-on-edit.sh` ·

@@ -11,6 +11,9 @@ re-bootstrapping. So:
 
 - `.ai/` is **tracked** — `dw-spec` writes `.ai/runs/<id>/SPEC.md`, `dw-build`
   appends `NOTES.md`, `dw-handoff` writes `.ai/handoffs/<ts>.md`. All committed.
+  A tracked `.ai/README.md` documents the layout for teammates and non-Claude
+  tools — the loop's prose lives in the **ignored** `CLAUDE.local.md`, so without
+  it the contract would be invisible outside a tuned Claude session.
 - `.claude/settings.json` + `.claude/hooks/` are **tracked** — a committed
   `settings.json` that references hook scripts only works if the scripts are in
   the repo too.
@@ -79,6 +82,8 @@ dw-bootstrap is safe to run again on an already-bootstrapped repo:
   `>>> dw-bootstrap managed block >>>` / `<<< dw-bootstrap managed block <<<`.
   Replace the block in place; never append a second copy.
 - **`.ai/` dirs** — `mkdir -p`; never delete or overwrite existing run folders.
+- **`.ai/README.md`** — static; safe to refresh from the template. If the user has
+  customized it, show a diff and confirm before overwriting (as with `settings.json`).
 - **`settings.json` / hooks** — these are tracked; show a diff and confirm before
   overwriting a customized file. Prefer merging the user's edits over clobbering.
 - **`CLAUDE.local.md`** — if it already has real content, do **not** overwrite.
