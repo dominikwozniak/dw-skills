@@ -57,26 +57,31 @@ compose through the shared `.ai/` artifacts + a "Next:" pointer at the end of ea
 
 ## 🧭 Task router — which skill for which task
 
-A task may match several rows — read all that apply.
+A task may match several rows — read all that apply. `⭑` = explicit-invoke only: say its name (it
+never auto-fires).
 
-| Task                                                        | Skill                                      | What you get                           |
-| ----------------------------------------------------------- | ------------------------------------------ | -------------------------------------- |
-| **Spec & plan**                                             |                                            |                                        |
-| Start a feature; capture intent with an open-questions gate | [`dw-spec`](skills/dw-spec/SKILL.md)       | `SPEC.md` under `.ai/runs/`            |
-| Pick up after a `/clear`; find the first not-done step      | [`dw-resume`](skills/dw-resume/SKILL.md)   | read-only status report                |
-| Turn a ready spec into thin vertical slices                 | [`dw-plan`](skills/dw-plan/SKILL.md)       | `PLAN.md` status table                 |
-| **Build**                                                   |                                            |                                        |
-| Build the next slice: RED → GREEN → regression → commit     | [`dw-build`](skills/dw-build/SKILL.md)     | code + `done` row + SHA                |
-| Re-align the plan with the code after drift                 | [`dw-sync`](skills/dw-sync/SKILL.md)       | reconciled `PLAN.md` (consent-gated)   |
-| **Review & verify**                                         |                                            |                                        |
-| Multi-axis review of a diff (correctness/security/perf/…)   | [`dw-review`](skills/dw-review/SKILL.md)   | `review.md` + verdict                  |
-| Check a change against the repo's existing patterns         | [`dw-conform`](skills/dw-conform/SKILL.md) | `conform.md` drift report              |
-| Trim redundant tests without dropping coverage              | [`dw-prune`](skills/dw-prune/SKILL.md)     | keep/merge/delete plan (consent-gated) |
-| Explain a change + generate runnable verification scenarios | [`dw-explain`](skills/dw-explain/SKILL.md) | `explain.md` scenarios                 |
-| Run those scenarios and record PASS/FAIL + evidence         | [`dw-verify`](skills/dw-verify/SKILL.md)   | `verify-run.md`                        |
-| Assess blast radius, out-of-code impact, rollback           | [`dw-risk`](skills/dw-risk/SKILL.md)       | `risk.md`                              |
-| **Handoff**                                                 |                                            |                                        |
-| Compact the session for the next agent                      | [`dw-handoff`](skills/dw-handoff/SKILL.md) | `.ai/handoffs/<ts>.md`                 |
+| Skill                                          | Task                                                         | Say                                                 | What you get                           |
+| ---------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------- | -------------------------------------- |
+| **Spec & plan**                                |                                                              |                                                     |                                        |
+| [`dw-spec`](skills/dw-spec/SKILL.md)           | Start a feature; surface unknowns via an open-questions gate | "spec this out", "write a spec"                     | `SPEC.md` under `.ai/runs/`            |
+| [`dw-resume`](skills/dw-resume/SKILL.md)       | Pick up after a `/clear`; find the first not-done step       | "where were we", "resume"                           | read-only status report                |
+| [`dw-plan`](skills/dw-plan/SKILL.md)           | Turn a ready spec into thin vertical slices                  | "plan this", "break this into tasks"                | `PLAN.md` status table                 |
+| **Build**                                      |                                                              |                                                     |                                        |
+| [`dw-build`](skills/dw-build/SKILL.md)         | Build the next slice: RED → GREEN → regression → commit      | "build the next step", "implement the plan"         | code + `done` row + SHA                |
+| [`dw-sync`](skills/dw-sync/SKILL.md) `⭑`       | Re-align the plan with the code after drift                  | "sync the plan", "reconcile plan with commits"      | reconciled `PLAN.md` (consent-gated)   |
+| **Review & verify**                            |                                                              |                                                     |                                        |
+| [`dw-review`](skills/dw-review/SKILL.md)       | Multi-axis review of a diff (correctness/security/perf/…)    | "review my PR", "code review"                       | `review.md` + verdict                  |
+| [`dw-conform`](skills/dw-conform/SKILL.md)     | Check a change against the repo's existing patterns          | "does this match our patterns", "check for drift"   | `conform.md` drift report              |
+| [`dw-explain`](skills/dw-explain/SKILL.md)     | Explain a change + generate runnable verification scenarios  | "explain this change", "how do I prove this works"  | `explain.md` scenarios                 |
+| [`dw-verify`](skills/dw-verify/SKILL.md)       | Run those scenarios and record PASS/FAIL + evidence          | "verify this change", "prove the fix works"         | `verify-run.md`                        |
+| [`dw-risk`](skills/dw-risk/SKILL.md)           | Assess blast radius, out-of-code impact, rollback            | "what's the blast radius", "is this migration safe" | `risk.md`                              |
+| [`dw-prune`](skills/dw-prune/SKILL.md) `⭑`     | Trim redundant tests without dropping coverage               | "prune tests", "remove redundant tests"             | keep/merge/delete plan (consent-gated) |
+| **Handoff**                                    |                                                              |                                                     |                                        |
+| [`dw-handoff`](skills/dw-handoff/SKILL.md) `⭑` | Compact the session for the next agent                       | "session handoff", "handoff"                        | `.ai/handoffs/<ts>.md`                 |
+
+Within Review & verify: `dw-explain → dw-verify` is a chain (verify runs explain's scenarios);
+`dw-review` and `dw-conform` are independent axes; `dw-risk` reads whatever neighbours exist and
+closes the pipeline.
 
 ## 📦 Plugins (install what you need)
 
