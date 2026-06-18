@@ -3,6 +3,7 @@
 # Reads tool_input.command from stdin (Claude Code hook protocol).
 # Exit 2 + stderr message causes Claude to see the block and self-correct.
 # Allows: pnpm, pnpm dlx, npx (npx ≠ npm install).
+# JS/TS projects only — skip this hook when bootstrapping a non-Node stack.
 
 set -uo pipefail
 
@@ -26,7 +27,7 @@ NORMALIZED="${COMMAND#sudo }"
 
 for pattern in "${BLOCKED_PATTERNS[@]}"; do
   if echo "$NORMALIZED" | grep -qE "$pattern"; then
-    echo "BLOCKED: '$COMMAND' uses npm/yarn/bun. claude-kit enforces pnpm. Use 'pnpm install', 'pnpm add <pkg>', 'pnpm dlx <cmd>', or 'npx <cmd>' (npx is fine — it's not npm install)." >&2
+    echo "BLOCKED: '$COMMAND' uses npm/yarn/bun. dw-bootstrap enforces pnpm. Use 'pnpm install', 'pnpm add <pkg>', 'pnpm dlx <cmd>', or 'npx <cmd>' (npx is fine — it's not npm install)." >&2
     exit 2
   fi
 done
