@@ -6,11 +6,10 @@ description: >-
   a cleaned `.gitignore` — wired to the `dw-spec → dw-plan → dw-build` loop. Two
   modes: a blank **skeleton** from templates, or a **tuned** setup that
   interviews you and fills `CLAUDE.local.md` to the project and your preferences.
-  Use when setting up a new repo for Claude Code, standardizing an existing one,
-  or migrating off claude-kit / addy-osmani's `.agent/` convention. Trigger
-  phrases: "set up this project", "bootstrap claude", "scaffold the agent files",
-  "dw-bootstrap". Prefer this over hand-writing CLAUDE.md/settings/hooks or
-  cloning a separate starter kit.
+  Use when setting up a new repo for Claude Code or standardizing an existing
+  one. Trigger phrases: "set up this project", "bootstrap claude", "scaffold the
+  agent files", "dw-bootstrap". Prefer this over hand-writing
+  CLAUDE.md/settings/hooks or cloning a separate starter kit.
 argument-hint: "skeleton | tuned — and any project context to seed"
 disable-model-invocation: true
 ---
@@ -22,10 +21,9 @@ the `dw-planning` / `dw-quality` skills read and write, a committed
 `settings.json` with guardrail hooks, a personal `CLAUDE.local.md`, and a
 `.gitignore` that knows which of those is shared and which is yours.
 
-This supersedes the claude-kit / addy-osmani arrangement (`.agent/` +
-`/spec /plan /build`, everything gitignored). The shift is deliberate: dw-\*
-treats agent infra as **real work** — specs, plans, handoffs, and guardrails are
-committed and travel with the repo, not thrown away.
+The stance is deliberate: dw-\* treats agent infra as **real work** — specs,
+plans, handoffs, and guardrails are committed and travel with the repo, not
+thrown away.
 
 ## What it writes
 
@@ -62,9 +60,8 @@ there first (step 1) and present a diff before writing (step 4).
   `Cargo.toml`, `pyproject.toml`, `go.mod`, `Makefile`. Read the real test / lint
   / typecheck commands; don't invent them.
 - Read what already exists — `CLAUDE.md`, `CLAUDE.local.md`, `.claude/settings*`,
-  `.gitignore`. **Flag the migration case**: a present `.agent/` dir or
-  `claude-kit` markers mean this repo is on the old convention (see
-  `references/bootstrap.md` → _Migrating off claude-kit_).
+  `.gitignore` — so step 4 diffs against reality and step 6 doesn't clobber or
+  double-write a managed block. Don't assume a greenfield tree.
 
 ### 2. Pick mode + features — `AskUserQuestion`
 
@@ -111,12 +108,8 @@ a wrong clobber is expensive. Do not write before the user confirms.
 The split is the whole point — enforce it after writing:
 
 - Ensure `.ai/`, `.claude/settings.json`, `.claude/hooks/` are **not** ignored. If
-  an old rule ignores them (claude-kit ignored all of these), remove it.
+  a pre-existing rule ignores any of them, remove it.
 - Ensure `CLAUDE.local.md` and `.claude/settings.local.json` **are** ignored.
-- **Migration (consent-gated):** if `.agent/` exists, offer to `git mv` its
-  contents into `.ai/` and rewrite loop references (`/spec /plan /build` →
-  `dw-spec / dw-plan / dw-build`, `.agent/` → `.ai/`) across `CLAUDE.md` /
-  `CLAUDE.local.md`. Show the plan; don't move anything without a yes.
 
 ### 7. Report + hand off
 
@@ -140,6 +133,5 @@ scaffold.
 ## References
 
 - `references/bootstrap.md` — the interview question bank, the tracked-vs-ignored
-  rationale, the stack→hooks table, idempotent re-run rules, and the
-  migrating-off-claude-kit procedure. Read it before running Mode B or any
-  migration.
+  rationale, the stack→hooks table, and idempotent re-run rules. Read it before
+  running Mode B.

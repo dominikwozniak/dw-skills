@@ -1,15 +1,13 @@
 # dw-bootstrap — procedure detail
 
-Read this before running **tuned** mode or any migration. The SKILL body is the
-spine; this fills in the parts that don't belong in the discovery surface.
+Read this before running **tuned** mode. The SKILL body is the spine; this fills
+in the parts that don't belong in the discovery surface.
 
 ## Why tracked, not throwaway
 
-claude-kit (and the addy-osmani convention it wires) gitignores everything the
-agent produces: `.agent/`, `settings.local.json`, `.claude/hooks/`. dw-\* inverts
-that. Specs, plans, handoffs, and the guardrail hooks are **shared work** — a
-teammate or a fresh session should get the same loop and the same guardrails
-without re-bootstrapping. So:
+Specs, plans, handoffs, and the guardrail hooks are **shared work** — a teammate
+or a fresh session should get the same loop and the same guardrails without
+re-bootstrapping. So:
 
 - `.ai/` is **tracked** — `dw-spec` writes `.ai/runs/<id>/SPEC.md`, `dw-build`
   appends `NOTES.md`, `dw-handoff` writes `.ai/handoffs/<ts>.md`. All committed.
@@ -85,24 +83,3 @@ dw-bootstrap is safe to run again on an already-bootstrapped repo:
   overwriting a customized file. Prefer merging the user's edits over clobbering.
 - **`CLAUDE.local.md`** — if it already has real content, do **not** overwrite.
   Offer to merge missing sections (e.g. add a `## Hooks installed` block) instead.
-
-## Migrating off claude-kit
-
-Signals: a `.agent/` directory, a `settings.local.json` carrying the hooks, or
-`/spec → /plan → /build` references in `CLAUDE.md` / `CLAUDE.local.md`.
-
-Consent-gated steps — present the plan, write nothing without a yes:
-
-1. **Memory dir** — `git mv .agent/<...> .ai/<...>` (or move + re-add). Map
-   `.agent/handoffs/` → `.ai/handoffs/`. Preserve content.
-2. **Settings** — move `settings.local.json` → `settings.json` (tracked); keep a
-   `settings.local.json` only for genuinely personal overrides.
-3. **Hooks** — move `.claude/hooks/` out of the ignore list so the tracked
-   settings resolve for everyone.
-4. **`.gitignore`** — drop the rules that ignored `/.agent/`, `settings.local.json`
-   (for the shared parts), and `/.claude/hooks/`; install the managed block.
-5. **Loop references** — rewrite `/spec /plan /build` → `dw-spec / dw-plan /
-dw-build`, `.agent/` → `.ai/`, and the addyosmani/agent-skills link → the
-   dw-\* skills, across `CLAUDE.md` and `CLAUDE.local.md`.
-6. **Cross-check** — update any `## Hooks installed` / workflow lines so the file
-   still matches reality (stale lines silently break the lint/typecheck flow).
