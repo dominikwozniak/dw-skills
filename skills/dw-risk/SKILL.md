@@ -192,7 +192,10 @@ Tell the user where the artifact landed and **close the loop** — `dw-risk` is 
 of the `dw-quality` pipeline (`… → dw-verify → dw-risk → ship`), so there is no "next skill":
 
 > `risk.md` saved to `.ai/verify/<branch-slug>/` — this closes the `dw-quality` pass. Review the
-> blast radius, the out-of-code items, and the rollback before you merge or deploy.
+> blast radius, the out-of-code items, and the rollback before you merge or deploy. If the assessment
+> surfaced an **in-code** must-fix (a missing down-migration, an unsafe default), `dw-fix` can address
+> it — then re-verify. The out-of-code items (migrations, flags, rollback) are yours to action at
+> deploy; `dw-fix` won't run them.
 
 If any section came out `NOT VERIFIED`, name it and say it's the one thing to resolve by hand
 before shipping.

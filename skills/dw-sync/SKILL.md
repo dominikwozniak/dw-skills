@@ -155,8 +155,8 @@ asked.
 Report what changed: rows flipped (id + SHA), rows appended, rows flagged `blocked`, and
 anything left as proposed-only. Then point forward:
 
-> **Next:** `dw-resume` to see the refreshed resume point, `dw-build` to build the next
-> not-done step, or open a PR if every row is now `done`.
+> **Next:** `dw-build` to build the next not-done step, or open a PR if every row is now
+> `done`. After a `/clear`, `dw-resume` shows the refreshed resume point.
 
 ## The PLAN.md and NOTES.md shapes
 

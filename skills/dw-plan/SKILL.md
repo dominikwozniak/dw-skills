@@ -119,8 +119,8 @@ Commit cell. Write nothing else — no code, no other files.
 
 End with a one-line pointer so the next move is obvious:
 
-> **Next:** `dw-build` to build the first not-done step, or `dw-resume` to see
-> where work stands.
+> **Next:** `dw-build` to build the first not-done step (or `dw-build auto` to build the
+> whole plan). After a `/clear`, `dw-resume` re-orients.
 
 ## The PLAN shape
 

@@ -190,8 +190,10 @@ row; mark clean axes "— none —".
 Tell the user where the artifact landed and what the verdict is, then point forward — a pointer, not
 a dependency:
 
-> `review.md` saved to `.ai/verify/<branch-slug>/` — verdict: **`<verdict>`**. **Next:** address the
-> findings, then consider `dw-conform` to check the change against its existing siblings.
+> `review.md` saved to `.ai/verify/<branch-slug>/` — verdict: **`<verdict>`**. **Next:** `dw-fix` to
+> address the findings — if the verdict is `request-changes`, fix the blockers first (`dw-fix blockers`)
+> and re-run `dw-review` until it's clean. Then `dw-conform` checks the change against its existing
+> siblings.
 
 Lead with the must-fix items (the critical / high findings) so the author knows the one thing to do
 first.

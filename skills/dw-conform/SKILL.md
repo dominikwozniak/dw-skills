@@ -192,8 +192,8 @@ change "— none —"; list first-of-their-kind areas under _No-precedent notes_
 Tell the user where the artifact landed and what the verdict is, then point forward — a pointer, not
 a dependency:
 
-> `conform.md` saved to `.ai/verify/<branch-slug>/` — verdict: **`<verdict>`**. **Next:** address the
-> drift, then consider `dw-explain` to explain the change and generate verification scenarios.
+> `conform.md` saved to `.ai/verify/<branch-slug>/` — verdict: **`<verdict>`**. **Next:** `dw-fix` to
+> address the drift, then `dw-explain` to explain the change and generate verification scenarios.
 
 Lead with the significant (high) drifts so the author knows what to align first.
 

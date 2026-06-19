@@ -144,8 +144,10 @@ as `dw-verify`'s mutation guard.)
 After the step (or after `auto` finishes / a guard trips), report which step landed
 (id + short SHA), what the verify showed, and the regression result. Then:
 
-> **Next:** `dw-resume` to see the next resume point, `dw-verify` to prove the change
-> works, or `dw-sync` if the plan has drifted from the code.
+> **Next:** `dw-build` for the next step — or `dw-build auto` to finish the remaining steps
+> unattended (it still stops before anything irreversible). `dw-verify` proves the change
+> works; `dw-sync` if the plan has drifted. After a `/clear` or if you've lost the thread,
+> `dw-resume` re-orients.
 
 ## The PLAN.md and NOTES.md shapes
 
