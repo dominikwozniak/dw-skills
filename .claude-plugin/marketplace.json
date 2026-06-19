@@ -46,7 +46,7 @@
     },
     {
       "name": "dw-quality",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "source": "./plugins/dw-quality",
       "keywords": [
         "explain",

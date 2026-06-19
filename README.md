@@ -58,7 +58,8 @@ chained").
 ### Acting on findings
 
 `/dw-fix` is the one writer in the loop — it applies the `dw-review` / `dw-conform` / `dw-risk`
-findings the auditors record (blockers first, one commit per fix), then you re-audit to confirm.
+findings the auditors record (blockers first, one commit per fix), then you re-audit to confirm —
+required after blockers, optional after a medium/low-only pass.
 
 ### Anytime
 
@@ -108,7 +109,8 @@ never auto-fires).
 Within Review & verify: `dw-explain → dw-verify` is a chain (verify runs explain's scenarios);
 `dw-review` and `dw-conform` are independent axes; `dw-prune` trims redundant tests on explicit
 consent; `dw-risk` reads whatever neighbours exist and closes the pipeline. `dw-fix` is the one
-writer — it applies the findings the auditors record (blockers first), then you re-audit to confirm.
+writer — it applies the findings the auditors record (blockers first), then you re-audit to confirm
+(required after blockers, optional after a medium/low-only pass).
 
 ## 📦 Plugins (install what you need)
 

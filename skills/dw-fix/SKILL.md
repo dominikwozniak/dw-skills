@@ -125,7 +125,10 @@ step is a proposal to confirm, not a licence to run it. (Same guard as `dw-build
 
 `dw-fix` writes; it never issues a verdict. Confirming that the verdict flipped clean is the
 **auditor's** job — re-running it on the fixed code is what keeps diagnosis and treatment separate.
-So `dw-fix` finishes by pointing back to the read-only pass, never by declaring the change approved.
+When the worklist held a blocker (critical / high), that re-audit is the load-bearing confirm and
+`dw-fix` points back to it; when the worklist was **medium / low only**, re-review is available but
+optional — `dw-fix` may point straight to `dw-explain` → `dw-verify`. Either way it never declares the
+change approved itself.
 
 ### 8. Write fix.md and point forward
 
@@ -137,11 +140,21 @@ anything left unfixed, each with a reason. Then point forward:
   > `fix.md` saved to `.ai/verify/<branch-slug>/` — `n` blocker(s) fixed. **Next:** re-run `dw-review`
   > (or `dw-conform`) to confirm the verdict is clean, then continue the quality pass.
 
-- After the **full pass**:
+- After the **full pass** — branch on what the worklist held:
 
-  > `fix.md` saved to `.ai/verify/<branch-slug>/` — `n` fixed · `n` deferred. **Next:** re-run the
-  > audits you fixed from to confirm they're clean, then `dw-explain` → `dw-verify` to prove the change
-  > still runs.
+  - **Any critical / high fixed** (the audit was `request-changes` / `drifts`): the verdict is still
+    unconfirmed, and re-running the auditor is what flips it clean. Point back:
+
+    > `fix.md` saved to `.ai/verify/<branch-slug>/` — `n` fixed · `n` deferred. **Next:** re-run the
+    > audits you fixed from to confirm the verdict flips clean, then `dw-explain` → `dw-verify` to prove
+    > the change still runs.
+
+  - **Medium / low only** (the audit was `approve-with-comments` — no blocker was ever in play): a
+    fresh full re-review is optional, not a gate. Point forward:
+
+    > `fix.md` saved to `.ai/verify/<branch-slug>/` — `n` fixed · `n` deferred. **Next:** `dw-explain` →
+    > `dw-verify` to prove the change still runs. Re-run `dw-review` only if you want a fresh verdict on
+    > the lower-severity fixes.
 
 ## The fix.md shape
 

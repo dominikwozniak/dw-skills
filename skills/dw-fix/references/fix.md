@@ -37,5 +37,6 @@ author must confirm). "— none —" if everything was applied.
 
 ## Next
 
-[After `blockers`: re-run `dw-review` / `dw-conform` to confirm the verdict is clean. After a full
-pass: re-run the audits these came from, then `dw-explain` → `dw-verify`.]
+[After `blockers`, or a full pass that fixed any critical / high: re-run the audits these came from to
+confirm the verdict flips clean, then `dw-explain` → `dw-verify`. After a medium/low-only pass:
+`dw-explain` → `dw-verify`; re-run `dw-review` only for a fresh verdict.]
