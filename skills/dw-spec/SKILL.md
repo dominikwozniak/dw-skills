@@ -24,13 +24,17 @@ then capture the agreed shape of the work.
 Write to `.ai/runs/<id>/SPEC.md`. `.ai/` is tracked in git — specs are real work
 documentation, committed alongside the code (not throwaway, not gitignored).
 
-Run id = `<YYYYMMDD>-<ticket-or-slug>` (e.g. `20260616-ABC-123-password-reset`):
+Run id = `<YYYYMMDD>-<ticket-or-slug>` (e.g. `20260616-abc-123-password-reset`):
 
 1. Date: `date +%Y%m%d` (local time).
 2. Branch: `git rev-parse --abbrev-ref HEAD` — record it in frontmatter so
    `dw-resume` and `dw-handoff` can match this run to the branch later.
 3. Ticket/slug: take the ticket from the branch name if it encodes one (e.g.
-   `ABC-123-...`); otherwise kebab-case the feature title.
+   `ABC-123-...`), **lowercased for the folder name** (`abc-123`); otherwise
+   kebab-case the feature title. The lowercased slug matches the
+   `.ai/verify/<branch-slug>/` folder, so a run and its quality artifacts
+   correlate at a glance — commit / PR subjects still use the uppercase
+   `[ABC-123]` from your git conventions.
 4. Collision: glob `.ai/runs/*/`. If a run for this branch or ticket already
    exists, **continue it — do not clobber an existing SPEC.** Only create a new
    folder for a genuinely new unit of work. When unsure, ask.
