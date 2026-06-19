@@ -40,23 +40,36 @@ Then start a feature: `/dw-spec`. Resume after a `/clear`: `/dw-resume`.
 
 ## 🔁 The workflow
 
+### The core loop
+
 ```
   SPEC         PLAN         BUILD                   REVIEW · VERIFY           SHIP
   /dw-spec  →  /dw-plan  →  /dw-build       →       /dw-review  /dw-explain → (open PR — your own tooling)
                           ↺ /dw-resume (pick up)    /dw-conform /dw-verify
                             /dw-sync (fix drift)    /dw-prune   /dw-risk
   └────────────── .ai/runs/<id>/ ──────────────┘    └─ .ai/verify/<branch-slug>/ ─┘
-
-  /dw-fix — apply the review / conform / risk findings (the one writer; blockers first), then re-audit.
-  Setup: /dw-bootstrap (scaffold a repo) · /dw-doctor (env health check) · /dw-setup-precommit (wire git pre-commit hooks)
-  /dw-git — commit / push / PR by your conventions, at any point.
-  /dw-handoff — compact context for the next agent, at any point.
 ```
 
 `<branch-slug>` = the current branch slugified, e.g. `ABC-123/password-reset` →
 `abc-123-password-reset`. SHIP — deciding when to open the PR, plus the deploy/CI that follows — is
 intentionally outside this toolkit (see [`docs/DESIGN.md`](docs/DESIGN.md), "Composable, not
-chained"); `dw-git` runs the git mechanics (commit / push / PR) by your conventions when you ask.
+chained").
+
+### Acting on findings
+
+`/dw-fix` is the one writer in the loop — it applies the `dw-review` / `dw-conform` / `dw-risk`
+findings the auditors record (blockers first, one commit per fix), then you re-audit to confirm.
+
+### Anytime
+
+- `/dw-git` — commit / push / PR / sync / branch / stash, by your `CLAUDE.local.md` conventions.
+- `/dw-handoff` — compact the session context for the next agent.
+
+### Setup (once per repo)
+
+- `/dw-bootstrap` — scaffold a repo for this loop (tracked `.ai/` + `.claude/`).
+- `/dw-doctor` — read-only health check of the tools and hooks the loop assumes.
+- `/dw-setup-precommit` — wire git-level husky + lint-staged pre-commit hooks.
 
 A recommendation, not a rail: every skill stands alone and is invoked when you need it. They
 compose through the shared `.ai/` artifacts + a "Next:" pointer at the end of each skill.
