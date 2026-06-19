@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "dw-misc",
-      "version": "0.3.4",
+      "version": "0.3.5",
       "source": "./plugins/dw-misc",
       "keywords": [
         "bootstrap",
@@ -27,7 +27,11 @@
         "doctor",
         "diagnose",
         "health",
-        "env"
+        "env",
+        "precommit",
+        "husky",
+        "lint-staged",
+        "hooks"
       ],
       "category": "utilities",
       "tags": ["bootstrap", "git", "handoff", "session", "doctor"]
