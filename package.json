@@ -9,10 +9,13 @@
     "lint:fix": "agnix --fix .",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "validate:manifests": "scripts/validate-manifests.sh"
+    "validate:manifests": "scripts/validate-manifests.sh",
+    "prepare": "husky"
   },
   "devDependencies": {
     "agnix": "^0.33.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
     "prettier": "^3.4.0"
   },
   "engines": {
