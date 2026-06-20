@@ -8,16 +8,23 @@ code project.
 - **`skills/`** — canonical home for every skill. Flat: `skills/<name>/SKILL.md`. Edit skills HERE,
   never via the symlink under `plugins/`.
 - **`plugins/`** — Claude Code plugins exposed via `.claude-plugin/marketplace.json`. Each plugin's
-  `skills/<name>` is a **git-tracked symlink** (mode 120000) → `../../../skills/<name>`, plus
-  `plugins/<name>/.claude-plugin/plugin.json`. A script **shared by more than one skill in the same
-  plugin** lives once under `plugins/<name>/scripts/` (a real file, not a symlink) and is invoked
-  from skill bodies as `${CLAUDE_PLUGIN_ROOT}/scripts/<script>.sh` — the env var Claude Code
-  substitutes to the installed plugin's dir. (A script used by **one** skill stays bundled in that
-  skill: `skills/<name>/scripts/` invoked via `<this-skill-dir>/…`, e.g. `dw-doctor`.) Installs copy
-  the plugin into the plugin cache (outside the repo tree), so a skill can't reach a sibling skill's
-  dir by relative path — hence the plugin-level home for shared scripts.
-- **`scripts/`** — repo CI/validation tooling only (e.g. `validate-manifests.sh`, backing
-  `pnpm validate:manifests`) — not skill runtime assets.
+  `skills/<name>` and its shipped `scripts/<script>.sh` are **git-tracked symlinks** (mode 120000) →
+  the repo-root canon — `../../../skills/<name>` and `../../../scripts/runtime/<script>.sh` — plus
+  `plugins/<name>/.claude-plugin/plugin.json`. `claude plugin install` **dereferences** these
+  symlinks: each plugin gets its own real copy in the plugin cache (verified — the installed cache
+  contains 0 symlinks), so a script is invoked from skill bodies via the unchanged
+  `${CLAUDE_PLUGIN_ROOT}/scripts/<script>.sh`. Because install dereferences, one canonical script
+  can be symlinked into several plugins (e.g. `slugify.sh` into both `dw-planning` and `dw-quality`)
+  with no duplication. (A script used by **one** skill instead stays bundled in that skill:
+  `skills/<name>/scripts/` invoked via `<this-skill-dir>/…`, e.g. `dw-doctor`.)
+- **`scripts/`** — repo home for shell scripts, split by purpose:
+  - **`scripts/runtime/`** — canonical home for every **plugin-level shipped** script (invoked at
+    runtime via `${CLAUDE_PLUGIN_ROOT}/scripts/`, e.g. `slugify.sh`, `plan-status.sh`); symlinked
+    into each consuming `plugins/<name>/scripts/`.
+  - **`scripts/`** (top level) — repo CI/validation tooling, never shipped (e.g.
+    `validate-manifests.sh` / `validate-artifacts.sh` backing `pnpm validate:*`, `lint.sh`).
+  - **`scripts/tests/`** — bash self-tests for the runtime scripts (`<script>.sh` ↔
+    `<script>.test.sh`), run via `pnpm validate:artifacts`.
 - **`.claude-plugin/marketplace.json`** — makes this repo installable as a Claude Code plugin
   source.
 
@@ -49,6 +56,21 @@ code project.
 6. `pnpm lint && pnpm format && pnpm validate:manifests`.
 
 Copy an existing skill (e.g. `dw-handoff`) as a starting point.
+
+## When adding a plugin-level (shared) script
+
+1. Put the real file once under `scripts/runtime/<script>.sh` (`chmod +x`).
+2. For each plugin that ships it:
+   `ln -s ../../../scripts/runtime/<script>.sh plugins/<plugin>/scripts/<script>.sh` AND
+   `git add` the symlink (must be mode 120000, like the skill symlinks).
+3. Invoke it from skill bodies as `${CLAUDE_PLUGIN_ROOT}/scripts/<script>.sh` — install
+   dereferences the symlink to a real file in the plugin cache, so the path resolves.
+4. Add the basename to the `RUNTIME_SCRIPTS` list in `scripts/validate-manifests.sh`, and — where
+   it has testable logic — a `scripts/tests/<script>.test.sh` (anchored to the repo root via
+   `git rev-parse --show-toplevel`, like `validate-ai-artifacts.test.sh`).
+
+A script used by only **one** skill stays bundled in that skill's `scripts/` dir instead (invoked
+via `<this-skill-dir>/…`), e.g. `dw-doctor` — no canon/symlink needed.
 
 ## CI
 
