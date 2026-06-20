@@ -37,7 +37,8 @@ standard — is one you actively avoid. A change can't be the convention for its
 Write to `.ai/verify/<branch-slug>/conform.md`. `.ai/` is tracked in git — a conformance check is
 real work documentation, committed alongside the code.
 
-- Branch: `git rev-parse --abbrev-ref HEAD`. Slugify it for the folder name
+- Branch slug for the folder name —
+  `bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
   (e.g. `ABC-123/password-reset` → `abc-123-password-reset`) — the **same slug** the rest of
   `dw-quality` uses, so your `conform.md` lands beside its siblings.
 - `mkdir -p .ai/verify/<branch-slug>` before writing.
