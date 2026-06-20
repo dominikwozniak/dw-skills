@@ -150,10 +150,10 @@ validate_plan() {
     }
   ' "$plan")
   if [ -n "$table_errs" ]; then
-    # process substitution keeps the loop in this shell (a pipe would lose FAILED)
+    # here-string keeps the loop in this shell (a pipe would lose FAILED)
     while IFS= read -r line; do
-      [ -n "$line" ] && fail "$plan: $line"
-    done < <(printf '%s\n' "$table_errs")
+      fail "$plan: $line"
+    done <<<"$table_errs"
   fi
 
   # Frontmatter status must equal the table-derived status (reuse the deriver).
