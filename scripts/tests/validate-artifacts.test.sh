@@ -34,12 +34,11 @@ mk_run() {
   echo "$d"
 }
 
-# expect_pass <name> <spec> [plan] — discovers ≥1 artifact AND exits 0.
+# _assert_pass <name> <dir> — validator discovers ≥1 artifact AND exits 0.
 # The ^OK grep is the non-vacuous guard: --all exits 0 on an empty sweep, so a
 # builder typo that discovers nothing must fail here loudly, not pass silently.
-expect_pass() {
-  d="$(mk_run "$@")"
-  out="$("$VALIDATOR" --all "$d" 2>&1)"
+_assert_pass() {
+  out="$("$VALIDATOR" --all "$2" 2>&1)"
   rc=$?
   if [ "$rc" -eq 0 ] && printf '%s\n' "$out" | grep -q '^OK'; then
     note_pass "$1"
@@ -48,15 +47,18 @@ expect_pass() {
   fi
 }
 
-# expect_fail <name> <spec> [plan] — must exit non-zero.
-expect_fail() {
-  d="$(mk_run "$@")"
-  if "$VALIDATOR" --all "$d" >/dev/null 2>&1; then
+# _assert_fail <name> <dir> — validator must exit non-zero.
+_assert_fail() {
+  if "$VALIDATOR" --all "$2" >/dev/null 2>&1; then
     note_fail "$1" "expected rejection but it passed"
   else
     note_pass "$1"
   fi
 }
+
+# expect_{pass,fail} <name> <spec> [plan] — run-dir cases (SPEC required, PLAN optional).
+expect_pass() { _assert_pass "$1" "$(mk_run "$@")"; }
+expect_fail() { _assert_fail "$1" "$(mk_run "$@")"; }
 
 # expect_verify_{pass,fail} <name> <slug> <branch> — .ai/verify/<slug>/ slug check.
 mk_verify() {
@@ -65,24 +67,8 @@ mk_verify() {
   printf '%s\n' "$(good_review "$3")" >"$d/.ai/verify/$2/review.md"
   echo "$d"
 }
-expect_verify_pass() {
-  d="$(mk_verify "$@")"
-  out="$("$VALIDATOR" --all "$d" 2>&1)"
-  rc=$?
-  if [ "$rc" -eq 0 ] && printf '%s\n' "$out" | grep -q '^OK'; then
-    note_pass "$1"
-  else
-    note_fail "$1" "expected pass (exit $rc)"
-  fi
-}
-expect_verify_fail() {
-  d="$(mk_verify "$@")"
-  if "$VALIDATOR" --all "$d" >/dev/null 2>&1; then
-    note_fail "$1" "expected rejection but it passed"
-  else
-    note_pass "$1"
-  fi
-}
+expect_verify_pass() { _assert_pass "$1" "$(mk_verify "$@")"; }
+expect_verify_fail() { _assert_fail "$1" "$(mk_verify "$@")"; }
 
 # --- cases --------------------------------------------------------------------
 echo "good (expect pass):"
