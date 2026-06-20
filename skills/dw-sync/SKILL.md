@@ -75,10 +75,13 @@ flip — it stays as it is, or it's flagged for the user, never invented.
 
 ### 1. Find the run (branch-matched, no index)
 
-Resolve the run exactly as `dw-build` and `dw-resume` do. If `$ARGUMENTS` names a run id,
-use that run. Otherwise get the branch (`git rev-parse --abbrev-ref HEAD`), glob
-`.ai/runs/*/`, and read each run's frontmatter `branch:` (from `PLAN.md`, else `SPEC.md`).
-Resolve in order, stop at the first that applies:
+If `$ARGUMENTS` names a run id, use that run. Otherwise resolve it with
+`bash "${CLAUDE_PLUGIN_ROOT}/scripts/find-active-run.sh"` — it matches the current
+git branch against each run's `SPEC.md` `branch:` field, prints the run directory
+(newest wins when several match), and exits non-zero when none does.
+`${CLAUDE_PLUGIN_ROOT}` is the env var Claude Code substitutes to this plugin's
+install dir; the script ships with the plugin, not the project repo. Interpret its
+result, stop at the first that applies:
 
 1. **No `.ai/runs/` directory, or no run for this branch** → there's nothing to sync. If a
    `SPEC.md` exists but no `PLAN.md`, point to `dw-plan`; if neither, point to `dw-spec`.

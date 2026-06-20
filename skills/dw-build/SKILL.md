@@ -44,9 +44,13 @@ short SHA that landed it.
 
 ### 1. Find the run (branch-matched, no index)
 
-Get the current branch: `git rev-parse --abbrev-ref HEAD`. Glob `.ai/runs/*/` and read
-each run's frontmatter `branch:` (from `PLAN.md`, else `SPEC.md`) — the same match
-`dw-resume` and `dw-plan` use. Resolve in order, stop at the first that applies:
+Resolve the run with `bash "${CLAUDE_PLUGIN_ROOT}/scripts/find-active-run.sh" --step`
+— it matches the current git branch against each run's `SPEC.md` `branch:` field,
+prints the run directory (newest wins when several match), and with `--step` also
+prints the first PLAN row whose Status ≠ `done` (the step to build). It exits
+non-zero when no run matches. `${CLAUDE_PLUGIN_ROOT}` is the env var Claude Code
+substitutes to this plugin's install dir; the script ships with the plugin, not the
+project repo. Interpret its result, stop at the first that applies:
 
 1. **No `.ai/runs/` directory, or no run for this branch** → there's nothing to build
    yet. If a `SPEC.md` exists but no `PLAN.md`, point to `dw-plan`; if there's no spec

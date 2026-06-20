@@ -24,24 +24,27 @@ then capture the agreed shape of the work.
 Write to `.ai/runs/<id>/SPEC.md`. `.ai/` is tracked in git — specs are real work
 documentation, committed alongside the code (not throwaway, not gitignored).
 
-Run id = `<YYYYMMDD>-<ticket-or-slug>` (e.g. `20260616-abc-123-password-reset`):
+The run folder and the `SPEC.md` frontmatter are **created by a script**, so the id
+and frontmatter are derived one way every time — the bug that motivated this was
+`.ai/runs/<…-ABC-123-…>` (uppercase) drifting from the lowercase
+`.ai/verify/<abc-123-…>`.
 
-1. Date: `date +%Y%m%d` (local time).
-2. Branch: `git rev-parse --abbrev-ref HEAD` — record it in frontmatter so
-   `dw-resume` and `dw-handoff` can match this run to the branch later.
-3. Ticket/slug: take the ticket from the branch name if it encodes one (e.g.
-   `ABC-123-...`), **lowercased for the folder name** (`abc-123`); otherwise
-   kebab-case the feature title. The lowercased slug matches the
-   `.ai/verify/<branch-slug>/` folder, so a run and its quality artifacts
-   correlate at a glance — commit / PR subjects still use the uppercase
-   `[ABC-123]` from your git conventions.
-4. Collision: glob `.ai/runs/*/`. If a run for this branch or ticket already
-   exists, **continue it — do not clobber an existing SPEC.** Only create a new
-   folder for a genuinely new unit of work. When unsure, ask.
+1. **Don't clobber an existing run.** Check whether this branch already has one:
+   `bash "${CLAUDE_PLUGIN_ROOT}/scripts/find-active-run.sh"`. If it prints a run
+   directory, **continue that SPEC** — only start a new run for a genuinely new unit
+   of work; when unsure, ask. (`${CLAUDE_PLUGIN_ROOT}` is the env var Claude Code
+   substitutes to this plugin's install dir; the script ships with the plugin, not
+   the project repo.)
+2. **Create the run:**
+   `bash "${CLAUDE_PLUGIN_ROOT}/scripts/new-run.sh" <ticket> "<short description>"` —
+   pass the ticket from the branch if it encodes one (e.g. `ABC-123`), else `none`.
+   It creates `.ai/runs/<YYYYMMDD>-<ticket-lower>-<slug>/SPEC.md` with the frontmatter
+   filled (`run / ticket / status: draft / created / branch`), prints the run
+   directory, and refuses to overwrite an existing one. The folder uses the lowercased
+   ticket so it matches `.ai/verify/<branch-slug>/`; the frontmatter `ticket:` keeps
+   the uppercase `ABC-123` your commit / PR subjects use.
 
-```bash
-mkdir -p .ai/runs/<id>
-```
+Then fill in the SPEC body (below) under the `# Spec — …` heading the script wrote.
 
 ## Workflow
 
@@ -64,7 +67,8 @@ and ask, rather than guessing silently.
 
 ### 2. Write the skeleton — TLDR + Scope + Open Questions only
 
-Copy the shape from `references/SPEC.md`. In this first pass write
+Copy the body shape from `references/SPEC.md` (`new-run.sh` already wrote the
+frontmatter). In this first pass write
 **only** the TLDR, a rough Scope (in/out), and the **Open Questions** block. Do
 not fill in Approach, Boundaries, or Success criteria yet — they depend on the
 answers.

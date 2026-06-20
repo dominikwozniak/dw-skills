@@ -53,10 +53,13 @@ artifact literally states:
 
 ### 1. Find the run (branch-matched, no index)
 
-Get the current branch: `git rev-parse --abbrev-ref HEAD`. Glob `.ai/runs/*/` and
-read each run's frontmatter `branch:` (from `PLAN.md`, else `SPEC.md`) — the same
-branch match `dw-handoff` uses. Resolve in order and **stop at the first that
-applies**:
+Resolve the run with `bash "${CLAUDE_PLUGIN_ROOT}/scripts/find-active-run.sh"` — it
+matches the current git branch against each run's `SPEC.md` `branch:` field, prints
+the run directory (newest wins when several match), and exits non-zero when none
+does. Add `--step` to also print the first not-done PLAN row (the resume point).
+`${CLAUDE_PLUGIN_ROOT}` is the env var Claude Code substitutes to this plugin's
+install dir; the script ships with the plugin, not the project repo. Interpret its
+result and **stop at the first that applies**:
 
 1. **No `.ai/runs/` directory** → "no runs in this repo yet." Next: `dw-spec`. Stop.
 2. **Detached HEAD** (branch resolves to the literal `HEAD`) → say so, list every
