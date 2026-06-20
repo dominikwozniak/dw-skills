@@ -5,7 +5,7 @@
 # (sourced from fixtures.sh) emit one canonical good doc per kind; each malformed case =
 # that doc through a one-line defect here, so the defect is the diff.
 #
-# Run standalone (`bash scripts/tests/validate-artifacts.test.sh`) or via scripts/validate-artifacts.sh.
+# Run standalone (`bash scripts/tests/validate-ai-artifacts.test.sh`) or via scripts/validate-artifacts.sh.
 # Exit 0 iff every case behaves as expected. bash 3.2 / macOS + BSD-sed safe.
 set -uo pipefail
 export LC_ALL=C

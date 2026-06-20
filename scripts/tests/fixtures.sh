@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Document builders for validate-artifacts.test.sh — SOURCED, not executed.
+# Document builders for validate-ai-artifacts.test.sh — SOURCED, not executed.
 # Each function emits one canonical .ai/ artifact (SPEC / PLAN / review) on stdout.
 # The test derives malformed cases from these via one-line sed defects; only the two
 # structural-shape defects (missing column, reordered step ids) get a dedicated builder.
