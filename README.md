@@ -40,6 +40,11 @@ Then start a feature: `/dw-spec`. Resume after a `/clear`: `/dw-resume`.
 
 ## 🔁 The workflow
 
+> 📖 New here? [**`docs/WORKFLOWS.md`**](docs/WORKFLOWS.md) is the guided tour — the loop
+> walked step by step, a recipe for each situation (start a feature, resume after a
+> `/clear`, review before a PR, fix findings, reconcile drift), and the decisions between
+> skills. The map below; that's the tour.
+
 ### The core loop
 
 ```
@@ -152,6 +157,7 @@ Full design rationale — the _why_ behind each choice — lives in [`docs/DESIG
 skills/<name>/SKILL.md          canonical skill (edit here)
 plugins/<collection>/           plugin.json + git-tracked symlinks → ../../../skills/<name>
 .claude-plugin/marketplace.json makes the repo installable
+docs/WORKFLOWS.md               the guided tour (the "how" — recipes + decisions)
 docs/DESIGN.md                  design rationale (the "why")
 docs/SKILL-ANATOMY.md           the shape every SKILL.md follows
 ```
