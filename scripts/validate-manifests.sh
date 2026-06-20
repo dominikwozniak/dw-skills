@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Validate every marketplace.json + plugin.json via Claude CLI,
-# then verify version sync between marketplace.json[].version and
-# each <source>/.claude-plugin/plugin.json.version.
+# Validate every marketplace.json + plugin.json via Claude CLI, verify version sync between
+# marketplace.json[].version and each <source>/.claude-plugin/plugin.json.version, and check the
+# shipped scripts (canon in scripts/runtime/, symlinked into each plugin's scripts/ dir).
 set -uo pipefail
 
 FOUND=0
@@ -33,50 +33,50 @@ while IFS=$'\t' read -r name source mp_v; do
 done < <(jq -r '.plugins[] | [.name, .source, .version] | @tsv' .claude-plugin/marketplace.json)
 
 echo
-echo "Checking plugin-level shared scripts..."
-# plan-status.sh is shared across dw-planning's skills via ${CLAUDE_PLUGIN_ROOT}; it lives
-# once at the plugin root, so just assert it exists and is executable.
-PS_SHARED="plugins/dw-planning/scripts/plan-status.sh"
-if [ ! -f "$PS_SHARED" ]; then
-  echo "::error::missing shared script: $PS_SHARED"
-  FAILED=1
-elif [ ! -x "$PS_SHARED" ]; then
-  echo "::error::$PS_SHARED is not executable (chmod +x)"
-  FAILED=1
-else
-  echo "OK  $PS_SHARED (present, executable)"
-fi
-
-echo
-echo "Checking dw-planning run scripts (present + executable)..."
-for s in slugify.sh new-run.sh find-active-run.sh validate-ai-artifacts.sh; do
-  f="plugins/dw-planning/scripts/$s"
-  if [ ! -f "$f" ]; then
-    echo "::error::missing shared script: $f"
+echo "Checking shipped scripts (canon in scripts/runtime/, symlinked into plugins)..."
+# Shipped scripts live once under scripts/runtime/ and are exposed to each plugin via a
+# git-tracked symlink plugins/<p>/scripts/<s>.sh -> ../../../scripts/runtime/<s>.sh. `claude
+# plugin install` dereferences the symlink into a real file in the plugin cache, so the runtime
+# path ${CLAUDE_PLUGIN_ROOT}/scripts/<s>.sh resolves. We assert (1) each canon exists and is
+# executable, and (2) each plugin entry is a symlink that resolves to it — never a real file
+# (a real file would reintroduce the duplication this layout removes).
+RUNTIME_SCRIPTS="slugify.sh new-run.sh find-active-run.sh plan-status.sh validate-ai-artifacts.sh"
+for s in $RUNTIME_SCRIPTS; do
+  c="scripts/runtime/$s"
+  if [ ! -f "$c" ]; then
+    echo "::error::missing canonical script: $c"
     FAILED=1
-  elif [ ! -x "$f" ]; then
-    echo "::error::$f is not executable (chmod +x)"
+  elif [ ! -x "$c" ]; then
+    echo "::error::$c is not executable (chmod +x)"
     FAILED=1
   else
-    echo "OK  $f (present, executable)"
+    echo "OK  $c (canon, executable)"
   fi
 done
 
+# check_symlink <plugin-script-path> — must be a symlink that resolves (and runs) via the canon.
+# Runs in the current shell (no subshell), so FAILED assignments here persist.
+check_symlink() {
+  link="$1"
+  if [ ! -L "$link" ]; then
+    echo "::error::$link must be a symlink into scripts/runtime/ (real file or missing)"
+    FAILED=1
+  elif [ ! -e "$link" ]; then
+    echo "::error::$link is a dangling symlink (target '$(readlink "$link")' missing)"
+    FAILED=1
+  elif [ ! -x "$link" ]; then
+    echo "::error::$link resolves to a non-executable target"
+    FAILED=1
+  else
+    echo "OK  $link -> $(readlink "$link")"
+  fi
+}
+
 echo
-echo "Checking slugify.sh parity (dw-planning vs dw-quality)..."
-# slugify.sh is duplicated into dw-quality (cross-plugin can't share a file); the
-# two copies MUST stay byte-identical, or the slug drift this script guards against
-# reappears one layer down.
-SLUG_A="plugins/dw-planning/scripts/slugify.sh"
-SLUG_B="plugins/dw-quality/scripts/slugify.sh"
-if [ ! -f "$SLUG_B" ]; then
-  echo "::error::missing $SLUG_B (dw-quality needs its own copy)"
-  FAILED=1
-elif ! diff -q "$SLUG_A" "$SLUG_B" >/dev/null 2>&1; then
-  echo "::error::slugify.sh copies diverged ($SLUG_A vs $SLUG_B) — must be byte-identical"
-  FAILED=1
-else
-  echo "OK  slugify.sh copies byte-identical"
-fi
+echo "Checking plugin script symlinks resolve to the canon..."
+for s in $RUNTIME_SCRIPTS; do
+  check_symlink "plugins/dw-planning/scripts/$s"
+done
+check_symlink "plugins/dw-quality/scripts/slugify.sh"
 
 exit $FAILED
