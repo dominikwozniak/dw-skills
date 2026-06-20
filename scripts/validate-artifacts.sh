@@ -30,10 +30,15 @@ echo
 echo "Checking good/ fixtures (expect pass)..."
 for d in "$FIX"/good/*/; do
   [ -d "$d" ] || continue
-  if "$VALIDATOR" --all "$d" >/dev/null 2>&1; then
+  # Require exit 0 AND proof at least one artifact was actually validated:
+  # --all exits 0 when it discovers nothing, so a path typo in a good fixture
+  # would otherwise pass vacuously instead of failing loudly.
+  out=$("$VALIDATOR" --all "$d" 2>&1)
+  rc=$?
+  if [ "$rc" -eq 0 ] && printf '%s\n' "$out" | grep -q '^OK'; then
     echo "OK  good/$(basename "$d")"
   else
-    echo "::error::good fixture should pass but failed: $(basename "$d")"
+    echo "::error::good fixture should pass with a validated artifact (exit $rc): $(basename "$d")"
     FAILED=1
   fi
 done

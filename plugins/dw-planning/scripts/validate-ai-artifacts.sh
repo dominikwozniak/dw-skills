@@ -116,7 +116,7 @@ validate_plan() {
   table_errs=$(awk '
     BEGIN { hdr=0; pcol=stepcol=tcol=scol=ccol=0; allcols=0; first=1; pmaj=0; pmin=0 }
     function err(m){ print m }
-    hdr==0 && /\|/ && /[Ss]tatus/ && /[Cc]ommit/ {
+    hdr==0 && /\|/ && /[Pp]hase/ && /[Ss]tatus/ && /[Cc]ommit/ {
       hdr=1; nf=split($0,c,"|")
       for(i=1;i<=nf;i++){ x=c[i]; gsub(/^[[:space:]]+|[[:space:]]+$/,"",x); lx=tolower(x)
         if(lx=="phase")pcol=i; if(lx=="step")stepcol=i; if(lx=="title")tcol=i
