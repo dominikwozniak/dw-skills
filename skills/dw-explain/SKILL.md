@@ -34,7 +34,8 @@ scenario — it sends the next pass chasing a ghost. Hence the one hard rule bel
 Write to `.ai/verify/<branch-slug>/explain.md`. `.ai/` is tracked in git —
 verification artifacts are real work documentation, committed alongside the code.
 
-- Branch: `git rev-parse --abbrev-ref HEAD`. Slugify it for the folder name
+- Branch slug for the folder name —
+  `bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
   (e.g. `ABC-123/password-reset` → `abc-123-password-reset`).
 - `mkdir -p .ai/verify/<branch-slug>` before writing.
 

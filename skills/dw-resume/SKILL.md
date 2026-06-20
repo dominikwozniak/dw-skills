@@ -77,7 +77,9 @@ Read `SPEC.md` (goal + status), `PLAN.md` if present, and the tail of `NOTES.md`
 Read frontmatter tolerantly (trim quotes / whitespace, ignore trailing
 `# comments`); treat any unreadable value as missing.
 
-Then slugify the current branch and read whatever exists in
+Then derive the branch slug —
+`bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
+(the same `slugify.sh` `find-active-run.sh` is grouped with) — and read whatever exists in
 `.ai/verify/<branch-slug>/` — `review.md`'s **Verdict**, `verify-run.md`'s scenario
 verdicts, and the presence of `conform.md` / `risk.md` / `explain.md`. An empty or
 absent folder is fine. Parse only what each file literally states; mark anything

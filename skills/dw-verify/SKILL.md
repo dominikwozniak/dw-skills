@@ -37,7 +37,8 @@ run something you say so (`INCONCLUSIVE`) rather than guessing a verdict.
 Write to `.ai/verify/<branch-slug>/verify-run.md`. `.ai/` is tracked in git —
 verification results are real work documentation, committed alongside the code.
 
-- Branch: `git rev-parse --abbrev-ref HEAD`. Slugify it for the folder name
+- Branch slug for the folder name —
+  `bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
   (e.g. `ABC-123/password-reset` → `abc-123-password-reset`) — the same slug
   `dw-explain` used, so your `verify-run.md` lands beside its `explain.md`.
 - `mkdir -p .ai/verify/<branch-slug>` before writing.
