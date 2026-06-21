@@ -1,13 +1,26 @@
-# 🧩 dominikwozniak-skills
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/banner-light.svg">
+    <img src="assets/banner-light.svg" alt="dw-skills" width="420">
+  </picture>
+</p>
 
-**A persistent, technology-agnostic spec → plan → build → verify workflow for Claude Code — as
-installable skills.**
+<p align="center"><strong>spec → plan → build → verify — a persistent, technology-agnostic workflow for Claude Code that survives a <code>/clear</code>.</strong></p>
+
+<p align="center">
+  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-111111?style=flat-square">
+  <img alt="17 skills" src="https://img.shields.io/badge/skills-17-111111?style=flat-square">
+  <img alt="3 plugins" src="https://img.shields.io/badge/plugins-3-111111?style=flat-square">
+  <img alt="Claude Code plugin" src="https://img.shields.io/badge/Claude_Code-plugin-111111?style=flat-square">
+  <a href="https://github.com/dominikwozniak/dominikwozniak-skills/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/dominikwozniak/dominikwozniak-skills/validate-plugin-manifests.yaml?style=flat-square&label=ci&color=111111"></a>
+</p>
 
 Plans and reviews land on disk under `.ai/` (tracked in git), so work survives a `/clear`, a new
 session, or a handoff to another agent. Every skill reads your project's own commands and
 conventions — nothing about a stack is baked in.
 
-## 😖 Why these skills exist
+## ◆ Why these skills exist
 
 These aren't theoretical. Each is a failure mode I kept hitting in day-to-day work with AI agents —
 the catalog is the set of reusable steps I pulled out of that loop. Each skill kills one:
@@ -27,7 +40,7 @@ the catalog is the set of reusable steps I pulled out of that loop. Each skill k
 
 The _why_ behind each design choice is in [`docs/DESIGN.md`](docs/DESIGN.md).
 
-## 🚀 Quick start
+## ▸ Quick start
 
 ```
 claude plugin marketplace add git@github.com:dominikwozniak/dominikwozniak-skills.git
@@ -38,7 +51,7 @@ claude plugin install dw-misc       # bootstrap · git · handoff · doctor · s
 
 Then start a feature: `/dw-spec`. Resume after a `/clear`: `/dw-resume`.
 
-## 🔁 The workflow
+## ↻ The workflow
 
 > 📖 New here? [**`docs/WORKFLOWS.md`**](docs/WORKFLOWS.md) is the guided tour — the loop
 > walked step by step, a recipe for each situation (start a feature, resume after a
@@ -80,7 +93,8 @@ required after blockers, optional after a medium/low-only pass.
 A recommendation, not a rail: every skill stands alone and is invoked when you need it. They
 compose through the shared `.ai/` artifacts + a "Next:" pointer at the end of each skill.
 
-## 🧭 Task router — which skill for which task
+<details>
+<summary><strong>◇ Task router — which skill for which task</strong></summary>
 
 A task may match several rows — read all that apply. `⭑` = explicit-invoke only: say its name (it
 never auto-fires).
@@ -117,7 +131,10 @@ consent; `dw-risk` reads whatever neighbours exist and closes the pipeline. `dw-
 writer — it applies the findings the auditors record (blockers first), then you re-audit to confirm
 (required after blockers, optional after a medium/low-only pass).
 
-## 📦 Plugins (install what you need)
+</details>
+
+<details>
+<summary><strong>▣ Plugins — install what you need (3)</strong></summary>
 
 - **`dw-planning`** — `dw-spec` · `dw-resume` · `dw-plan` · `dw-build` · `dw-sync`. The persistent
   spec→plan→build loop; artifacts under `.ai/runs/<id>/`.
@@ -131,7 +148,10 @@ writer — it applies the findings the auditors record (blockers first), then yo
   `dw-setup-precommit` wires git-level husky + lint-staged hooks (team-shared, distinct from the
   session-only `.claude/hooks/*.sh`).
 
-## 🛠️ How it works
+</details>
+
+<details>
+<summary><strong>⚙ How it works — the design in one screen</strong></summary>
 
 - **Persistence in the skill, not a wrapper.** Each `SKILL.md` bakes its `.ai/` paths in, so plans
   land automatically and travel with the installed plugin — no `.claude/commands/` glue.
@@ -151,7 +171,10 @@ writer — it applies the findings the auditors record (blockers first), then yo
 
 Full design rationale — the _why_ behind each choice — lives in [`docs/DESIGN.md`](docs/DESIGN.md).
 
-## 📁 Project structure
+</details>
+
+<details>
+<summary><strong>▤ Project structure</strong></summary>
 
 ```
 skills/<name>/SKILL.md          canonical skill (edit here)
@@ -162,11 +185,16 @@ docs/DESIGN.md                  design rationale (the "why")
 docs/SKILL-ANATOMY.md           the shape every SKILL.md follows
 ```
 
-## 🤝 Contributing
+</details>
+
+<details>
+<summary><strong>◈ Contributing</strong></summary>
 
 Layout, conventions, the add-a-skill checklist, and CI all live in [`AGENTS.md`](AGENTS.md)
 (`CLAUDE.md` is a symlink to it).
 
-## 📜 License
+</details>
+
+## ▪ License
 
 MIT
