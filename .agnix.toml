@@ -1,4 +1,4 @@
-# agnix lint config — dominikwozniak-skills is a Claude Code skills marketplace.
+# agnix lint config — dw-skills is a Claude Code skills marketplace.
 # Docs: https://agent-sh.github.io/agnix/docs/configuration
 target = "ClaudeCode"
 severity = "Warning"

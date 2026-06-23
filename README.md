@@ -13,7 +13,7 @@
   <img alt="17 skills" src="https://img.shields.io/badge/skills-17-111111?style=flat-square">
   <img alt="3 plugins" src="https://img.shields.io/badge/plugins-3-111111?style=flat-square">
   <img alt="Claude Code plugin" src="https://img.shields.io/badge/Claude_Code-plugin-111111?style=flat-square">
-  <a href="https://github.com/dominikwozniak/dominikwozniak-skills/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/dominikwozniak/dominikwozniak-skills/validate-plugin-manifests.yaml?style=flat-square&label=ci&color=111111"></a>
+  <a href="https://github.com/dominikwozniak/dw-skills/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/dominikwozniak/dw-skills/validate-plugin-manifests.yaml?style=flat-square&label=ci&color=111111"></a>
 </p>
 
 Plans and reviews land on disk under `.ai/` (tracked in git), so work survives a `/clear`, a new
@@ -43,7 +43,7 @@ The _why_ behind each design choice is in [`docs/DESIGN.md`](docs/DESIGN.md).
 ## ▸ Quick start
 
 ```
-claude plugin marketplace add git@github.com:dominikwozniak/dominikwozniak-skills.git
+claude plugin marketplace add git@github.com:dominikwozniak/dw-skills.git
 claude plugin install dw-planning   # spec → plan → build → resume → sync
 claude plugin install dw-quality    # review · conform · fix · prune · explain · verify · risk
 claude plugin install dw-misc       # bootstrap · git · handoff · doctor · setup-precommit

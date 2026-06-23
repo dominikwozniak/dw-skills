@@ -1,4 +1,4 @@
-# dominikwozniak-skills — agent instructions
+# dw-skills — agent instructions
 
 A personal bucket of Claude Code skills, distributed as an installable plugin marketplace — not a
 code project.
