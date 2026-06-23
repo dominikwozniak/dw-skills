@@ -96,4 +96,17 @@ else
   echo "OK  no \${CLAUDE_PLUGIN_ROOT} in any SKILL.md"
 fi
 
+echo
+echo "Checking no SKILL.md has a doubled <this-skill-dir> placeholder..."
+# Guards against a bad search-and-replace prepending the placeholder onto a path that already
+# had it (e.g. <this-skill-dir><this-skill-dir>/scripts/x.sh) — valid markdown, so nothing else
+# would catch it, but the resolved path is wrong.
+if grep -rn '<this-skill-dir><this-skill-dir>' skills/ >/dev/null 2>&1; then
+  echo "::error::doubled <this-skill-dir> placeholder — collapse to a single one:"
+  grep -rn '<this-skill-dir><this-skill-dir>' skills/
+  FAILED=1
+else
+  echo "OK  no doubled <this-skill-dir> placeholder"
+fi
+
 exit $FAILED
