@@ -7,13 +7,11 @@ the _how_.
 
 ---
 
-## Philosophy in one line
+## The idea in one line
 
-The recipes below rest on five ideas — persistence in the skill (not a wrapper), a tracked `.ai/`
-folder per task, `file:line` grounding, a human gate over an autonomous loop, and
-composable-not-chained skills. The full argument is in [`DESIGN.md`](DESIGN.md); the failure modes
-each one answers — mapped to the skill that kills each — are in the
-[README](../README.md#-why-these-skills-exist).
+Skills write their work to a tracked `.ai/` folder and stop at human gates — so the loop survives a
+`/clear` and never runs away unattended. The full reasoning is in [`DESIGN.md`](DESIGN.md); the
+failure modes each skill answers are in the [README](../README.md#-why-these-skills-exist).
 
 ---
 
@@ -38,9 +36,8 @@ Two artifact homes anchor the loop:
   current branch. `<branch-slug>` is the branch slugified, e.g.
   `ABC-123/password-reset` → `abc-123-password-reset`.
 
-**SHIP — deciding when to open the PR, and the deploy/CI after — is intentionally outside
-this toolkit.** The loop hands you a reviewed, verified change; opening the PR is your call
-and your tooling.
+**Shipping — the PR, and the deploy/CI after — is intentionally outside this toolkit.** The
+loop hands you a reviewed, verified change; opening the PR is your call, your tooling.
 
 The arrows are a _recommendation, not a rail_. Every skill is invoked on its own when you
 need it; they cohere because they read each other's `.ai/` artifacts, not because a
@@ -76,10 +73,10 @@ ready`).
 ### 3. Turn a spec into a plan
 
 - **Trigger:** "plan this", "break this into tasks", or `/dw-plan`.
-- **Flow:** `dw-plan` decomposes a `ready` spec into **thin vertical slices**, each with
-  acceptance criteria and a verify command read from the project. It presents the
-  breakdown and HARD-STOPS for approval before writing — a wrong decomposition surfaces
-  before it becomes the committed spine of the build.
+- **Flow:** `dw-plan` breaks a `ready` spec into **small end-to-end slices** — each one a thin
+  cut through the stack, with its own acceptance criteria and a verify command read from the
+  project. It shows you the breakdown and **HARD STOPS** for approval before writing, so a
+  wrong split surfaces before the whole build is committed on top of it.
 - **Artifact:** `.ai/runs/<id>/PLAN.md` — the status table `Phase | Step | Title | Status |
 Commit`. Step ids are immutable once committed.
 - **Next:** `/dw-build`.
@@ -119,12 +116,12 @@ Commit`. Step ids are immutable once committed.
 ### 7. Fix the findings
 
 - **Trigger:** "fix the findings", "address the review", or `/dw-fix`.
-- **Flow:** `dw-fix` is the **single writer** in the quality pipeline — the auditors only
-  diagnose. It reads `review.md` / `conform.md` / `risk.md`, fixes each finding
-  severity-ordered (one commit per fix), and marks it resolved. It's severity-gated:
-  `blockers` clears the critical/high findings and **stops for a re-audit**, so downstream
-  checks never run against code a review already flagged broken. It issues no verdict —
-  re-running the auditor on the fixed code is what confirms it's clean.
+- **Flow:** `dw-fix` is the **only writer** in the quality pipeline — the auditors only
+  diagnose. It reads `review.md` / `conform.md` / `risk.md` and fixes each finding in severity
+  order, one commit per fix, marking it resolved. Run it in `blockers` mode and it fixes just
+  the critical + high findings, then **stops for a re-audit** — so the later checks never run
+  against code a review already flagged as broken. It issues no verdict of its own: re-running
+  the auditor on the fixed code is what confirms it's clean.
 - **Artifact:** code commits + `.ai/verify/<branch-slug>/fix.md`.
 - **Next:** re-audit (required after blockers, optional after a medium/low-only pass).
 

@@ -132,34 +132,32 @@ writer — it applies the findings the auditors record (blockers first), then yo
 
 ## ▣ Plugins — install what you need (3)
 
-- **`dw-planning`** — `dw-spec` · `dw-resume` · `dw-plan` · `dw-build` · `dw-sync`. The persistent
-  spec→plan→build loop; artifacts under `.ai/runs/<id>/`.
-- **`dw-quality`** — `dw-review` · `dw-conform` · `dw-fix` · `dw-prune` · `dw-explain` · `dw-verify` ·
-  `dw-risk`. A change-quality pipeline writing to `.ai/verify/<branch-slug>/` — the auditors diagnose
-  (read-only), `dw-fix` treats (the one writer).
-- **`dw-misc`** — `dw-bootstrap` · `dw-git` · `dw-handoff` · `dw-doctor` · `dw-setup-precommit`, plus
-  a bucket for future cross-cutting helpers. `dw-bootstrap` scaffolds a repo for this whole loop
-  (tracked `.ai/` + `.claude/`); `dw-git` runs git ops by your `CLAUDE.local.md` conventions;
-  `dw-doctor` is a read-only check that the tools and hooks the loop assumes are actually present;
-  `dw-setup-precommit` wires git-level husky + lint-staged hooks (team-shared, distinct from the
-  session-only `.claude/hooks/*.sh`).
+Three plugins, grouped by job. The [task router](#-task-router--which-skill-for-which-task) above says
+what each skill does — here's which plugin ships it and where its artifacts land.
+
+- **`dw-planning`** — the spec→plan→build loop. `dw-spec` · `dw-resume` · `dw-plan` · `dw-build` ·
+  `dw-sync`. Artifacts: `.ai/runs/<id>/`.
+- **`dw-quality`** — the change-quality pipeline. `dw-review` · `dw-conform` · `dw-fix` · `dw-prune` ·
+  `dw-explain` · `dw-verify` · `dw-risk`. The auditors diagnose (read-only); `dw-fix` is the one
+  writer. Artifacts: `.ai/verify/<branch-slug>/`.
+- **`dw-misc`** — repo setup + everyday helpers. `dw-bootstrap` · `dw-git` · `dw-handoff` ·
+  `dw-doctor` · `dw-setup-precommit`.
 
 <details>
 <summary><strong>⚙ How it works — the design in one screen</strong></summary>
 
-- **Persistence in the skill, not a wrapper.** Each `SKILL.md` bakes its `.ai/` paths in, so plans
-  land automatically and travel with the installed plugin — no `.claude/commands/` glue.
+- **Persistence in the skill, not a wrapper.** Each `SKILL.md` writes its own `.ai/` paths as part of
+  its procedure, so plans land automatically and travel with the installed plugin — no
+  `.claude/commands/` glue layer. (Stack commands are read from your project too — nothing is
+  hardcoded; that's the opening pitch up top.)
 - **`.ai/` is tracked, one folder per task, no central index.** Artifacts are real work docs
-  committed with the code; runs are matched to the current git branch (no merge-conflict magnet).
-- **Technology-agnostic.** Skills are pure procedures; test/lint/run commands and the commit
-  convention are read _from the project_ (a declared `## Commands` block → manifests → the code),
-  never hardcoded.
-- **Thin harness, fat skills.** A skill's weight tracks its procedure; bulky detail (templates,
-  taxonomies, stack examples) lives in `references/`, loaded on demand.
-- **Composable, not chained.** Skills stay separate (different axes) and link through shared `.ai/`
-  artifacts + a "Next:" pointer — a recommendation, never a forced sequence. Why there's no
-  autonomous loop closing this — and where a bounded one would fit — is in
-  [`docs/DESIGN.md`](docs/DESIGN.md), "Loops vs persistence."
+  committed with the code; each run is matched to its git branch, so branches never fight over one file.
+- **Thin harness, fat skills.** The process lives in the markdown, not in glue code — so every model
+  upgrade improves the skills for free. Bulky detail (templates, examples) loads on demand from
+  `references/`. (Inspired by ["Fat Skills"](https://x.com/garrytan/status/2042925773300908103).)
+- **Composable, not chained.** Skills stay separate and link through shared `.ai/` artifacts + a
+  "Next:" pointer — a recommendation, never a forced sequence. Why there's no autonomous loop closing
+  this is in [`docs/DESIGN.md`](docs/DESIGN.md), "Loops vs persistence."
 - **Explicit-only skills** (`dw-bootstrap`, `dw-handoff`, `dw-prune`, `dw-sync`, `dw-setup-precommit`)
   are invoked by name and never auto-trigger; the rest can be model-invoked when the task fits.
 
