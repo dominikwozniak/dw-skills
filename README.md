@@ -25,38 +25,18 @@ conventions — nothing about a stack is baked in.
 These aren't theoretical. Each is a failure mode I kept hitting in day-to-day work with AI agents —
 the catalog is the set of reusable steps I pulled out of that loop. Each skill kills one:
 
-### Context dies on /clear or a handoff
-
-Plans and reviews persist as tracked `.ai/` files; `dw-resume` picks the work back up, `dw-handoff`
-packs it for the next agent.
-
-### The agent runs on a wrong assumption
-
-`dw-spec` forces the unknowns to the surface as a numbered Open-Questions gate and HARD STOPS until
-you answer.
-
-### "Done" is claimed but never proven
-
-`dw-explain` writes runnable scenarios; `dw-verify` runs them and never reports PASS without captured
-output.
-
-### The plan silently drifts from the code
-
-`dw-sync` re-aligns `PLAN.md` with what actually shipped.
-
-### A change merges on an eyeball, not a real pass
-
-`dw-review` / `dw-conform` / `dw-risk` weigh it across axes, against the repo's own patterns, and for
-blast radius.
-
-### Review findings have nowhere to land
-
-`dw-fix` applies them — the one writer in the quality pipeline, severity-gated (blockers first), one
-commit per fix.
-
-### The test suite bloats
-
-`dw-prune` trims redundant tests without dropping coverage.
+- **Context dies on /clear or a handoff** — plans and reviews persist as tracked `.ai/` files;
+  `dw-resume` picks the work back up, `dw-handoff` packs it for the next agent.
+- **The agent runs on a wrong assumption** — `dw-spec` forces the unknowns to the surface as a
+  numbered Open-Questions gate and HARD STOPS until you answer.
+- **"Done" is claimed but never proven** — `dw-explain` writes runnable scenarios; `dw-verify` runs
+  them and never reports PASS without captured output.
+- **The plan silently drifts from the code** — `dw-sync` re-aligns `PLAN.md` with what actually shipped.
+- **A change merges on an eyeball, not a real pass** — `dw-review` / `dw-conform` / `dw-risk` weigh it
+  across axes, against the repo's own patterns, and for blast radius.
+- **Review findings have nowhere to land** — `dw-fix` applies them: the one writer in the quality
+  pipeline, severity-gated (blockers first), one commit per fix.
+- **The test suite bloats** — `dw-prune` trims redundant tests without dropping coverage.
 
 The _why_ behind each design choice is in [`docs/DESIGN.md`](docs/DESIGN.md).
 
