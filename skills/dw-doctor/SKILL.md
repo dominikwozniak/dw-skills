@@ -54,7 +54,7 @@ the repo declares, so nothing about a stack is assumed:
 From anywhere inside the target repo, run the script shipped with this skill:
 
 ```
-bash "<this-skill-dir>/scripts/doctor.sh"
+bash "<this-skill-dir><this-skill-dir>/scripts/doctor.sh"
 ```
 
 `<this-skill-dir>` is the directory holding this `SKILL.md` (e.g.

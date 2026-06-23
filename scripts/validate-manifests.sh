@@ -33,13 +33,14 @@ while IFS=$'\t' read -r name source mp_v; do
 done < <(jq -r '.plugins[] | [.name, .source, .version] | @tsv' .claude-plugin/marketplace.json)
 
 echo
-echo "Checking shipped scripts (canon in scripts/runtime/, symlinked into plugins)..."
-# Shipped scripts live once under scripts/runtime/ and are exposed to each plugin via a
-# git-tracked symlink plugins/<p>/scripts/<s>.sh -> ../../../scripts/runtime/<s>.sh. `claude
-# plugin install` dereferences the symlink into a real file in the plugin cache, so the runtime
-# path ${CLAUDE_PLUGIN_ROOT}/scripts/<s>.sh resolves. We assert (1) each canon exists and is
-# executable, and (2) each plugin entry is a symlink that resolves to it — never a real file
-# (a real file would reintroduce the duplication this layout removes).
+echo "Checking shipped scripts (canon in scripts/runtime/, symlinked into each consuming skill)..."
+# Plugin-level shipped scripts live once under scripts/runtime/ and are exposed to each consuming
+# skill via a git-tracked symlink skills/<name>/scripts/<s>.sh -> ../../../scripts/runtime/<s>.sh.
+# Skill bodies invoke them as <this-skill-dir>/scripts/<s>.sh — a path that resolves both in Claude
+# Code's plugin cache AND in Codex's .codex/skills/, with no ${CLAUDE_PLUGIN_ROOT} env var. `claude
+# plugin install` deep-derefs the skill dir, turning each nested symlink into a real file in the
+# cache (0 symlinks). We assert (1) each canon exists and is executable, and (2) every symlink under
+# skills/*/scripts/ resolves into the canon and is executable — never dangling, never drifting.
 RUNTIME_SCRIPTS="slugify.sh new-run.sh find-active-run.sh plan-status.sh validate-ai-artifacts.sh"
 for s in $RUNTIME_SCRIPTS; do
   c="scripts/runtime/$s"
@@ -54,29 +55,45 @@ for s in $RUNTIME_SCRIPTS; do
   fi
 done
 
-# check_symlink <plugin-script-path> — must be a symlink that resolves (and runs) via the canon.
-# Runs in the current shell (no subshell), so FAILED assignments here persist.
-check_symlink() {
-  link="$1"
-  if [ ! -L "$link" ]; then
-    echo "::error::$link must be a symlink into scripts/runtime/ (real file or missing)"
-    FAILED=1
-  elif [ ! -e "$link" ]; then
-    echo "::error::$link is a dangling symlink (target '$(readlink "$link")' missing)"
-    FAILED=1
+echo
+echo "Checking skill script symlinks resolve into scripts/runtime/..."
+# Symlinks share one canon, so the slugify-copy drift the old plugin layout risked is gone by
+# construction. A real file here (e.g. dw-doctor/scripts/doctor.sh — a single-skill bundled script)
+# is allowed but must still be executable.
+for link in skills/*/scripts/*.sh; do
+  [ -e "$link" ] || [ -L "$link" ] || continue
+  if [ -L "$link" ]; then
+    tgt=$(readlink "$link")
+    if [ ! -e "$link" ]; then
+      echo "::error::$link is a dangling symlink (target '$tgt' missing)"
+      FAILED=1
+    elif [ ! -x "$link" ]; then
+      echo "::error::$link resolves to a non-executable target"
+      FAILED=1
+    elif ! printf '%s' "$tgt" | grep -q 'scripts/runtime/'; then
+      echo "::error::$link must point into scripts/runtime/ (got '$tgt')"
+      FAILED=1
+    else
+      echo "OK  $link -> $tgt"
+    fi
   elif [ ! -x "$link" ]; then
-    echo "::error::$link resolves to a non-executable target"
+    echo "::error::$link is a real file but not executable (chmod +x)"
     FAILED=1
   else
-    echo "OK  $link -> $(readlink "$link")"
+    echo "OK  $link (bundled, executable)"
   fi
-}
+done
 
 echo
-echo "Checking plugin script symlinks resolve to the canon..."
-for s in $RUNTIME_SCRIPTS; do
-  check_symlink "plugins/dw-planning/scripts/$s"
-done
-check_symlink "plugins/dw-quality/scripts/slugify.sh"
+echo "Checking no SKILL.md still references \${CLAUDE_PLUGIN_ROOT} (must use <this-skill-dir>)..."
+# The whole point of the skill-relative layout: skills carry no Claude-only env var, so they run
+# unchanged under Codex. A stray \${CLAUDE_PLUGIN_ROOT} would silently break the Codex path.
+if grep -rn 'CLAUDE_PLUGIN_ROOT' skills/ >/dev/null 2>&1; then
+  echo "::error::SKILL.md still references \${CLAUDE_PLUGIN_ROOT} — use <this-skill-dir>/scripts/ instead:"
+  grep -rn 'CLAUDE_PLUGIN_ROOT' skills/
+  FAILED=1
+else
+  echo "OK  no \${CLAUDE_PLUGIN_ROOT} in any SKILL.md"
+fi
 
 exit $FAILED

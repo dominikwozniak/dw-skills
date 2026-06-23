@@ -53,12 +53,13 @@ artifact literally states:
 
 ### 1. Find the run (branch-matched, no index)
 
-Resolve the run with `bash "${CLAUDE_PLUGIN_ROOT}/scripts/find-active-run.sh"` — it
+Resolve the run with `bash "<this-skill-dir>/scripts/find-active-run.sh"` — it
 matches the current git branch against each run's `SPEC.md` `branch:` field, prints
 the run directory (newest wins when several match), and exits non-zero when none
 does. Add `--step` to also print the first not-done PLAN row (the resume point).
-`${CLAUDE_PLUGIN_ROOT}` is the env var Claude Code substitutes to this plugin's
-install dir; the script ships with the plugin, not the project repo. Interpret its
+`<this-skill-dir>` is the dir holding this `SKILL.md` (the installed skill dir —
+Claude's plugin cache or Codex `.codex/skills/`); the script ships inside the skill,
+not the project repo. Interpret its
 result and **stop at the first that applies**:
 
 1. **No `.ai/runs/` directory** → "no runs in this repo yet." Next: `dw-spec`. Stop.
@@ -78,7 +79,7 @@ Read frontmatter tolerantly (trim quotes / whitespace, ignore trailing
 `# comments`); treat any unreadable value as missing.
 
 Then derive the branch slug —
-`bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
+`bash "<this-skill-dir>/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
 (the same `slugify.sh` `find-active-run.sh` is grouped with) — and read whatever exists in
 `.ai/verify/<branch-slug>/` — `review.md`'s **Verdict**, `verify-run.md`'s scenario
 verdicts, and the presence of `conform.md` / `risk.md` / `explain.md`. An empty or
@@ -90,8 +91,8 @@ missing or unparseable as "not recorded" — never infer a verdict.
 **PLAN.md present, table parseable** — columns are
 `Phase | Step | Title | Status | Commit`; Status ∈ `todo`/`doing`/`done`/`blocked`.
 The frontmatter `status:` is _derived_ from this table, so verify it (read-only) with
-`bash "${CLAUDE_PLUGIN_ROOT}/scripts/plan-status.sh" --check <PLAN.md>` — `${CLAUDE_PLUGIN_ROOT}`
-is an env var Claude Code substitutes to this plugin's install dir, and `--check`
+`bash "<this-skill-dir>/scripts/plan-status.sh" --check <PLAN.md>` — `<this-skill-dir>`
+is the dir holding this `SKILL.md` (Claude's plugin cache or Codex `.codex/skills/`), and `--check`
 **writes nothing**. On drift, lead the report with a one-line warning ("PLAN frontmatter
 says `<x>` but the table implies `<y>` — heal via `dw-build` / `dw-sync` / `plan-status.sh`");
 the table stays authoritative for the resume point regardless.
