@@ -80,7 +80,7 @@ If `$ARGUMENTS` names a run id, use that run. Otherwise resolve it with
 git branch against each run's `SPEC.md` `branch:` field, prints the run directory
 (newest wins when several match), and exits non-zero when none does.
 `<this-skill-dir>` is the dir holding this `SKILL.md` (the installed skill dir —
-Claude's plugin cache or Codex `.codex/skills/`); the script ships inside the skill,
+Claude's plugin cache or Codex `.agents/skills/`); the script ships inside the skill,
 not the project repo. Interpret its
 result, stop at the first that applies:
 
@@ -147,7 +147,7 @@ Apply only what was approved, editing `PLAN.md` in place — flip Status/Commit,
 new rows, set `blocked` where flagged. Then run `bash "<this-skill-dir>/scripts/plan-status.sh"
 <PLAN.md>` to refresh the frontmatter `status:` from the table — it's _derived_ state (idempotent;
 never hand-set the scalar). `<this-skill-dir>` is the dir holding this `SKILL.md` (the installed
-skill dir — Claude's plugin cache or Codex `.codex/skills/`); the script ships inside the skill, not the project repo. Then run
+skill dir — Claude's plugin cache or Codex `.agents/skills/`); the script ships inside the skill, not the project repo. Then run
 `bash "<this-skill-dir>/scripts/validate-ai-artifacts.sh" <run-dir>` to confirm the reconciled
 `PLAN.md` still satisfies the structural schema (column shape, status enum, every done row's SHA) —
 fix any reported error before logging. Then append a `NOTES.md` entry (newest at the bottom,

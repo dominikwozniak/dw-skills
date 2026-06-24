@@ -58,7 +58,7 @@ matches the current git branch against each run's `SPEC.md` `branch:` field, pri
 the run directory (newest wins when several match), and exits non-zero when none
 does. Add `--step` to also print the first not-done PLAN row (the resume point).
 `<this-skill-dir>` is the dir holding this `SKILL.md` (the installed skill dir —
-Claude's plugin cache or Codex `.codex/skills/`); the script ships inside the skill,
+Claude's plugin cache or Codex `.agents/skills/`); the script ships inside the skill,
 not the project repo. Interpret its
 result and **stop at the first that applies**:
 
@@ -92,7 +92,7 @@ missing or unparseable as "not recorded" — never infer a verdict.
 `Phase | Step | Title | Status | Commit`; Status ∈ `todo`/`doing`/`done`/`blocked`.
 The frontmatter `status:` is _derived_ from this table, so verify it (read-only) with
 `bash "<this-skill-dir>/scripts/plan-status.sh" --check <PLAN.md>` — `<this-skill-dir>`
-is the dir holding this `SKILL.md` (Claude's plugin cache or Codex `.codex/skills/`), and `--check`
+is the dir holding this `SKILL.md` (Claude's plugin cache or Codex `.agents/skills/`), and `--check`
 **writes nothing**. On drift, lead the report with a one-line warning ("PLAN frontmatter
 says `<x>` but the table implies `<y>` — heal via `dw-build` / `dw-sync` / `plan-status.sh`");
 the table stays authoritative for the resume point regardless.

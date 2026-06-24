@@ -14,7 +14,7 @@ code project.
   canon `../../../scripts/runtime/<script>.sh`) and is invoked **skill-relative** from the body as
   `<this-skill-dir>/scripts/<script>.sh`. `claude plugin install` **deep-dereferences** the skill
   dir: each plugin gets its own real copy in the cache (verified — the installed cache contains 0
-  symlinks), and the same skill-relative path also resolves under Codex's `.codex/skills/` — so skill
+  symlinks), and the same skill-relative path also resolves under the cross-agent `.agents/skills/` — so skill
   bodies carry **no `${CLAUDE_PLUGIN_ROOT}`** (Claude-only) and run unchanged in either agent. One
   canon can be symlinked into several skills (e.g. `slugify.sh` into all that need it) with no
   duplication and no drift.
@@ -42,10 +42,11 @@ code project.
 1. Create `skills/<name>/SKILL.md` (kebab-case `name`, `description` with trigger phrases),
    following the shape in [`docs/SKILL-ANATOMY.md`](docs/SKILL-ANATOMY.md).
 2. Create `plugins/<name>/.claude-plugin/plugin.json` AND its **two** skill symlinks — the plugin
-   one `ln -s ../../../skills/<name> plugins/<name>/skills/<name>` (Claude Code) AND the Codex one
-   `ln -s ../../skills/<name> .codex/skills/<name>` (Codex in-repo discovery) — then `git add` both
-   (each mode 120000). The `.codex/` link is what makes the skill discoverable to Codex working
-   inside this repo; `validate-manifests.sh` checks it stays in sync.
+   one `ln -s ../../../skills/<name> plugins/<name>/skills/<name>` (Claude Code) AND the cross-agent
+   one `ln -s ../../skills/<name> .agents/skills/<name>` — then `git add` both (each mode 120000).
+   `.agents/skills/` is the open standard path Codex/Copilot/Cursor/Gemini scan from the working
+   directory up to the repo root, so that one link is what makes the skill discoverable to every
+   non-Claude agent working inside this repo; `validate-manifests.sh` checks it stays in sync.
 3. Add a row to `.claude-plugin/marketplace.json` (version in sync with `plugin.json`).
 4. Bump the plugin's patch version in **both** `plugins/<name>/.claude-plugin/plugin.json` and the
    matching `.claude-plugin/marketplace.json` entry — they must stay in sync (CI enforces it via
@@ -69,8 +70,8 @@ Copy an existing skill (e.g. `dw-handoff`) as a starting point.
    `ln -s ../../../scripts/runtime/<script>.sh skills/<name>/scripts/<script>.sh` AND
    `git add` the symlink (must be mode 120000, like the skill symlinks).
 3. Invoke it from the skill body as `<this-skill-dir>/scripts/<script>.sh` — install deep-derefs the
-   skill dir into real files in the plugin cache, and the same path resolves under Codex
-   `.codex/skills/`. Never `${CLAUDE_PLUGIN_ROOT}` (Claude-only — `validate-manifests.sh` rejects it).
+   skill dir into real files in the plugin cache, and the same path resolves under
+   `.agents/skills/`. Never `${CLAUDE_PLUGIN_ROOT}` (Claude-only — `validate-manifests.sh` rejects it).
 4. Add the basename to the `RUNTIME_SCRIPTS` list in `scripts/validate-manifests.sh`, and — where
    it has testable logic — a `scripts/tests/<script>.test.sh` (anchored to the repo root via
    `git rev-parse --show-toplevel`, like `validate-ai-artifacts.test.sh`).
@@ -84,12 +85,15 @@ The skills are plain `SKILL.md` — the open skill format Codex CLI also reads �
 Codex with no conversion, frontmatter and all (`name`, `description`, `disable-model-invocation`).
 Two install paths:
 
-- **In this repo**: committed `.codex/skills/<name>` symlinks → `skills/<name>`, so Codex picks the
-  skills up when working inside this repo.
+- **In this repo**: committed `.agents/skills/<name>` symlinks → `skills/<name>`. `.agents/skills/`
+  is the open cross-agent standard path — Codex, Copilot, Cursor, and Gemini all discover repo skills
+  there (scanned from the working directory up to the repo root), so they pick the skills up when
+  working inside this repo. (`.agents/skills/` is a shared namespace, so it can also hold vendored
+  external skills alongside the `dw-*` links.)
 - **Machine-wide**: `bash scripts/install-codex.sh` symlinks every `skills/*` into `~/.codex/skills/`.
 
 Scripts resolve because skill bodies call them skill-relative (`<this-skill-dir>/scripts/<s>.sh`),
-which works through the `.codex/skills/<name>` symlink regardless of the working directory.
+which works through the `.agents/skills/<name>` symlink regardless of the working directory.
 
 **Claude-only, does not carry over**: the `.claude/` hooks (`block-dangerous-git.sh`, …) are Claude
 Code session guardrails and do **not** fire under Codex; the `.claude-plugin/` marketplace is

@@ -33,7 +33,7 @@ and frontmatter are derived one way every time — the bug that motivated this w
    `bash "<this-skill-dir>/scripts/find-active-run.sh"`. If it prints a run
    directory, **continue that SPEC** — only start a new run for a genuinely new unit
    of work; when unsure, ask. (`<this-skill-dir>` is the dir holding this `SKILL.md` —
-   Claude's plugin cache or Codex `.codex/skills/`; the script ships inside the skill,
+   Claude's plugin cache or Codex `.agents/skills/`; the script ships inside the skill,
    not the project repo.)
 2. **Create the run:**
    `bash "<this-skill-dir>/scripts/new-run.sh" <ticket> "<short description>"` —

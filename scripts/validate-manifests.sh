@@ -37,7 +37,7 @@ echo "Checking shipped scripts (canon in scripts/runtime/, symlinked into each c
 # Plugin-level shipped scripts live once under scripts/runtime/ and are exposed to each consuming
 # skill via a git-tracked symlink skills/<name>/scripts/<s>.sh -> ../../../scripts/runtime/<s>.sh.
 # Skill bodies invoke them as <this-skill-dir>/scripts/<s>.sh — a path that resolves both in Claude
-# Code's plugin cache AND in Codex's .codex/skills/, with no ${CLAUDE_PLUGIN_ROOT} env var. `claude
+# Code's plugin cache AND in the cross-agent .agents/skills/, with no ${CLAUDE_PLUGIN_ROOT} env var. `claude
 # plugin install` deep-derefs the skill dir, turning each nested symlink into a real file in the
 # cache (0 symlinks). We assert (1) each canon exists and is executable, and (2) every symlink under
 # skills/*/scripts/ resolves into the canon and is executable — never dangling, never drifting.
@@ -110,15 +110,18 @@ else
 fi
 
 echo
-echo "Checking .codex/skills/ stays in sync with skills/ (Codex in-repo discovery)..."
-# Every skill needs a committed .codex/skills/<name> -> ../../skills/<name> symlink so Codex working
-# inside this repo discovers it. A skill with no .codex link (Claude Code sees it via plugins/, Codex
-# does not) is silent drift the other checks miss; a dangling or wrong-target link is just as bad.
+echo "Checking .agents/skills/ stays in sync with skills/ (cross-agent in-repo discovery)..."
+# Every skill needs a committed .agents/skills/<name> -> ../../skills/<name> symlink. .agents/skills/
+# is the open cross-agent standard path — Codex (scanned CWD->repo root), Copilot, Cursor, and Gemini
+# all discover repo skills there. A skill with no link (Claude Code sees it via plugins/, the others
+# do not) is silent drift the other checks miss; a dangling or wrong-target link is just as bad.
+# Note: .agents/skills/ is a shared namespace — it may also hold vendored external skills (e.g. the
+# shadcn `improve` dir), so we assert per dw skill and only flag dangling *symlinks* as orphans.
 for d in skills/*/; do
   name="$(basename "$d")"
-  link=".codex/skills/$name"
+  link=".agents/skills/$name"
   if [ ! -L "$link" ]; then
-    echo "::error::$link missing — add: ln -s ../../skills/$name $link (skill not discoverable under Codex in-repo)"
+    echo "::error::$link missing — add: ln -s ../../skills/$name $link (skill not discoverable in-repo by Codex/Copilot/Cursor/Gemini)"
     FAILED=1
   elif [ ! -e "$link" ]; then
     echo "::error::$link is a dangling symlink (target '$(readlink "$link")' missing)"
@@ -130,10 +133,11 @@ for d in skills/*/; do
     echo "OK  $link -> ../../skills/$name"
   fi
 done
-# And no orphan: a .codex/skills entry whose skill was renamed/removed dangles.
-for link in .codex/skills/*; do
+# And no orphan: a .agents/skills symlink whose skill was renamed/removed dangles. Real dirs
+# (vendored externals like `improve`) are not symlinks, so the [ -L ] guard skips them.
+for link in .agents/skills/*; do
   if [ -L "$link" ] && [ ! -e "$link" ]; then
-    echo "::error::$link is a dangling .codex symlink (target '$(readlink "$link")' missing)"
+    echo "::error::$link is a dangling .agents/skills symlink (target '$(readlink "$link")' missing)"
     FAILED=1
   fi
 done

@@ -49,7 +49,7 @@ Resolve the run with `bash "<this-skill-dir>/scripts/find-active-run.sh" --step`
 prints the run directory (newest wins when several match), and with `--step` also
 prints the first PLAN row whose Status ≠ `done` (the step to build). It exits
 non-zero when no run matches. `<this-skill-dir>` is the dir holding this `SKILL.md`
-(the installed skill dir — Claude's plugin cache or Codex `.codex/skills/`); the
+(the installed skill dir — Claude's plugin cache or Codex `.agents/skills/`); the
 script ships inside the skill, not the project repo. Interpret its result, stop at
 the first that applies:
 
@@ -120,7 +120,7 @@ The heart of the skill. One step, one cycle:
   Commit column, then run `bash "<this-skill-dir>/scripts/plan-status.sh" <PLAN.md>` to refresh
   the frontmatter `status:` from the table — you own the row, the script owns the scalar (it's
   _derived_; idempotent; never hand-edit it). `<this-skill-dir>` is the dir holding this `SKILL.md`
-  (the installed skill dir — Claude's plugin cache or Codex `.codex/skills/`); the script ships inside the skill, not the project repo.
+  (the installed skill dir — Claude's plugin cache or Codex `.agents/skills/`); the script ships inside the skill, not the project repo.
   Then validate the edited artifacts: `bash "<this-skill-dir>/scripts/validate-ai-artifacts.sh" <run-dir>`
   (the run dir `find-active-run.sh` printed) confirms `PLAN.md` still satisfies the structural schema —
   column shape, status enum, the done row's SHA; fix any reported error before continuing, never skip past it.
