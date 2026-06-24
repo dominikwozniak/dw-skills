@@ -39,7 +39,7 @@ Write to `.ai/verify/<branch-slug>/risk.md`. `.ai/` is tracked in git — risk a
 work documentation, committed alongside the code.
 
 - Branch slug for the folder name —
-  `bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
+  `bash "<this-skill-dir>/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
   (e.g. `ABC-123/password-reset` → `abc-123-password-reset`) — the **same slug** `dw-explain`
   and `dw-verify` used, so your `risk.md` lands beside their artifacts.
 - `mkdir -p .ai/verify/<branch-slug>` before writing.

@@ -51,6 +51,11 @@ claude plugin install dw-misc       # bootstrap · git · handoff · doctor · s
 
 Then start a feature: `/dw-spec`. Resume after a `/clear`: `/dw-resume`.
 
+**Using Codex (or another agent)?** The skills are plain `SKILL.md`, so they also run under Codex
+CLI — `bash scripts/install-codex.sh` symlinks them into `~/.codex/skills/`. The `spec → plan →
+build` loop and the `.ai/` artifacts work identically; only the `.claude/` hooks are Claude-only.
+Details in [`AGENTS.md`](AGENTS.md).
+
 ## ↻ The workflow
 
 > 📖 New here? [**`docs/WORKFLOWS.md`**](docs/WORKFLOWS.md) is the guided tour — the loop

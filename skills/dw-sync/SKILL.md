@@ -76,11 +76,12 @@ flip — it stays as it is, or it's flagged for the user, never invented.
 ### 1. Find the run (branch-matched, no index)
 
 If `$ARGUMENTS` names a run id, use that run. Otherwise resolve it with
-`bash "${CLAUDE_PLUGIN_ROOT}/scripts/find-active-run.sh"` — it matches the current
+`bash "<this-skill-dir>/scripts/find-active-run.sh"` — it matches the current
 git branch against each run's `SPEC.md` `branch:` field, prints the run directory
 (newest wins when several match), and exits non-zero when none does.
-`${CLAUDE_PLUGIN_ROOT}` is the env var Claude Code substitutes to this plugin's
-install dir; the script ships with the plugin, not the project repo. Interpret its
+`<this-skill-dir>` is the dir holding this `SKILL.md` (the installed skill dir —
+Claude's plugin cache or Codex `.agents/skills/`); the script ships inside the skill,
+not the project repo. Interpret its
 result, stop at the first that applies:
 
 1. **No `.ai/runs/` directory, or no run for this branch** → there's nothing to sync. If a
@@ -143,11 +144,11 @@ the conversation is a correct outcome. Never apply on silence, on inference, or 
 ### 5. Apply the approved changes and log them
 
 Apply only what was approved, editing `PLAN.md` in place — flip Status/Commit, append the
-new rows, set `blocked` where flagged. Then run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/plan-status.sh"
+new rows, set `blocked` where flagged. Then run `bash "<this-skill-dir>/scripts/plan-status.sh"
 <PLAN.md>` to refresh the frontmatter `status:` from the table — it's _derived_ state (idempotent;
-never hand-set the scalar). `${CLAUDE_PLUGIN_ROOT}` is an env var Claude Code substitutes to this
-plugin's install dir; the script ships with the plugin, not the project repo. Then run
-`bash "${CLAUDE_PLUGIN_ROOT}/scripts/validate-ai-artifacts.sh" <run-dir>` to confirm the reconciled
+never hand-set the scalar). `<this-skill-dir>` is the dir holding this `SKILL.md` (the installed
+skill dir — Claude's plugin cache or Codex `.agents/skills/`); the script ships inside the skill, not the project repo. Then run
+`bash "<this-skill-dir>/scripts/validate-ai-artifacts.sh" <run-dir>` to confirm the reconciled
 `PLAN.md` still satisfies the structural schema (column shape, status enum, every done row's SHA) —
 fix any reported error before logging. Then append a `NOTES.md` entry (newest at the bottom,
 under a `## YYYY-MM-DD HH:MM` heading) recording what was reconciled: which rows flipped to

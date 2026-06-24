@@ -44,13 +44,14 @@ short SHA that landed it.
 
 ### 1. Find the run (branch-matched, no index)
 
-Resolve the run with `bash "${CLAUDE_PLUGIN_ROOT}/scripts/find-active-run.sh" --step`
+Resolve the run with `bash "<this-skill-dir>/scripts/find-active-run.sh" --step`
 — it matches the current git branch against each run's `SPEC.md` `branch:` field,
 prints the run directory (newest wins when several match), and with `--step` also
 prints the first PLAN row whose Status ≠ `done` (the step to build). It exits
-non-zero when no run matches. `${CLAUDE_PLUGIN_ROOT}` is the env var Claude Code
-substitutes to this plugin's install dir; the script ships with the plugin, not the
-project repo. Interpret its result, stop at the first that applies:
+non-zero when no run matches. `<this-skill-dir>` is the dir holding this `SKILL.md`
+(the installed skill dir — Claude's plugin cache or Codex `.agents/skills/`); the
+script ships inside the skill, not the project repo. Interpret its result, stop at
+the first that applies:
 
 1. **No `.ai/runs/` directory, or no run for this branch** → there's nothing to build
    yet. If a `SPEC.md` exists but no `PLAN.md`, point to `dw-plan`; if there's no spec
@@ -116,11 +117,11 @@ The heart of the skill. One step, one cycle:
   (resolved in step 3). Plain `git commit` — it auto-signs; never add `-S` or "fix"
   signing. Capture the short SHA with `git rev-parse --short HEAD`.
 - **mark-done.** Flip the row's Status to `done` and write that short SHA into the
-  Commit column, then run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/plan-status.sh" <PLAN.md>` to refresh
+  Commit column, then run `bash "<this-skill-dir>/scripts/plan-status.sh" <PLAN.md>` to refresh
   the frontmatter `status:` from the table — you own the row, the script owns the scalar (it's
-  _derived_; idempotent; never hand-edit it). `${CLAUDE_PLUGIN_ROOT}` is an env var Claude Code
-  substitutes to this plugin's install dir; the script ships with the plugin, not the project repo.
-  Then validate the edited artifacts: `bash "${CLAUDE_PLUGIN_ROOT}/scripts/validate-ai-artifacts.sh" <run-dir>`
+  _derived_; idempotent; never hand-edit it). `<this-skill-dir>` is the dir holding this `SKILL.md`
+  (the installed skill dir — Claude's plugin cache or Codex `.agents/skills/`); the script ships inside the skill, not the project repo.
+  Then validate the edited artifacts: `bash "<this-skill-dir>/scripts/validate-ai-artifacts.sh" <run-dir>`
   (the run dir `find-active-run.sh` printed) confirms `PLAN.md` still satisfies the structural schema —
   column shape, status enum, the done row's SHA; fix any reported error before continuing, never skip past it.
   Append a `NOTES.md` entry (newest at the bottom) recording what landed,
