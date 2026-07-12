@@ -71,7 +71,7 @@ document-producing one.
 **Defaults:**
 
 - Plain `git push` for feature branches.
-- Force-push is blocked by `block-dangerous-git.sh` when installed; otherwise
+- Force-push is blocked by `block-dangerous-commands.sh` when installed; otherwise
   refuse it manually.
 - Pushing to `main` / `master` / `develop` needs explicit confirmation first.
 
@@ -125,9 +125,11 @@ Always with a message: `git stash push -m "<what's being saved>"`. Never bare
 
 ## Notes
 
-- Defaults assume `block-dangerous-git.sh` is installed (via `dw-bootstrap`). If
-  it isn't, manually refuse the same patterns (force-push, hard-reset, `clean -f`).
+- Defaults assume `block-dangerous-commands.sh` is installed (via `dw-bootstrap`).
+  If it isn't, manually refuse the same patterns (force-push, hard-reset,
+  `clean -d`/`-f`).
 - Modern verbs throughout: `git switch` / `git restore` over `git checkout`.
 
 **Next:** `dw-review` to weigh the diff before opening the PR, or `dw-handoff` to
 pack the session for the next agent once the work is pushed.
+$ARGUMENTS

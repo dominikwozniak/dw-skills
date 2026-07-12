@@ -28,20 +28,22 @@ memory, that's a tracked `CLAUDE.md` distinct from your personal
 
 ## Stack → hooks
 
-| Hook                  | When to offer                   | Notes                                                                                                       |
-| --------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `block-dangerous-git` | always                          | stack-agnostic; blocks force-push, hard-reset, `clean -f`, `branch -D`, `checkout .`, `restore .`           |
-| `block-non-pnpm`      | JS/TS (a `package.json` exists) | blocks `npm`/`yarn`/`bun`; allows `pnpm`, `pnpm dlx`, `npx`                                                 |
-| `lint-on-edit`        | JS/TS                           | reads the **Lint command** from `CLAUDE.local.md`; falls back to eslint; skips silently if neither resolves |
-| `typecheck-on-stop`   | TS (a `tsconfig.json` exists)   | Stop hook; reads **Typecheck command**; falls back to `tsc --noEmit`; skip with `CLAUDE_SKIP_TYPECHECK=1`   |
-| `lint-on-edit-rb`     | Ruby (a `Gemfile` exists)       | lints edited `.rb`; reads **Lint command**, else Gemfile-detects `standardrb`/`rubocop`                     |
+| Hook                       | When to offer                   | Notes                                                                                                                                                                                        |
+| -------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `block-dangerous-commands` | always                          | stack-agnostic; blocks force-push, hard-reset, `clean` w/ `-d`/`-f`/`-x`, `branch -D`, `checkout .`, `restore .`, `stash clear`, `rm` aimed at `/` `~` `.`, `rmdir`, `find -delete`, `shred` |
+| `block-env-access`         | always                          | stack-agnostic; blocks Read/Edit/Write + Bash access to `.env*` / `.envrc` secrets; `.env.example` / `.env.sample` / `.env.template` allowed                                                 |
+| `block-non-pnpm`           | JS/TS (a `package.json` exists) | blocks `npm`/`yarn`/`bun`; allows `pnpm`, `pnpm dlx`, `npx`                                                                                                                                  |
+| `lint-on-edit`             | JS/TS                           | reads the **Lint command** from `CLAUDE.local.md`; falls back to eslint; skips silently if neither resolves                                                                                  |
+| `typecheck-on-stop`        | TS (a `tsconfig.json` exists)   | Stop hook; reads **Typecheck command**; falls back to `tsc --noEmit`; skip with `CLAUDE_SKIP_TYPECHECK=1`                                                                                    |
+| `lint-on-edit-rb`          | Ruby (a `Gemfile` exists)       | lints edited `.rb`; reads **Lint command**, else Gemfile-detects `standardrb`/`rubocop`                                                                                                      |
 
 `lint-on-edit` (`.ts`/`.js`) and `lint-on-edit-rb` (`.rb`) gate on file extension,
 so they're complementary — install the one(s) matching the stack. For Rust /
-Python / Go there's no shipped lint/typecheck hook yet: wire `block-dangerous-git`
-and, if the user wants a stack-equivalent, write a sibling script by the same
-shape — read stdin JSON, gate on the file extension, `exit 2` on failure — but
-don't ship one speculatively.
+Python / Go there's no shipped lint/typecheck hook yet: wire
+`block-dangerous-commands` + `block-env-access` and, if the user wants a
+stack-equivalent, write a sibling script by the same shape — read stdin JSON,
+gate on the file extension, `exit 2` on failure — but don't ship one
+speculatively.
 
 All hooks no-op without `jq` (`command -v jq || exit 0`). Mention `brew install jq`
 in the report if it's missing.

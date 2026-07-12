@@ -1,0 +1,50 @@
+#!/bin/bash
+# PreToolUse Bash hook — blocks dangerous/destructive commands (git and beyond).
+# Reads tool_input.command from stdin (Claude Code hook protocol).
+# Exit 2 + stderr message causes Claude to see the block and self-correct.
+# Patterns are anchored to a command boundary (line start, or after ; & |) so
+# prose inside quotes (commit messages, echo strings) doesn't false-positive.
+# Guardrail against agent accidents — NOT a security boundary; permissions.ask
+# and permissions.deny in settings.json are the jq-less backstop.
+# Adapted from mattpocock/skills/skills/misc/git-guardrails-claude-code.
+
+set -uo pipefail
+
+command -v jq >/dev/null || exit 0
+
+INPUT=$(cat)
+COMMAND=$(jq -r '.tool_input.command // empty' <<<"$INPUT")
+
+[[ -z "$COMMAND" ]] && exit 0
+
+# Normalize: drop a leading `sudo ` for matching only.
+NORMALIZED="${COMMAND#sudo }"
+
+# Start-of-command boundary: line start, or right after ; & | (chain/pipe).
+BOUNDARY='(^|[;&|][[:space:]]*)'
+
+DANGEROUS_PATTERNS=(
+  'git push( [^;&|]*)?( --force| -f\b)'                   # force push, any arg order (incl. --force-with-lease)
+  'git push( [^;&|]*)?( --delete\b| :\S)'                 # remote branch deletion (push --delete / push origin :branch)
+  'git reset( [^;&|]*)? --hard'                           # discards index + working tree
+  'git clean( +-[A-Za-z-]+)* +(-[A-Za-z]*[dfxX]|--force)' # deletes untracked files/dirs — any flag order (-fd, -f -d, -xdf, -d, --force)
+  'git branch( [^;&|]*)?( -D\b| -f\b| --force\b)'         # force-deletes or force-repoints a branch
+  'git checkout (-- +)?\.'                                # discards all working-tree changes
+  'git restore (-- +)?\.'                                 # discards all working-tree changes
+  'git stash clear\b'                                     # wipes every stash, unrecoverable
+  'rm( [^;&|]*)? /\*? *($|[;&|])'                         # rm aimed at / or /*
+  'rm( [^;&|]*)? (~|\$HOME)/? *($|[;&|])'                 # rm aimed at the home dir
+  'rm( [^;&|]*)? \.\.?/? *($|[;&|])'                      # rm aimed at . or .. (cwd wipe)
+  'rmdir\b'                                               # directory removal — ask the user instead
+  'find( [^;&|]*)? -delete\b'                             # bulk delete via find
+  'shred\b'                                               # irrecoverable file destruction
+)
+
+for pattern in "${DANGEROUS_PATTERNS[@]}"; do
+  if echo "$NORMALIZED" | grep -qE "${BOUNDARY}${pattern}"; then
+    echo "BLOCKED: '$COMMAND' matches dangerous pattern '$pattern'. Refused by dw-bootstrap guardrail. If you genuinely need this, the user must run it manually." >&2
+    exit 2
+  fi
+done
+
+exit 0

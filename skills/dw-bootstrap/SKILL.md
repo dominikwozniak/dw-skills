@@ -69,10 +69,11 @@ there first (step 1) and present a diff before writing (step 4).
 - Mode **A skeleton** vs **B tuned**.
 - Features to write (default all): `.ai/` memory (dirs + `README.md`) ·
   `settings.json` + hooks · `CLAUDE.local.md` · `.gitignore` block.
-- Hooks, filtered by detected stack: `block-dangerous-git` (always),
-  `block-non-pnpm` + `lint-on-edit` + `typecheck-on-stop` (JS/TS), `lint-on-edit-rb`
-  (Ruby). On stacks with no lint/typecheck hook, offer `block-dangerous-git` alone
-  and note the rest are stack-specific (see `references/bootstrap.md` → _Stack → hooks_).
+- Hooks, filtered by detected stack: `block-dangerous-commands` + `block-env-access`
+  (always), `block-non-pnpm` + `lint-on-edit` + `typecheck-on-stop` (JS/TS),
+  `lint-on-edit-rb` (Ruby). On stacks with no lint/typecheck hook, offer the two
+  always-on guards alone and note the rest are stack-specific (see
+  `references/bootstrap.md` → _Stack → hooks_).
 
 ### 3. (Mode B only) Interview — fill the prose
 
@@ -130,11 +131,13 @@ scaffold.
 - `ai-README.md` — the static `.ai/` layout doc, copied verbatim to `.ai/README.md`.
 - `settings.json` — tracked permissions + hooks (prune unselected hooks).
 - `gitignore-block.txt` — the marker-fenced managed block.
-- `hooks/block-dangerous-git.sh` · `hooks/block-non-pnpm.sh` · `hooks/lint-on-edit.sh` ·
-  `hooks/lint-on-edit-rb.sh` · `hooks/typecheck-on-stop.sh`.
+- `hooks/block-dangerous-commands.sh` · `hooks/block-env-access.sh` ·
+  `hooks/block-non-pnpm.sh` · `hooks/lint-on-edit.sh` · `hooks/lint-on-edit-rb.sh` ·
+  `hooks/typecheck-on-stop.sh`.
 
 ## References
 
 - `references/bootstrap.md` — the interview question bank, the tracked-vs-ignored
   rationale, the stack→hooks table, and idempotent re-run rules. Read it before
   running Mode B.
+$ARGUMENTS
