@@ -140,4 +140,5 @@ scaffold.
 - `references/bootstrap.md` — the interview question bank, the tracked-vs-ignored
   rationale, the stack→hooks table, and idempotent re-run rules. Read it before
   running Mode B.
+
 $ARGUMENTS
