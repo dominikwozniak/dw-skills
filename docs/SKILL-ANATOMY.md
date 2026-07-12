@@ -20,6 +20,11 @@ disable-model-invocation: true # ONLY for explicit-invoke-only skills (see below
 ---
 ```
 
+Descriptions are at most 350 characters and the full 17-skill catalog at most 6000 characters.
+Explicit-only skills also contain `agents/openai.yaml` with
+`policy.allow_implicit_invocation: false`. Shared helpers are resolved from the loaded skill as the
+absolute `<this-skill-dir>/../../scripts/runtime/<script>.sh` path.
+
 - **`name`** — kebab-case, equals the directory. Linted.
 - **`description`** — the discovery surface. Pack the trigger phrases here; the model reads this, not
   the body, to decide whether to fire. Spec/review show the bar.

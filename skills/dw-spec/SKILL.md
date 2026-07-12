@@ -1,14 +1,9 @@
 ---
 name: dw-spec
 description: >-
-  Write a persistent feature/change spec under `.ai/runs/` before planning or
-  coding. Opens with a skeleton plus numbered Open Questions and
-  HARD STOPS until you answer them, so wrong assumptions surface before they
-  cost a rewrite. Reads stack, commands, and patterns from the project — never
-  assumes a framework. Use when starting a new feature, ticket, or
-  non-trivial change, or any time someone says "spec this out", "write a spec",
-  "define requirements", "let's plan before building", or invokes "dw-spec".
-  Prefer this over diving straight into code for anything non-trivial.
+  Write a persistent feature or change SPEC.md under .ai/runs before planning or coding. Surfaces
+  numbered open questions and hard-stops until they are answered; reads stack and patterns from the
+  project. Use for "spec this out", "define requirements", "plan before building", or "dw-spec".
 argument-hint: "What feature or change are you speccing?"
 ---
 
@@ -30,13 +25,12 @@ and frontmatter are derived one way every time — the bug that motivated this w
 `.ai/verify/<abc-123-…>`.
 
 1. **Don't clobber an existing run.** Check whether this branch already has one:
-   `bash "${CLAUDE_PLUGIN_ROOT}/scripts/find-active-run.sh"`. If it prints a run
+   `bash "<runtime-dir>/find-active-run.sh"`. If it prints a run
    directory, **continue that SPEC** — only start a new run for a genuinely new unit
-   of work; when unsure, ask. (`${CLAUDE_PLUGIN_ROOT}` is the env var Claude Code
-   substitutes to this plugin's install dir; the script ships with the plugin, not
-   the project repo.)
+   of work; when unsure, ask. Resolve `<runtime-dir>` to the absolute
+   `<this-skill-dir>/../../scripts/runtime` path before invoking a helper.
 2. **Create the run:**
-   `bash "${CLAUDE_PLUGIN_ROOT}/scripts/new-run.sh" <ticket> "<short description>"` —
+   `bash "<runtime-dir>/new-run.sh" <ticket> "<short description>"` —
    pass the ticket from the branch if it encodes one (e.g. `ABC-123`), else `none`.
    It creates `.ai/runs/<YYYYMMDD>-<ticket-lower>-<slug>/SPEC.md` with the frontmatter
    filled (`run / ticket / status: draft / created / branch`), prints the run
@@ -50,7 +44,8 @@ Then fill in the SPEC body (below) under the `# Spec — …` heading the script
 
 ### 1. Gather context (no assumptions about the stack)
 
-- Read the request (it may arrive as `$ARGUMENTS`) and any linked ticket / PR /
+- Read expanded arguments when available. If the host leaves literal `$ARGUMENTS`, ignore it and
+  use the user's prompt. Read any linked ticket / PR /
   issue.
 - Read the project's own conventions — don't guess them:
   - `CLAUDE.md` / `CLAUDE.local.md` / `AGENTS.md` → `## Project specifics`,

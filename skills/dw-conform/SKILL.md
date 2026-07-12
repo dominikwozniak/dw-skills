@@ -1,21 +1,16 @@
 ---
 name: dw-conform
 description: >-
-  Check a change for conformance with the repo's existing, pre-committed patterns — its
-  siblings — and write a durable conform.md to `.ai/verify/`: a verdict plus drift findings,
-  each a real `file:line` paired with the pre-existing pattern it diverges from (confirmed via
-  `git log` to pre-date the change). A different axis from dw-review: not internal quality but
-  fit with established patterns. Self-contained and read-only — grounds each finding in a
-  pre-existing referent, never treats a file this change introduced as the pattern, and reports
-  honestly when there's no precedent instead of inventing drift. Resolves the change three ways
-  (working diff, branch vs base, or PR via `gh pr diff`). Use when a change is ready for review
-  or about to merge, or when someone says "does this match our patterns", "is this consistent
-  with the codebase", "check for drift", "consistency check", or invokes "dw-conform". Prefer
-  this over an ad-hoc consistency gut-check whenever a change should match existing patterns.
+  Check a change against pre-existing repository patterns and write .ai/verify/conform.md with a
+  verdict and grounded file:line drift findings. Read-only; supports working diffs, branches, and
+  PRs. Use for "does this match our patterns", "check for drift", or "dw-conform".
 argument-hint: "What should I check for conformance? (working diff, branch, or PR)"
 ---
 
 # dw-conform — does the change fit the patterns the repo already set?
+
+Use expanded invocation arguments when available. If the host leaves literal `$ARGUMENTS`, ignore
+the placeholder and infer scope from the user's prompt.
 
 A change is written, maybe about to go up as a PR — and one valuable question before it merges isn't
 "is this code good?" but "does it look like the rest of this repo?". Any codebase that has lived a
@@ -38,7 +33,7 @@ Write to `.ai/verify/<branch-slug>/conform.md`. `.ai/` is tracked in git — a c
 real work documentation, committed alongside the code.
 
 - Branch slug for the folder name —
-  `bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
+  `bash "<runtime-dir>/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
   (e.g. `ABC-123/password-reset` → `abc-123-password-reset`) — the **same slug** the rest of
   `dw-quality` uses, so your `conform.md` lands beside its siblings.
 - `mkdir -p .ai/verify/<branch-slug>` before writing.

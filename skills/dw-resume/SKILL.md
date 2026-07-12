@@ -1,17 +1,9 @@
 ---
 name: dw-resume
 description: >-
-  Deterministically resume the active run after a `/clear` or in a fresh
-  session: read the persisted plan under `.ai/runs/` for the current branch —
-  and the quality pass under `.ai/verify/` — then report where work stands and
-  the single next step across the whole loop, instead of reconstructing context
-  from scrollback. Reports the goal, what is already done, the first not-done
-  step (your resume point), the state of any review / verify / risk pass, and
-  any blockers. Read-only — never edits files or code. Use when starting a
-  session, after a `/clear`, picking up paused work, or asking "what next" — or
-  any time someone asks "where were we", "what's left", "where did I leave off",
-  "what should I do next", "resume", "pick up where I left off", or invokes
-  "dw-resume".
+  Resume from persisted .ai/runs and .ai/verify artifacts: report the goal, completed work, first
+  unfinished step, quality state, blockers, and one next action. Read-only. Use after context reset
+  or for "where were we", "what's next", "resume", or "dw-resume".
 ---
 
 # dw-resume — resume the active run and point to the next step
@@ -53,13 +45,12 @@ artifact literally states:
 
 ### 1. Find the run (branch-matched, no index)
 
-Resolve the run with `bash "${CLAUDE_PLUGIN_ROOT}/scripts/find-active-run.sh"` — it
+Resolve `<runtime-dir>` to the absolute `<this-skill-dir>/../../scripts/runtime` path, then run
+`bash "<runtime-dir>/find-active-run.sh"` — it
 matches the current git branch against each run's `SPEC.md` `branch:` field, prints
 the run directory (newest wins when several match), and exits non-zero when none
 does. Add `--step` to also print the first not-done PLAN row (the resume point).
-`${CLAUDE_PLUGIN_ROOT}` is the env var Claude Code substitutes to this plugin's
-install dir; the script ships with the plugin, not the project repo. Interpret its
-result and **stop at the first that applies**:
+Interpret its result and **stop at the first that applies**:
 
 1. **No `.ai/runs/` directory** → "no runs in this repo yet." Next: `dw-spec`. Stop.
 2. **Detached HEAD** (branch resolves to the literal `HEAD`) → say so, list every
@@ -78,7 +69,7 @@ Read frontmatter tolerantly (trim quotes / whitespace, ignore trailing
 `# comments`); treat any unreadable value as missing.
 
 Then derive the branch slug —
-`bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
+`bash "<runtime-dir>/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
 (the same `slugify.sh` `find-active-run.sh` is grouped with) — and read whatever exists in
 `.ai/verify/<branch-slug>/` — `review.md`'s **Verdict**, `verify-run.md`'s scenario
 verdicts, and the presence of `conform.md` / `risk.md` / `explain.md`. An empty or
@@ -90,8 +81,7 @@ missing or unparseable as "not recorded" — never infer a verdict.
 **PLAN.md present, table parseable** — columns are
 `Phase | Step | Title | Status | Commit`; Status ∈ `todo`/`doing`/`done`/`blocked`.
 The frontmatter `status:` is _derived_ from this table, so verify it (read-only) with
-`bash "${CLAUDE_PLUGIN_ROOT}/scripts/plan-status.sh" --check <PLAN.md>` — `${CLAUDE_PLUGIN_ROOT}`
-is an env var Claude Code substitutes to this plugin's install dir, and `--check`
+`bash "<runtime-dir>/plan-status.sh" --check <PLAN.md>` — `--check`
 **writes nothing**. On drift, lead the report with a one-line warning ("PLAN frontmatter
 says `<x>` but the table implies `<y>` — heal via `dw-build` / `dw-sync` / `plan-status.sh`");
 the table stays authoritative for the resume point regardless.

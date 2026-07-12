@@ -1,10 +1,10 @@
 #!/bin/bash
 # PreToolUse hook — blocks reading/editing/writing .env files (secrets).
-# Wire with matcher "Read|Edit|Write|MultiEdit|NotebookEdit|Grep|Bash":
+# Wire with matcher "Read|Edit|Write|MultiEdit|NotebookEdit|Grep|Bash|apply_patch":
 # file tools are checked via tool_input.file_path/.notebook_path/.path,
 # Bash via tokens of tool_input.command (cat .env, source .env, cp x .env).
 # Allowed basenames: .env.example / .env.sample / .env.template (secret-free).
-# Exit 2 + stderr message causes Claude to see the block and self-correct.
+# Exit 2 + stderr message causes the host to see the block and self-correct.
 # Guardrail against accidental secret exposure — NOT a security boundary
 # (quoted paths in Bash slip through; permissions.deny is the backstop).
 
@@ -47,6 +47,12 @@ fi
 # (heredoc-style commit body) would otherwise leak its inner lines as tokens.
 COMMAND=$(jq -r '.tool_input.command // empty' <<<"$INPUT")
 if [[ -n "$COMMAND" ]]; then
+  if [[ "$TOOL_NAME" == "apply_patch" ]]; then
+    while IFS= read -r patch_path; do
+      [[ -z "$patch_path" ]] && continue
+      is_env_file "$patch_path" && block "apply_patch" "$patch_path"
+    done < <(printf '%s\n' "$COMMAND" | sed -nE 's/^\*\*\* (Add|Update|Delete) File: (.*)$/\2/p')
+  fi
   STRIPPED=$(printf '%s\n' "$COMMAND" | tr '\n' ' ' | sed -E 's/"[^"]*"//g' | sed -E "s/'[^']*'//g")
   while IFS= read -r token; do
     [[ -z "$token" ]] && continue

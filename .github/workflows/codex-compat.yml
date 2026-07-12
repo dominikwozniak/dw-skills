@@ -1,0 +1,31 @@
+name: Codex compatibility
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  compatibility:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        codex: ["0.122.0", "latest"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.14.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npm install --global "@openai/codex@${{ matrix.codex }}"
+      - name: Install Claude Code
+        run: curl -fsSL https://claude.ai/install.sh | bash
+      - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - run: pnpm validate:compat
+      - run: pnpm validate:install

@@ -1,23 +1,20 @@
 ---
 name: dw-doctor
 description: >-
-  Read-only environment diagnostic for a dw-* repo: check whether the tools the
-  hooks and skills assume are installed and whether the repo's guardrails will
-  actually fire, then report each gap with a copy-paste fix. Runs a bundled
-  script that probes git, jq, gh, and stack tools (node/pnpm/agnix/prettier/tsc
-  for JS/TS, bundle/rubocop/standardrb for Ruby), and sanity-checks
-  `.claude/settings.json` + its hooks, `.ai/`, and plugin manifests. Mutates
-  nothing — never installs or edits. Use when setting up or inheriting a repo,
-  or any time someone asks "check my setup", "is my environment healthy",
-  "what tools am I missing", "why aren't my hooks running", "diagnose the repo",
-  or invokes "dw-doctor".
+  Diagnose a dw-* repo without changing it: shared memory, Claude/Codex hook wiring, plugin state,
+  required tools, legacy files, and known guardrail limitations. Reports observed gaps and fixes.
+  Use for "check my setup", "why aren't hooks running", "diagnose the repo", or "dw-doctor".
+argument-hint: "[--platform auto|claude|codex|both]"
 ---
 
 # dw-doctor — read-only environment diagnostic
 
+Use expanded invocation arguments when available. If the host leaves literal `$ARGUMENTS`, ignore
+the placeholder and infer the platform from the active host or the user's prompt.
+
 Confirm the machine actually has what this repo's hooks and skills assume, and
 that the wiring resolves — before a missing tool silently degrades things. The
-sharpest case: every `.claude/hooks/*.sh` opens with
+sharpest case: every generated hook script opens with
 `command -v jq >/dev/null || exit 0`, so on a box without `jq` the
 dangerous-command block, `.env` protection, pnpm enforcement, and
 lint/typecheck-on-edit hooks **all quietly no-op** and nobody notices. Same failure class for a missing `pnpm`, a
@@ -38,10 +35,10 @@ the repo declares, so nothing about a stack is assumed:
   `scripts.typecheck` (drives the JS/TS checks).
 - `Gemfile` — whether `standard` / `rubocop` is declared (drives the Ruby checks).
 - `tsconfig.json`, `.nvmrc` — presence informs the `tsc` / node checks.
-- `.claude/settings.json` — parsed for every wired hook command; each referenced
+- `.claude/settings.json` and `.codex/hooks.json` — parsed for wired hook commands; each referenced
   `*.sh` is checked for existence + the executable bit.
-- `.ai/`, `CLAUDE.local.md` — the convention's artifact home + the file hooks and
-  `dw-git` read for commands/conventions.
+- `.ai/`, `AGENTS.md`, `DW.local.md`, and legacy Claude files — shared state, precedence, and
+  migration diagnostics.
 - `.claude-plugin/marketplace.json` — only if present (a marketplace repo); a
   light plugin/version-sync glance.
 - Tool presence on `PATH` via `command -v`: `git`, `jq`, `gh`, `node`, `pnpm`,
@@ -54,13 +51,16 @@ the repo declares, so nothing about a stack is assumed:
 From anywhere inside the target repo, run the script shipped with this skill:
 
 ```
-bash "<this-skill-dir>/scripts/doctor.sh"
+bash "<this-skill-dir>/scripts/doctor.sh" --platform auto
 ```
 
 `<this-skill-dir>` is the directory holding this `SKILL.md` (e.g.
 `skills/dw-doctor` in source, or the installed plugin's `skills/dw-doctor`). The
 script resolves the repo itself, so the working directory only needs to be
 somewhere inside the repo you want diagnosed.
+
+Accepted platforms are `auto`, `claude`, `codex`, and `both`. In Codex mode, always surface that
+`.env` protection is best-effort because not every built-in read is hookable.
 
 ### 2. Relay the report
 

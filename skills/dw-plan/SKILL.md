@@ -1,17 +1,9 @@
 ---
 name: dw-plan
 description: >-
-  Turn the active run's ready `SPEC.md` into a persistent, gated `PLAN.md`
-  status table under `.ai/runs/` — thin vertical slices, each with acceptance
-  criteria and a verify command read from the project. Presents the slice
-  breakdown and HARD STOPS for approval before writing, so a wrong
-  decomposition surfaces before it becomes the committed spine of the build.
-  The PLAN.md it writes is the anchor `dw-resume` and `dw-build` read (first
-  not-done row = resume point); step ids are immutable once committed. Use when
-  a spec is ready and the work needs breaking into steps, or any time someone
-  says "plan this", "break this into tasks", "turn the spec into a plan",
-  "decompose the work", "make a build plan", or invokes "dw-plan". Reads stack
-  and commands from the project — never assumes a framework.
+  Turn a ready SPEC.md into an approved PLAN.md of thin vertical slices with acceptance criteria
+  and project-native verification commands. The plan becomes dw-build's durable source of truth.
+  Use for "plan this", "break this into tasks", "turn the spec into a plan", or "dw-plan".
 ---
 
 # dw-plan — turn a ready spec into a persistent, gated plan
@@ -75,8 +67,8 @@ same anti-hallucination discipline `dw-spec`'s Approach uses:
   module, or command you haven't verified exists.
 - Find the project's verify commands (you'll put one in each step's acceptance).
   Read them **from the project**, never hardcode them: first a declared block
-  (`## Commands` / `## Project specifics` in `CLAUDE.md` / `CLAUDE.local.md` /
-  `AGENTS.md` — test / lint / typecheck / run), then manifests (`package.json`
+  (`## Commands` / `## Project specifics` in `DW.local.md`, legacy `CLAUDE.local.md`,
+  `AGENTS.md`, then `CLAUDE.md`), then manifests (`package.json`
   scripts, `Makefile`, `Gemfile` + `bin/`, `pyproject.toml`…), then the code
   itself. If a command can't be found, state the assumption and ask rather than
   inventing one.

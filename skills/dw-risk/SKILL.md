@@ -1,22 +1,16 @@
 ---
 name: dw-risk
 description: >-
-  Assess a change's blast radius and out-of-code impact, and write a durable
-  risk.md to `.ai/verify/`: (a) what it touches, in impact tiers; (b) out-of-code
-  work (DB migrations, env vars, feature flags, infra, secrets); (c) follow-ups and
-  rollback, with every irreversible step flagged as a one-way-door. Analytical and
-  read-only — it reads the diff plus any neighbouring review.md / conform.md /
-  explain.md / verify-run.md, detects stack signals from the project, and never
-  executes anything. Grounds every item in a real referent; a section it can't
-  ground is marked NOT VERIFIED, not a false "no risk". Resolves the change three
-  ways (working diff, branch vs base, or a PR via `gh pr diff`). Use when a change
-  is about to merge or deploy, or when someone says "what's the blast radius", "what
-  could this break", "assess the risk", "is this migration safe", "what's the
-  rollback plan", or invokes "dw-risk".
+  Assess a change's blast radius, migrations, environment work, flags, infrastructure, secrets,
+  follow-ups, and rollback. Write grounded .ai/verify/risk.md without executing changes; mark gaps
+  NOT VERIFIED. Use for "what could this break", "assess the risk", or "dw-risk".
 argument-hint: "What should I assess for risk? (working diff, branch, or PR)"
 ---
 
 # dw-risk — map the blast radius, name the out-of-code work, plan the rollback
+
+Use expanded invocation arguments when available. If the host leaves literal `$ARGUMENTS`, ignore
+the placeholder and infer scope from the user's prompt.
 
 A change is written, maybe explained and verified — and now it's about to merge or deploy.
 The valuable next step is to ask the questions that don't show up in a green test run: **what
@@ -39,7 +33,7 @@ Write to `.ai/verify/<branch-slug>/risk.md`. `.ai/` is tracked in git — risk a
 work documentation, committed alongside the code.
 
 - Branch slug for the folder name —
-  `bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
+  `bash "<runtime-dir>/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
   (e.g. `ABC-123/password-reset` → `abc-123-password-reset`) — the **same slug** `dw-explain`
   and `dw-verify` used, so your `risk.md` lands beside their artifacts.
 - `mkdir -p .ai/verify/<branch-slug>` before writing.

@@ -1,5 +1,8 @@
 # Workflows
 
+These recipes work in Codex and Claude Code. Use `$dw-name` in Codex CLI/IDE and `/dw-name` in
+Claude. In the Codex app, select the installed `dw-skills` plugin and name the skill in the task.
+
 How to actually _use_ these skills day to day — the loop, the recipes for common
 situations, and the decisions you'll hit along the way. The [README](../README.md) is the
 index (what each skill is, one row each); [`DESIGN.md`](DESIGN.md) is the _why_; this is

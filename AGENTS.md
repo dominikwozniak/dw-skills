@@ -1,19 +1,21 @@
 # dw-skills — agent instructions
 
-A personal bucket of Claude Code skills, distributed as an installable plugin marketplace — not a
-code project.
+Portable Codex and Claude Code skills, distributed as installable plugin marketplaces.
 
 ## Repository layout
 
 - **`skills/`** — canonical home for every skill. Flat: `skills/<name>/SKILL.md`. Edit skills HERE,
   never via the symlink under `plugins/`.
+- **`.codex-plugin/plugin.json`** — aggregate Codex plugin exposing all real root `skills/` and
+  `scripts/runtime/` payload; never add symlinks to the Codex payload.
+- **`.agents/plugins/marketplace.json`** — Codex marketplace with one `dw-skills` entry.
 - **`plugins/`** — Claude Code plugins exposed via `.claude-plugin/marketplace.json`. Each plugin's
   `skills/<name>` and its shipped `scripts/<script>.sh` are **git-tracked symlinks** (mode 120000) →
   the repo-root canon — `../../../skills/<name>` and `../../../scripts/runtime/<script>.sh` — plus
   `plugins/<name>/.claude-plugin/plugin.json`. `claude plugin install` **dereferences** these
   symlinks: each plugin gets its own real copy in the plugin cache (verified — the installed cache
   contains 0 symlinks), so a script is invoked from skill bodies via the unchanged
-  `${CLAUDE_PLUGIN_ROOT}/scripts/<script>.sh`. Because install dereferences, one canonical script
+  the installed skill's relative `../../scripts/runtime/<script>.sh`. Because install dereferences, one canonical script
   can be symlinked into several plugins (e.g. `slugify.sh` into both `dw-planning` and `dw-quality`)
   with no duplication. (A script used by **one** skill instead stays bundled in that skill:
   `skills/<name>/scripts/` invoked via `<this-skill-dir>/…`, e.g. `dw-doctor`.)
@@ -25,16 +27,16 @@ code project.
     `validate-manifests.sh` / `validate-artifacts.sh` backing `pnpm validate:*`, `lint.sh`).
   - **`scripts/tests/`** — bash self-tests for the runtime scripts (`<script>.sh` ↔
     `<script>.test.sh`), run via `pnpm validate:artifacts`.
-- **`.claude-plugin/marketplace.json`** — makes this repo installable as a Claude Code plugin
-  source.
+- **`.claude-plugin/marketplace.json`** — Claude marketplace with three selective packages.
 
 ## Conventions
 
 - Skills use YAML frontmatter; `disable-model-invocation: true` for explicit-invoke-only skills.
 - Skill name: kebab-case, matches the directory name.
 - Canonical file is `skills/<name>/SKILL.md` — edit there, never via the plugin symlink.
-- `marketplace.json` version must match the plugin's `plugin.json` version (checked by
-  `pnpm validate:manifests`).
+- `package.json.version` is canonical and must match both marketplaces and all four manifests.
+- Explicit-only skills need both Claude frontmatter and Codex `agents/openai.yaml` policy.
+- Descriptions are ≤350 characters each and ≤6000 total.
 
 ## When adding a new skill
 
@@ -64,8 +66,7 @@ Copy an existing skill (e.g. `dw-handoff`) as a starting point.
 2. For each plugin that ships it:
    `ln -s ../../../scripts/runtime/<script>.sh plugins/<plugin>/scripts/<script>.sh` AND
    `git add` the symlink (must be mode 120000, like the skill symlinks).
-3. Invoke it from skill bodies as `${CLAUDE_PLUGIN_ROOT}/scripts/<script>.sh` — install
-   dereferences the symlink to a real file in the plugin cache, so the path resolves.
+3. Invoke it by resolving the absolute `<this-skill-dir>/../../scripts/runtime/<script>.sh` path.
 4. Add the basename to the `RUNTIME_SCRIPTS` list in `scripts/validate-manifests.sh`, and — where
    it has testable logic — a `scripts/tests/<script>.test.sh` (anchored to the repo root via
    `git rev-parse --show-toplevel`, like `validate-ai-artifacts.test.sh`).
@@ -83,4 +84,7 @@ Runs on every PR + push to `main`:
 - `pnpm validate:artifacts` — `.ai/` artifact schema + runtime-script self-tests under `scripts/tests/`.
 - `pnpm validate:docs` — README/`docs/DESIGN.md` ↔ skills sync (dead links, undocumented skills,
   explicit-invoke `⭑` consistency).
+- `pnpm validate:compat` — cross-host metadata, description budget, explicit-only parity, paths,
+  and unified version.
+- `pnpm validate:install` — isolated Codex and Claude marketplace/cache smoke.
 - `trufflehog` secrets scan.

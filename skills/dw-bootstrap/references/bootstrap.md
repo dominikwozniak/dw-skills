@@ -11,20 +11,17 @@ re-bootstrapping. So:
 
 - `.ai/` is **tracked** — `dw-spec` writes `.ai/runs/<id>/SPEC.md`, `dw-build`
   appends `NOTES.md`, `dw-handoff` writes `.ai/handoffs/<ts>.md`. All committed.
-  A tracked `.ai/README.md` documents the layout for teammates and non-Claude
-  tools — the loop's prose lives in the **ignored** `CLAUDE.local.md`, so without
-  it the contract would be invisible outside a tuned Claude session.
-- `.claude/settings.json` + `.claude/hooks/` are **tracked** — a committed
-  `settings.json` that references hook scripts only works if the scripts are in
-  the repo too.
-- `CLAUDE.local.md` and `.claude/settings.local.json` stay **personal/ignored** —
+  A tracked `.ai/README.md` documents the layout for teammates and both hosts.
+- `AGENTS.md` is the tracked shared contract. `CLAUDE.md` imports it.
+- `.claude/settings.json` + `.claude/hooks/` and `.codex/hooks.json` + `.codex/hooks/` are tracked
+  host adapters when selected.
+- `DW.local.md`, legacy `CLAUDE.local.md`, and `.claude/settings.local.json` stay **personal/ignored** —
   the About-me, language preferences, and any local-only overrides are yours, not
   the team's.
 
-The single ambiguous case is `CLAUDE.md`: if the repo wants _shared_ project
-memory, that's a tracked `CLAUDE.md` distinct from your personal
-`CLAUDE.local.md`. dw-bootstrap writes only `CLAUDE.local.md`; leave any existing
-`CLAUDE.md` alone unless asked.
+Never duplicate shared prose between hosts. Precedence is `DW.local.md`, legacy
+`CLAUDE.local.md`, `AGENTS.md`, `CLAUDE.md`, then detection and defaults. A root
+`AGENTS.override.md` masks `AGENTS.md`, so stop and ask which file owns shared instructions.
 
 ## Stack → hooks
 
@@ -33,8 +30,8 @@ memory, that's a tracked `CLAUDE.md` distinct from your personal
 | `block-dangerous-commands` | always                          | stack-agnostic; blocks force-push, hard-reset, `clean` w/ `-d`/`-f`/`-x`, `branch -D`, `checkout .`, `restore .`, `stash clear`, `rm` aimed at `/` `~` `.`, `rmdir`, `find -delete`, `shred` |
 | `block-env-access`         | always                          | stack-agnostic; blocks Read/Edit/Write + Bash access to `.env*` / `.envrc` secrets; `.env.example` / `.env.sample` / `.env.template` allowed                                                 |
 | `block-non-pnpm`           | JS/TS (a `package.json` exists) | blocks `npm`/`yarn`/`bun`; allows `pnpm`, `pnpm dlx`, `npx`                                                                                                                                  |
-| `lint-on-edit`             | JS/TS                           | reads the **Lint command** from `CLAUDE.local.md`; falls back to eslint; skips silently if neither resolves                                                                                  |
-| `typecheck-on-stop`        | TS (a `tsconfig.json` exists)   | Stop hook; reads **Typecheck command**; falls back to `tsc --noEmit`; skip with `CLAUDE_SKIP_TYPECHECK=1`                                                                                    |
+| `lint-on-edit`             | JS/TS                           | reads **Lint command** using the shared precedence; falls back to eslint                                                                                                                     |
+| `typecheck-on-stop`        | TS (a `tsconfig.json` exists)   | Stop hook; reads **Typecheck command**; skip with `DW_SKIP_TYPECHECK=1`                                                                                                                      |
 | `lint-on-edit-rb`          | Ruby (a `Gemfile` exists)       | lints edited `.rb`; reads **Lint command**, else Gemfile-detects `standardrb`/`rubocop`                                                                                                      |
 
 `lint-on-edit` (`.ts`/`.js`) and `lint-on-edit-rb` (`.rb`) gate on file extension,
@@ -51,7 +48,8 @@ in the report if it's missing.
 ## Interview (tuned mode)
 
 Ask only what you can't detect. Keep each answer to a line or two; skip whatever
-the user waves off. Map answers into the matching `CLAUDE.local.md` sections.
+the user waves off. Map shared project answers into `AGENTS.md` and private answers into
+`DW.local.md`.
 
 **About me / preferences**
 
@@ -63,7 +61,7 @@ the user waves off. Map answers into the matching `CLAUDE.local.md` sections.
 
 **Project specifics** (seed from detection, confirm with the user)
 
-4. Domain — one-line gist or a pointer to `CLAUDE.md` / docs.
+4. Domain — one-line gist or a pointer to `AGENTS.md` / docs.
 5. Key directories — where business logic lives.
 6. Deployment target — how/where it ships.
 7. Gotchas — local-only traps worth recording now.
@@ -86,7 +84,7 @@ dw-bootstrap is safe to run again on an already-bootstrapped repo:
 - **`.ai/` dirs** — `mkdir -p`; never delete or overwrite existing run folders.
 - **`.ai/README.md`** — static; safe to refresh from the template. If the user has
   customized it, show a diff and confirm before overwriting (as with `settings.json`).
-- **`settings.json` / hooks** — these are tracked; show a diff and confirm before
+- **host settings / hooks** — these are tracked; show a diff and confirm before
   overwriting a customized file. Prefer merging the user's edits over clobbering.
-- **`CLAUDE.local.md`** — if it already has real content, do **not** overwrite.
-  Offer to merge missing sections (e.g. add a `## Hooks installed` block) instead.
+- **legacy `CLAUDE.local.md`** — propose copying content to `DW.local.md`; replace it with a thin
+  import only after verification and explicit consent. On refusal retain both and warn.

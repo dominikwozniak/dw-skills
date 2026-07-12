@@ -15,6 +15,16 @@
 # their commands — so nothing about a stack is hardcoded.
 set -uo pipefail
 
+PLATFORM=auto
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --platform) PLATFORM="${2:-}"; shift 2 ;;
+    --platform=*) PLATFORM="${1#*=}"; shift ;;
+    *) printf 'usage: doctor.sh [--platform auto|claude|codex|both]\n' >&2; exit 2 ;;
+  esac
+done
+case "$PLATFORM" in auto|claude|codex|both) ;; *) printf 'invalid platform: %s\n' "$PLATFORM" >&2; exit 2 ;; esac
+
 # --- output helpers (color only on a TTY) ------------------------------------
 if [ -t 1 ]; then
   C_OK=$'\033[32m'; C_WARN=$'\033[33m'; C_FAIL=$'\033[31m'; C_DIM=$'\033[2m'; C_RST=$'\033[0m'
@@ -47,6 +57,13 @@ ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 
 printf '%sdw-doctor%s — read-only environment diagnostic\n' "$C_DIM" "$C_RST"
 printf '%srepo: %s%s\n' "$C_DIM" "$ROOT" "$C_RST"
+if [ "$PLATFORM" = auto ]; then
+  if [ -d "$ROOT/.claude" ] && [ -d "$ROOT/.codex" ]; then PLATFORM=both
+  elif [ -d "$ROOT/.codex" ]; then PLATFORM=codex
+  else PLATFORM=claude
+  fi
+fi
+printf '%splatform: %s%s\n' "$C_DIM" "$PLATFORM" "$C_RST"
 
 # --- core tools ---------------------------------------------------------------
 group "Core tools"
@@ -58,7 +75,7 @@ fi
 if have jq; then
   report ok "jq" "$(jq --version 2>/dev/null)"
 else
-  report fail "jq" "MISSING — every .claude/hooks/*.sh silently no-ops without it. Install: brew install jq"
+  report fail "jq" "MISSING — dw hook scripts silently no-op without it. Install: brew install jq"
 fi
 
 # --- optional tools -----------------------------------------------------------
@@ -163,7 +180,19 @@ fi
 
 # --- repo structure -----------------------------------------------------------
 group "Structure"
+for common in .ai AGENTS.md DW.local.md; do
+  if [ -e "$ROOT/$common" ]; then report ok "$common" "present"
+  else report warn "$common" "absent — run dw-bootstrap"; fi
+done
+if [ -f "$ROOT/AGENTS.override.md" ]; then
+  report warn "AGENTS.override.md" "present at repo root — it masks AGENTS.md"
+fi
+if [ -f "$ROOT/CLAUDE.local.md" ] && [ ! -f "$ROOT/DW.local.md" ]; then
+  report warn "legacy profile" "CLAUDE.local.md needs migration to DW.local.md"
+fi
+
 settings="$ROOT/.claude/settings.json"
+if [ "$PLATFORM" = claude ] || [ "$PLATFORM" = both ]; then
 if [ -f "$settings" ]; then
   if have jq && ! jq empty "$settings" 2>/dev/null; then
     report fail ".claude/settings.json" "invalid JSON"
@@ -196,17 +225,25 @@ if [ -f "$settings" ]; then
 else
   report warn ".claude/settings.json" "absent — no hooks/guardrails in this repo"
 fi
-
-if [ -d "$ROOT/.ai" ]; then
-  report ok ".ai/" "present"
-else
-  report warn ".ai/" "absent — run dw-bootstrap, or dw-spec to start a run"
 fi
 
-if [ -f "$ROOT/CLAUDE.local.md" ]; then
-  report ok "CLAUDE.local.md" "present"
-else
-  report warn "CLAUDE.local.md" "absent — hooks + dw-git read it for commands & conventions"
+if [ "$PLATFORM" = codex ] || [ "$PLATFORM" = both ]; then
+  codex_hooks="$ROOT/.codex/hooks.json"
+  if [ -f "$codex_hooks" ]; then
+    if have jq && jq empty "$codex_hooks" 2>/dev/null; then
+      report ok ".codex/hooks.json" "present and valid JSON"
+    else
+      report fail ".codex/hooks.json" "invalid JSON or jq unavailable"
+    fi
+  else
+    report warn ".codex/hooks.json" "absent — Codex guardrails are not enabled"
+  fi
+  if [ -f "$ROOT/.codex/config.toml" ] && grep -qE 'hooks[[:space:]]*=[[:space:]]*false' "$ROOT/.codex/config.toml"; then
+    report warn "Codex hooks" "explicitly disabled in .codex/config.toml"
+  fi
+  if have codex; then report ok "codex" "$(codex --version 2>/dev/null | head -n1)"
+  else report warn "codex" "CLI absent — plugin/cache state cannot be checked"; fi
+  report warn ".env guardrail" "Codex protection is best-effort; built-in reads are not all intercepted"
 fi
 
 # --- plugins (opportunistic: only a marketplace repo has this) ----------------

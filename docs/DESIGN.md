@@ -122,6 +122,17 @@ never auto-trigger — they scaffold a repo, install shared tooling, compact or 
 an explicit drift signal, so the model shouldn't reach for them unbidden. Everything else can be
 model-invoked when the task fits.
 
+Claude expresses this with `disable-model-invocation: true`; Codex uses the matching
+`agents/openai.yaml` policy. `pnpm validate:compat` requires exact parity.
+
+## One corpus, two hosts
+
+`skills/` and `scripts/runtime/` are the only sources of truth. Codex installs one aggregate root
+plugin with real directories; Claude installs three selective packages whose symlinks are
+materialized by its installer. Skills resolve runtime helpers relative to their loaded `SKILL.md`,
+not through a host-specific environment variable. Shared project instructions live in `AGENTS.md`
+and private machine context in `DW.local.md`; Claude files are thin imports.
+
 ## Loops vs persistence — why these skills don't auto-run
 
 **The catalog chooses persistence plus a human gate over an autonomous loop.** The field is drifting

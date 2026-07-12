@@ -1,25 +1,21 @@
 ---
 name: dw-bootstrap
 description: >-
-  Set up a project's Claude Code scaffolding — `.ai/` memory dirs, a tracked
-  `.claude/settings.json` with guardrail hooks, a personal `CLAUDE.local.md`, and
-  a cleaned `.gitignore` — wired to the `dw-spec → dw-plan → dw-build` loop. Two
-  modes: a blank **skeleton** from templates, or a **tuned** setup that
-  interviews you and fills `CLAUDE.local.md` to the project and your preferences.
-  Use when setting up a new repo for Claude Code or standardizing an existing
-  one. Trigger phrases: "set up this project", "bootstrap claude", "scaffold the
-  agent files", "dw-bootstrap". Prefer this over hand-writing
-  CLAUDE.md/settings/hooks or cloning a separate starter kit.
-argument-hint: "skeleton | tuned — and any project context to seed"
+  Scaffold a repo for dw-* on Claude Code, Codex, or both: shared AGENTS.md and .ai/ memory,
+  private DW.local.md, host hook adapters, and a managed .gitignore block. Supports skeleton and
+  tuned modes. Use for "set up this project", "bootstrap codex", "bootstrap claude", or "dw-bootstrap".
+argument-hint: "[skeleton|tuned] [--platform auto|claude|codex|both]"
 disable-model-invocation: true
 ---
 
-# dw-bootstrap — scaffold a project for the dw-\* loop
+# dw-bootstrap — scaffold dw-\* for Codex, Claude, or both
 
-Drop a consistent, **tracked** Claude Code setup into any repo: the `.ai/` memory
-the `dw-planning` / `dw-quality` skills read and write, a committed
-`settings.json` with guardrail hooks, a personal `CLAUDE.local.md`, and a
-`.gitignore` that knows which of those is shared and which is yours.
+Use expanded invocation arguments when available. If the host leaves literal `$ARGUMENTS`, ignore
+the placeholder and infer mode, platform, and scope from the user's prompt.
+
+Public interface: `dw-bootstrap [skeleton|tuned] [--platform auto|claude|codex|both]`.
+`auto` selects the active host; ask when ambiguous. `both` is explicit only. The shared source is
+tracked `AGENTS.md` plus ignored `DW.local.md`; host files are thin adapters.
 
 The stance is deliberate: dw-\* treats agent infra as **real work** — specs,
 plans, handoffs, and guardrails are committed and travel with the repo, not
@@ -31,9 +27,11 @@ thrown away.
 | ----------------------------------------- | ------------------ | ----------------------------------------------------------------------- |
 | `.ai/runs/` `.ai/handoffs/` `.ai/verify/` | **tracked**        | memory the dw-\* skills read/write (`.gitkeep` seeds empty dirs)        |
 | `.ai/README.md`                           | **tracked**        | self-documents the `.ai/` layout for teammates + non-Claude tools       |
-| `.claude/settings.json`                   | **tracked**        | permissions ask-list + hook wiring (shared with the team)               |
-| `.claude/hooks/*.sh`                      | **tracked**        | guardrail scripts the committed settings reference                      |
-| `CLAUDE.local.md`                         | personal / ignored | your About-me, preferences, project specifics, git conventions          |
+| `AGENTS.md`                               | **tracked**        | shared commands, architecture, conventions, and dw-\* workflow          |
+| `DW.local.md`                             | personal / ignored | private profile, tools, URLs, and machine-specific overrides            |
+| `.claude/settings.json`, `.claude/hooks/` | **tracked**        | Claude adapter, only for `claude` or `both`                             |
+| `CLAUDE.md`, `CLAUDE.local.md`            | tracked / ignored  | thin imports of `AGENTS.md` and `DW.local.md`                           |
+| `.codex/hooks.json`, `.codex/hooks/`      | **tracked**        | Codex adapter, only for `codex` or `both`                               |
 | `.claude/settings.local.json`             | personal / ignored | personal-only setting overrides (only if you add one)                   |
 | `.gitignore`                              | tracked            | a managed marker block — ignores the two personal files, **not** `.ai/` |
 
@@ -45,7 +43,7 @@ there first (step 1) and present a diff before writing (step 4).
 - **A · skeleton** — lay down the structure from templates with placeholders left
   in. Auto-detect stack + commands, pick hooks, write. Fast; you fill the prose
   later.
-- **B · tuned** — skeleton, then **interview** the user and fill `CLAUDE.local.md`
+- **B · tuned** — skeleton, then **interview** the user and fill `AGENTS.md` / `DW.local.md`
   for this project and these preferences (the rich shape: About-me, stack
   cheat-sheet, git conventions, project specifics). This is the "pod siebie" mode
   and the main reason this is a skill, not a `sed` script.
@@ -60,15 +58,16 @@ there first (step 1) and present a diff before writing (step 4).
 - Stack + commands from manifests — `package.json` scripts, `Gemfile`,
   `Cargo.toml`, `pyproject.toml`, `go.mod`, `Makefile`. Read the real test / lint
   / typecheck commands; don't invent them.
-- Read what already exists — `CLAUDE.md`, `CLAUDE.local.md`, `.claude/settings*`,
+- Read what already exists — `AGENTS.md`, `AGENTS.override.md`, `DW.local.md`, `CLAUDE.md`,
+  `CLAUDE.local.md`, `.claude/settings*`, `.codex/hooks*`,
   `.gitignore` — so step 4 diffs against reality and step 6 doesn't clobber or
   double-write a managed block. Don't assume a greenfield tree.
 
-### 2. Pick mode + features — `AskUserQuestion`
+### 2. Pick mode + features — ask through the host's user-input mechanism
 
 - Mode **A skeleton** vs **B tuned**.
-- Features to write (default all): `.ai/` memory (dirs + `README.md`) ·
-  `settings.json` + hooks · `CLAUDE.local.md` · `.gitignore` block.
+- Platform `auto | claude | codex | both`, then features: shared `.ai/`, `AGENTS.md`,
+  `DW.local.md`, `.gitignore`, and only the chosen host adapter(s).
 - Hooks, filtered by detected stack: `block-dangerous-commands` + `block-env-access`
   (always), `block-non-pnpm` + `lint-on-edit` + `typecheck-on-stop` (JS/TS),
   `lint-on-edit-rb` (Ruby). On stacks with no lint/typecheck hook, offer the two
@@ -83,7 +82,8 @@ ask, don't lecture; skip anything the user waves off.
 
 ### 4. HARD STOP — preview the plan and wait
 
-List every path you're about to write, marked **tracked** or **ignored**, and for
+If root `AGENTS.override.md` exists, stop first and ask which file owns shared instructions; it
+masks `AGENTS.md`. List every path you're about to write, marked **tracked** or **ignored**, and for
 any file that already exists show a diff (or "merge managed block only"). **Stop
 and get explicit confirmation before writing.** Bootstrapping mutates the repo —
 a wrong clobber is expensive. Do not write before the user confirms.
@@ -92,16 +92,20 @@ a wrong clobber is expensive. Do not write before the user confirms.
 
 - `mkdir -p .ai/{runs,handoffs,verify}` and seed each with `.gitkeep`. Copy
   `references/templates/ai-README.md` → `.ai/README.md` (static — no substitution).
+- Render `references/templates/AGENTS.md` and `DW.local.md`. For Claude, install thin imports from
+  `CLAUDE.md` / `CLAUDE.local.md`, settings, and hooks. For Codex, install `codex-hooks.json` as
+  `.codex/hooks.json` and the same selected scripts under `.codex/hooks/`; do not create
+  `.codex/config.toml`. If an existing config explicitly disables hooks, show that conflict.
 - Copy `references/templates/settings.json` → `.claude/settings.json`; **prune**
   the hook entries the user didn't select, then confirm the file still parses as
   valid JSON.
 - Copy the selected `references/templates/hooks/*.sh` → `.claude/hooks/` and
   `chmod +x` each.
-- Render `references/templates/CLAUDE.local.md` → `CLAUDE.local.md`: substitute
+- Render the shared templates: substitute
   `{{PROJECT_NAME}}` `{{DEFAULT_BRANCH}}` `{{STACK}}` `{{TEST_COMMAND}}`
   `{{LINT_COMMAND}}` `{{TYPECHECK_COMMAND}}`, and build `{{HOOKS_INSTALLED}}` from
-  the selected hooks. In tuned mode, also fill the About-me / specifics / git
-  sections from the interview.
+  the selected hooks. In tuned mode, put shared specifics in `AGENTS.md` and personal answers in
+  `DW.local.md`.
 - Append `references/templates/gitignore-block.txt` to `.gitignore`, fenced by
   its `>>> dw-bootstrap managed block >>>` markers. **Idempotent**: if the markers
   are already present, replace the block in place — never duplicate it.
@@ -112,7 +116,14 @@ The split is the whole point — enforce it after writing:
 
 - Ensure `.ai/`, `.claude/settings.json`, `.claude/hooks/` are **not** ignored. If
   a pre-existing rule ignores any of them, remove it.
-- Ensure `CLAUDE.local.md` and `.claude/settings.local.json` **are** ignored.
+- Ensure `DW.local.md`, `CLAUDE.local.md`, and `.claude/settings.local.json` **are** ignored.
+
+### Legacy migration
+
+When a populated `CLAUDE.local.md` exists without `DW.local.md`, propose copying its content into
+`DW.local.md`. After verification, replace it with `@DW.local.md` only with explicit consent. On
+refusal preserve both and warn that two sources remain. Never silently overwrite existing
+instructions, settings, or hooks: update a marked block or show a diff.
 
 ### 7. Report + hand off
 
@@ -127,7 +138,9 @@ scaffold.
 
 `references/templates/` holds the exact files to copy:
 
-- `CLAUDE.local.md` — the personal-memory template (placeholders + prompts).
+- `AGENTS.md` and `DW.local.md` — shared and private instruction templates.
+- `CLAUDE.md` and `CLAUDE.local.md` — thin Claude import adapters.
+- `codex-hooks.json` — tracked Codex hook adapter.
 - `ai-README.md` — the static `.ai/` layout doc, copied verbatim to `.ai/README.md`.
 - `settings.json` — tracked permissions + hooks (prune unselected hooks).
 - `gitignore-block.txt` — the marker-fenced managed block.

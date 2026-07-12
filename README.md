@@ -6,13 +6,14 @@
   </picture>
 </p>
 
-<p align="center"><strong>spec → plan → build → verify — a persistent, technology-agnostic workflow for Claude Code that survives a <code>/clear</code>.</strong></p>
+<p align="center"><strong>spec → plan → build → verify — persistent, technology-agnostic workflows for Codex and Claude Code.</strong></p>
 
 <p align="center">
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-111111?style=flat-square">
   <img alt="17 skills" src="https://img.shields.io/badge/skills-17-111111?style=flat-square">
-  <img alt="3 plugins" src="https://img.shields.io/badge/plugins-3-111111?style=flat-square">
+  <img alt="4 packages" src="https://img.shields.io/badge/packages-4-111111?style=flat-square">
   <img alt="Claude Code plugin" src="https://img.shields.io/badge/Claude_Code-plugin-111111?style=flat-square">
+  <img alt="Codex plugin" src="https://img.shields.io/badge/Codex-plugin-111111?style=flat-square">
   <a href="https://github.com/dominikwozniak/dw-skills/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/dominikwozniak/dw-skills/validate-plugin-manifests.yaml?style=flat-square&label=ci&color=111111"></a>
 </p>
 
@@ -42,6 +43,18 @@ The _why_ behind each design choice is in [`docs/DESIGN.md`](docs/DESIGN.md).
 
 ## ▸ Quick start
 
+Codex (all 17 skills in one plugin):
+
+```
+codex plugin marketplace add dominikwozniak/dw-skills
+codex plugin add dw-skills@dw-skills
+```
+
+Start a new Codex task after installation. Invoke explicitly with `$dw-spec` in CLI/IDE, or select
+`dw-skills` in the app and ask to use `dw-spec`.
+
+Claude Code (three selective packages):
+
 ```
 claude plugin marketplace add git@github.com:dominikwozniak/dw-skills.git
 claude plugin install dw-planning   # spec → plan → build → resume → sync
@@ -50,6 +63,14 @@ claude plugin install dw-misc       # bootstrap · git · handoff · doctor · s
 ```
 
 Then start a feature: `/dw-spec`. Resume after a `/clear`: `/dw-resume`.
+
+| Surface             | Support                      | Package shape                          | Hook setup                                  |
+| ------------------- | ---------------------------- | -------------------------------------- | ------------------------------------------- |
+| Codex CLI, IDE, app | macOS, Linux/WSL; CLI ≥0.122 | one `dw-skills` plugin                 | opt-in via `dw-bootstrap --platform codex`  |
+| Claude Code         | existing supported hosts     | `dw-planning`, `dw-quality`, `dw-misc` | opt-in via `dw-bootstrap --platform claude` |
+
+Codex cloud and native Windows are outside v1. Codex `.env` hooks are best-effort, not a security
+boundary, because every built-in read is not interceptable.
 
 ## ↻ The workflow
 
@@ -130,10 +151,10 @@ consent; `dw-risk` reads whatever neighbours exist and closes the pipeline. `dw-
 writer — it applies the findings the auditors record (blockers first), then you re-audit to confirm
 (required after blockers, optional after a medium/low-only pass).
 
-## ▣ Plugins — install what you need (3)
+## ▣ Packages
 
-Three plugins, grouped by job. The [task router](#-task-router--which-skill-for-which-task) above says
-what each skill does — here's which plugin ships it and where its artifacts land.
+Codex installs the root `dw-skills` plugin with all 17 skills and real `skills/` plus
+`scripts/runtime/` payload. Claude keeps three job-focused packages:
 
 - **`dw-planning`** — the spec→plan→build loop. `dw-spec` · `dw-resume` · `dw-plan` · `dw-build` ·
   `dw-sync`. Artifacts: `.ai/runs/<id>/`.
@@ -168,10 +189,18 @@ Full design rationale — the _why_ behind each choice — lives in [`docs/DESIG
 skills/<name>/SKILL.md          canonical skill (edit here)
 plugins/<collection>/           plugin.json + git-tracked symlinks → ../../../skills/<name>
 .claude-plugin/marketplace.json makes the repo installable
+.codex-plugin/plugin.json       aggregate Codex plugin (all skills)
+.agents/plugins/marketplace.json Codex marketplace entry
+scripts/runtime/                real shared helper payload
 docs/WORKFLOWS.md               the guided tour (the "how" — recipes + decisions)
 docs/DESIGN.md                  design rationale (the "why")
 docs/SKILL-ANATOMY.md           the shape every SKILL.md follows
 ```
+
+### Migrating an old Codex install
+
+Remove empty legacy Codex installs named `dw-misc`, `dw-planning`, or `dw-quality`, add this
+marketplace again, and install `dw-skills@dw-skills`. Start a new task so Codex reloads the catalog.
 
 ## ◈ Contributing
 
