@@ -94,8 +94,11 @@ a wrong clobber is expensive. Do not write before the user confirms.
   `references/templates/ai-README.md` → `.ai/README.md` (static — no substitution).
 - Render `references/templates/AGENTS.md` and `DW.local.md`. For Claude, install thin imports from
   `CLAUDE.md` / `CLAUDE.local.md`, settings, and hooks. For Codex, install `codex-hooks.json` as
-  `.codex/hooks.json` and the same selected scripts under `.codex/hooks/`; do not create
-  `.codex/config.toml`. If an existing config explicitly disables hooks, show that conflict.
+  `.codex/hooks.json` — **prune** the hook entries whose scripts the user didn't select (the
+  template wires every script), then confirm the file still parses as valid JSON — and the same
+  selected scripts under `.codex/hooks/`; do not create `.codex/config.toml`. A wired script that
+  is never copied errors on every matching Codex event. If an existing config explicitly disables
+  hooks, show that conflict.
 - Copy `references/templates/settings.json` → `.claude/settings.json`; **prune**
   the hook entries the user didn't select, then confirm the file still parses as
   valid JSON.
@@ -143,7 +146,7 @@ scaffold.
 
 - `AGENTS.md` and `DW.local.md` — shared and private instruction templates.
 - `CLAUDE.md` and `CLAUDE.local.md` — thin Claude import adapters.
-- `codex-hooks.json` — tracked Codex hook adapter.
+- `codex-hooks.json` — tracked Codex hook adapter (prune unselected hooks).
 - `ai-README.md` — the static `.ai/` layout doc, copied verbatim to `.ai/README.md`.
 - `settings.json` — tracked permissions + hooks (prune unselected hooks).
 - `gitignore-block.txt` — the marker-fenced managed block.
