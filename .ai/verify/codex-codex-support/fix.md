@@ -57,8 +57,41 @@ Left open by design — lower value or needing out-of-repo input, all recorded i
   hot-path**, **duplicate `ver_ge`/`version_at_least`**, **hook live-vs-template `cmp` gate**,
   **doctor.test.sh tautological assertion**, **settings.json matcher wording** — low, tidy-ups.
 
+# Fix — pass 3 (codex:review findings)
+
+## Summary
+
+An independent `codex:review` branch pass surfaced seven `[P2]` Codex-path findings. The load-bearing
+claims were verified against the code first (Codex did not hallucinate on the checked ones; #6 matches
+the earlier `doctor.sh:370` finding). This pass fixed the three "tool lies about health / guardrail
+silently off" items — all in `doctor.sh` — one commit each, each pinned by new self-tests
+(`doctor.test.sh` 15 → 22). Full suite green: `validate:artifacts` / `docs` / `compat` / `manifests`
+/ `format`.
+
+## Applied
+
+| Severity | Location        | Finding                                                        | Fix commit                                                          |
+| -------- | --------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
+| medium   | `doctor.sh:373` | Codex hooks validated with `jq empty` only — broken wiring OK  | `0b8171f` — per-script existence + exec-bit check; 4 new tests      |
+| medium   | `doctor.sh:380` | declined/untrusted Codex hooks still reported healthy          | `d5b97dc` — explicit note that trust is Codex-managed, unverifiable |
+| medium   | `doctor.sh:202` | `auto` with no adapter dir picks claude, hides every Codex gap | `71bec54` — check both + warn; SKILL.md passes explicit host        |
+
+## Deferred (separate PRs)
+
+Held back deliberately — either out-of-repo input needed or lower-value bootstrap polish:
+
+- **#3 patch-path `cwd`** (`hook-common.sh:16`, med) — hooks resolve relative ApplyPatch paths from the
+  repo root, not the event `cwd`; from a subdir under Codex the lint hook silently skips the edit. A
+  correct fix needs a **captured real Codex hook event** (payload `cwd` + relative-path base); fixing
+  blind risks resolving to the wrong file. Same dependency as the `codex-hooks.json:5` event-shape item.
+- **#1 codex-only settings copy** (`dw-bootstrap/SKILL.md:95`, med) and **#2 unignore generated tracked
+  adapters** (`dw-bootstrap/SKILL.md:123`, med) — bootstrap-flow correctness; batch into a bootstrap PR.
+- **#4 tracked `DW.local.md` trust** (`hook-common.sh:66`, low) — require the source be ignored **and**
+  untracked before trusting its command; defense-in-depth hardening.
+
 ## Next
 
-Re-run `dw-review` for a fresh verdict on the lower-severity fixes if desired (optional — no blocker
-was in play), then `dw-explain` → `dw-verify` to prove the change still runs, and `dw-conform`
-before the PR. The deferred structural items are best handled as their own PRs.
+The `doctor.sh` health-accuracy cluster is closed. Remaining work is the deferred bootstrap/hook
+items above (own PRs) — #3/#4 best tackled after capturing a real Codex hook event. Re-run
+`dw-review` for a fresh verdict if desired (optional — still no blocker), then `dw-verify` to prove
+the change still runs before the PR.

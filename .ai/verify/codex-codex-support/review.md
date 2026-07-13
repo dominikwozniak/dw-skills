@@ -3,7 +3,7 @@ branch: codex/codex-support
 base: main
 input: branch
 created: 2026-07-13
-sources: fix.md (blockers + pass 2) — re-review after bc4ea71 · 775e91a · 9fea55d; pass-2 fixes 9b230f9 · 488bd9a · de448fb · aa02368 · 9dc53dd · 5a433e3
+sources: fix.md (blockers + pass 2) — re-review after bc4ea71 · 775e91a · 9fea55d; pass-2 fixes 9b230f9 · 488bd9a · de448fb · aa02368 · 9dc53dd · 5a433e3; codex:review pass 0b8171f · d5b97dc · 71bec54
 ---
 
 # Review — Codex support: cross-host hooks, plugin restructure, install/compat validators
@@ -52,15 +52,14 @@ Open items only — resolution history is above and in `fix.md`.
 
 ### Correctness
 
-| Severity | Location                                                                 | Finding                                                                                                                                                                                                                                   | Suggested fix                                                                                                        |
-| -------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| medium   | `skills/dw-doctor/scripts/doctor.sh:370`                                 | Codex branch validates `.codex/hooks.json` with `jq empty` only — a hooks.json referencing a missing script reports OK **(reproduced)** — while `skills/dw-doctor/SKILL.md:38` claims each referenced `*.sh` is checked on both platforms | Port the Claude per-script loop (doctor.sh:340–356) to the Codex branch                                              |
-| medium   | `scripts/validate-install.sh:56`                                         | Payload census (17/5/5; per-plugin 5/0 · 5/5 · 7/1) hardcoded in four files (also doctor.sh, doctor.test.sh, validate-compat.mjs); doctor.test.sh fixtures are synthetic, so census-vs-repo drift is invisible to CI                      | Derive counts from the repo where available; have validate-compat assert doctor.sh's census constants match the repo |
-| low      | `scripts/tests/doctor.test.sh:100`                                       | `contains "claude-complete-misc"` matches the label on both the ok and fail paths — the dw-misc and dw-planning census assertions can never fail                                                                                          | Assert the full `complete: ...` message, as the dw-quality case does                                                 |
-| low      | `scripts/validate-install.sh:51`                                         | Error message renders a double-@ identifier (`dw-misc@dw-skills@0.4.0`) because `$id` already contains `@dw-skills`                                                                                                                       | Print plugin id and expected version separately                                                                      |
-| low      | `scripts/validate-install.sh:27`                                         | When the cache parent dir is missing, `find` under set-e/pipefail kills the script before the `::error::Codex cache missing` diagnostic prints **(reproduced — the version pin itself is NOT bypassed)**                                  | Guard the fallback with a directory check, or fail immediately on the pinned path                                    |
-| low      | `scripts/validate-compat.mjs:91`                                         | Folded-scalar regex stops at the first blank line inside a `>-` block, under-counting the description budget **(plausible — no current SKILL.md is affected)**                                                                            | Allow blank lines in the capture, or parse frontmatter YAML-aware                                                    |
-| low      | `skills/dw-bootstrap/references/templates/hooks/typecheck-on-stop.sh:13` | The Stop hook runs on the new machinery but hook-runtime.test.sh covers only the two lint hooks — no coverage for the bug classes reproduced (and now fixed) in its siblings                                                              | Add Stop-hook cases (label match, skip-var, argv-reject path)                                                        |
+| Severity | Location                                                                 | Finding                                                                                                                                                                                                              | Suggested fix                                                                                                        |
+| -------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| medium   | `scripts/validate-install.sh:56`                                         | Payload census (17/5/5; per-plugin 5/0 · 5/5 · 7/1) hardcoded in four files (also doctor.sh, doctor.test.sh, validate-compat.mjs); doctor.test.sh fixtures are synthetic, so census-vs-repo drift is invisible to CI | Derive counts from the repo where available; have validate-compat assert doctor.sh's census constants match the repo |
+| low      | `scripts/tests/doctor.test.sh:100`                                       | `contains "claude-complete-misc"` matches the label on both the ok and fail paths — the dw-misc and dw-planning census assertions can never fail                                                                     | Assert the full `complete: ...` message, as the dw-quality case does                                                 |
+| low      | `scripts/validate-install.sh:51`                                         | Error message renders a double-@ identifier (`dw-misc@dw-skills@0.4.0`) because `$id` already contains `@dw-skills`                                                                                                  | Print plugin id and expected version separately                                                                      |
+| low      | `scripts/validate-install.sh:27`                                         | When the cache parent dir is missing, `find` under set-e/pipefail kills the script before the `::error::Codex cache missing` diagnostic prints **(reproduced — the version pin itself is NOT bypassed)**             | Guard the fallback with a directory check, or fail immediately on the pinned path                                    |
+| low      | `scripts/validate-compat.mjs:91`                                         | Folded-scalar regex stops at the first blank line inside a `>-` block, under-counting the description budget **(plausible — no current SKILL.md is affected)**                                                       | Allow blank lines in the capture, or parse frontmatter YAML-aware                                                    |
+| low      | `skills/dw-bootstrap/references/templates/hooks/typecheck-on-stop.sh:13` | The Stop hook runs on the new machinery but hook-runtime.test.sh covers only the two lint hooks — no coverage for the bug classes reproduced (and now fixed) in its siblings                                         | Add Stop-hook cases (label match, skip-var, argv-reject path)                                                        |
 
 ### Readability
 
@@ -96,6 +95,28 @@ Open items only — resolution history is above and in `fix.md`.
 | medium   | `.github/workflows/validate-codex-compatibility.yaml:3` | No `paths:` filter (siblings have one), the static `pnpm validate:compat` runs identically in all 4 matrix cells, and the pinned CLIs are npm-installed per cell with no cache — 2 cells are macOS | Add a `paths:` filter; hoist validate:compat to one ubuntu job; cache the npm-global installs |
 | low      | `.claude/hooks/hook-common.sh:40`                       | 3 jq spawns per Edit/Write on the hottest hook path, plus per-candidate repo-root re-canonicalization (~15–40 ms avoidable per edit)                                                               | One jq call emitting tool_name + path; canonicalize the root once per invocation              |
 
+## External review — codex:review (branch)
+
+A second, independent branch review via `codex:review` (Codex 0.142.0). All seven findings were
+`[P2]` and confined to the **Codex path** — the mature Claude path is unaffected. The load-bearing
+claims were verified against the code before acting: Codex did not hallucinate on the checked ones,
+and #6 independently re-discovers the `doctor.sh:370` finding above. The false-health / silent-bypass
+cluster (#5, #6, #7) is fixed; the rest is deferred as noted.
+
+| #   | Sev | Location                    | Finding                                                         | Status                                          |
+| --- | --- | --------------------------- | --------------------------------------------------------------- | ----------------------------------------------- |
+| 6   | med | `doctor.sh:373`             | Codex hooks validated with `jq empty` only — broken wiring OK   | fixed → `0b8171f` (per-script check + 4 tests)  |
+| 7   | med | `doctor.sh:380`             | trust/approval state unseen — declined hooks reported healthy   | fixed → `d5b97dc` (honest unverifiable note)    |
+| 5   | med | `doctor.sh:202`             | `auto` with no adapter dir picks claude, hides every Codex gap  | fixed → `71bec54` (check both + warn; SKILL.md) |
+| 3   | med | `hook-common.sh:16`         | patch paths resolved from repo root, not the event `cwd`        | deferred — needs a captured real Codex event    |
+| 1   | med | `dw-bootstrap/SKILL.md:95`  | codex-only bootstrap still copies `.claude/settings.json`       | deferred — bootstrap-flow PR                    |
+| 2   | med | `dw-bootstrap/SKILL.md:123` | pre-ignored `.codex/` / `AGENTS.md` / `CLAUDE.md` stay unstaged | deferred — bootstrap-flow PR                    |
+| 4   | low | `hook-common.sh:66`         | tracked `DW.local.md` still trusted as a private command source | deferred — trust-boundary hardening             |
+
+#3 is the same class as the `codex-hooks.json:5/:10` items below: a correct fix needs a captured real
+Codex hook event (payload `cwd` + relative-path base), which the repo cannot supply — fixing it blind
+risks resolving edits to the wrong file and silently skipping lint.
+
 ## Summary
 
 **approve-with-comments** — two `dw-fix` passes have cleared every critical/high and the six
@@ -111,4 +132,8 @@ proves the shell guards fire on Codex. The rest are structural single-sourcing /
 (payload census, version-literal sweep, validator overlap, CI matrix restructure) that don't block
 merge. Out-of-scope items stand: the lint-on-edit outside-repo drop is intentional and
 security-positive, the double agnix scan is forced by agnix's CLI, and the Codex marketplace's
-missing version field is a CLAUDE.md wording nit.
+missing version field is a CLAUDE.md wording nit. A later independent `codex:review` pass (see
+External review above) confirmed and extended this picture: its false-health / silent-bypass cluster
+(#5/#6/#7, all in `doctor.sh`) is now fixed, and its four deferred items — most importantly the
+patch-path `cwd` resolution (#3) — join the same captured-real-Codex-event dependency already noted
+for the hook event shape.
