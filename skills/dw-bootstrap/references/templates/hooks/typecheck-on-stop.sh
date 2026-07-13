@@ -9,6 +9,10 @@ set -uo pipefail
 command -v jq >/dev/null || exit 0
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+if [ ! -r "$SCRIPT_DIR/hook-common.sh" ]; then
+  echo "dw hook: hook-common.sh missing beside $(basename "${BASH_SOURCE[0]}") — guardrail cannot run" >&2
+  exit 2
+fi
 # shellcheck source=hook-common.sh
 source "$SCRIPT_DIR/hook-common.sh"
 

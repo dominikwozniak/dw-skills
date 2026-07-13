@@ -107,6 +107,14 @@ else
   note_pass "no-eval"
 fi
 
+# A hook whose hook-common.sh sibling is absent must fail closed (exit 2),
+# never silently no-op — copy it to an isolated dir without the library.
+ISO="$TMP/isolated"
+mkdir -p "$ISO"
+cp "$HOOKS/lint-on-edit.sh" "$ISO/lint-on-edit.sh"
+(cd "$REPO" && jq -n '{tool_name:"Edit",tool_input:{file_path:"src/a.ts"}}' | bash "$ISO/lint-on-edit.sh") >/dev/null 2>&1
+assert_eq "missing-hook-common-fails-closed" "2" "$?"
+
 echo
 echo "hook-runtime self-test: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
