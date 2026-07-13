@@ -15,15 +15,19 @@ echo "Codex install smoke"
 CODEX_HOME="$TMP/codex" codex plugin marketplace add "$ROOT" >/dev/null
 if CODEX_HOME="$TMP/codex" codex plugin add --help >/dev/null 2>&1; then
   CODEX_HOME="$TMP/codex" codex plugin add dw-skills@dw-skills >/dev/null
+  CODEX_LIST=$(CODEX_HOME="$TMP/codex" codex plugin list --json)
 else
-  CODEX_HOME="$TMP/codex" codex plugin install dw-skills@dw-skills >/dev/null
+  CODEX_LIST=$(CODEX_HOME="$TMP/codex" node "$ROOT/scripts/codex-plugin-rpc.mjs" "$ROOT/.agents/plugins/marketplace.json" dw-skills "$ROOT" "$VERSION")
 fi
-CODEX_LIST=$(CODEX_HOME="$TMP/codex" codex plugin list --json)
 jq -e --arg version "$VERSION" '[.installed[] | select(.pluginId == "dw-skills@dw-skills" and .installed == true and .enabled == true and .version == $version)] | length == 1' <<<"$CODEX_LIST" >/dev/null || {
   echo "::error::Codex plugin list does not contain one enabled dw-skills@$VERSION entry"; exit 1;
 }
 CODEX_CACHE="$TMP/codex/plugins/cache/dw-skills/dw-skills/$VERSION"
+[ -d "$CODEX_CACHE" ] || CODEX_CACHE=$(find "$TMP/codex/plugins/cache/dw-skills/dw-skills" -mindepth 1 -maxdepth 1 -type d | head -n1)
 [ -n "$CODEX_CACHE" ] && [ -d "$CODEX_CACHE" ] || { echo "::error::Codex cache missing"; exit 1; }
+jq -e --arg version "$VERSION" '.version == $version' "$CODEX_CACHE/.codex-plugin/plugin.json" >/dev/null || {
+  echo "::error::Codex cache manifest version mismatch"; exit 1;
+}
 [ "$(find "$CODEX_CACHE/skills" -name SKILL.md | wc -l | tr -d ' ')" = 17 ]
 [ "$(find "$CODEX_CACHE" -type l | wc -l | tr -d ' ')" = 0 ]
 [ "$(find "$CODEX_CACHE/skills" -path '*/agents/openai.yaml' | wc -l | tr -d ' ')" = 5 ]
