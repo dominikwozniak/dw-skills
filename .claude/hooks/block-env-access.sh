@@ -48,10 +48,16 @@ fi
 COMMAND=$(jq -r '.tool_input.command // empty' <<<"$INPUT")
 if [[ -n "$COMMAND" ]]; then
   if [[ "$TOOL_NAME" == "apply_patch" ]]; then
+    # Patch headers name every touched path (incl. "Move to:" rename targets,
+    # possibly quoted); the body is file content and is never token-scanned —
+    # a patch that merely mentions .env in a doc or code line must pass.
     while IFS= read -r patch_path; do
       [[ -z "$patch_path" ]] && continue
+      patch_path="${patch_path#\"}"; patch_path="${patch_path%\"}"
+      patch_path="${patch_path#\'}"; patch_path="${patch_path%\'}"
       is_env_file "$patch_path" && block "apply_patch" "$patch_path"
-    done < <(printf '%s\n' "$COMMAND" | sed -nE 's/^\*\*\* (Add|Update|Delete) File: (.*)$/\2/p')
+    done < <(printf '%s\n' "$COMMAND" | sed -nE -e 's/^\*\*\* (Add|Update|Delete) File: (.*)$/\2/p' -e 's/^\*\*\* Move to: (.*)$/\1/p')
+    exit 0
   fi
   STRIPPED=$(printf '%s\n' "$COMMAND" | tr '\n' ' ' | sed -E 's/"[^"]*"//g' | sed -E "s/'[^']*'//g")
   while IFS= read -r token; do

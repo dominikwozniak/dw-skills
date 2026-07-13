@@ -113,6 +113,28 @@ allowed_patch "patch-ordinary-files" '*** Begin Patch
 *** Update File: src/env.ts
 *** Add File: docs/environment.md
 *** End Patch'
+blocked_patch "patch-move-to-env" '*** Begin Patch
+*** Update File: config.txt
+*** Move to: .env
+*** End Patch'
+blocked_patch "patch-move-to-env-quoted" '*** Begin Patch
+*** Update File: config.txt
+*** Move to: ".env"
+*** End Patch'
+allowed_patch "patch-move-to-example" '*** Begin Patch
+*** Update File: .env.sample
+*** Move to: .env.example
+*** End Patch'
+allowed_patch "patch-body-mentions-env" '*** Begin Patch
+*** Update File: README.md
+@@
++Copy .env.example to .env before starting the app.
+*** End Patch'
+allowed_patch "patch-body-env-token" '*** Begin Patch
+*** Add File: docker-compose.yml
+@@
++    env_file: .env
+*** End Patch'
 
 echo
 echo "block-env-access self-test: $PASS passed, $FAIL failed"
