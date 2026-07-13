@@ -369,10 +369,33 @@ fi
 if [ "$PLATFORM" = codex ] || [ "$PLATFORM" = both ]; then
   codex_hooks="$ROOT/.codex/hooks.json"
   if [ -f "$codex_hooks" ]; then
-    if have jq && jq empty "$codex_hooks" 2>/dev/null; then
-      report ok ".codex/hooks.json" "present and valid JSON"
+    if ! have jq; then
+      report warn ".codex/hooks.json" "skipped (needs jq to parse)"
+    elif ! jq empty "$codex_hooks" 2>/dev/null; then
+      report fail ".codex/hooks.json" "invalid JSON"
     else
-      report fail ".codex/hooks.json" "invalid JSON or jq unavailable"
+      report ok ".codex/hooks.json" "present and valid JSON"
+      # Parity with the Claude per-script check above: valid JSON is not enough —
+      # enumerate every wired command and verify each script resolves and is
+      # executable, else that guardrail silently never runs.
+      found_hook=0
+      while IFS= read -r cmd; do
+        [ -z "$cmd" ] && continue
+        cmd="${cmd//\$(git rev-parse --show-toplevel)/$ROOT}"
+        script_path="$(printf '%s' "$cmd" | grep -oE "[^'\" ]*\.sh" | head -n1)"
+        [ -z "$script_path" ] && continue
+        found_hook=1
+        case "$script_path" in /*) ;; *) script_path="$ROOT/$script_path" ;; esac
+        rel="${script_path#"$ROOT"/}"
+        if [ ! -f "$script_path" ]; then
+          report fail "Codex hook script" "missing: $rel — that guardrail won't run"
+        elif [ ! -x "$script_path" ]; then
+          report fail "Codex hook script" "not executable: $rel — fix: chmod +x"
+        else
+          report ok "Codex hook script" "$rel"
+        fi
+      done < <(jq -r '.hooks // {} | to_entries[] | .value[]? | .hooks[]? | .command // empty' "$codex_hooks" 2>/dev/null)
+      [ "$found_hook" -eq 0 ] && report warn "Codex hooks" "none wired in hooks.json — guardrails inactive"
     fi
   else
     report warn ".codex/hooks.json" "absent — Codex guardrails are not enabled"

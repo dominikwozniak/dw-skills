@@ -95,6 +95,28 @@ jq -n '{installed:[{pluginId:"dw-skills@dw-skills",version:"0.4.0",installed:tru
 out="$(cd "$REPO" && bash "$DOCTOR" --platform codex)"
 contains "codex-broken-cache" "$out" "incomplete: skills=16/17"
 
+# Codex hook wiring: valid JSON alone must not report OK — each referenced
+# script has to resolve and be executable, mirroring the Claude per-script check.
+mkdir -p "$REPO/.codex/hooks"
+hooks_cmd() { printf 'bash "$(git rev-parse --show-toplevel)/.codex/hooks/%s"' "$1"; }
+jq -n --arg c "$(hooks_cmd ghost.sh)" '{hooks:{PreToolUse:[{matcher:"Bash",hooks:[{type:"command",command:$c}]}]}}' >"$REPO/.codex/hooks.json"
+out="$(cd "$REPO" && bash "$DOCTOR" --platform codex)"
+contains "codex-hook-missing" "$out" "missing: .codex/hooks/ghost.sh"
+
+: >"$REPO/.codex/hooks/dull.sh"; chmod -x "$REPO/.codex/hooks/dull.sh"
+jq -n --arg c "$(hooks_cmd dull.sh)" '{hooks:{PreToolUse:[{matcher:"Bash",hooks:[{type:"command",command:$c}]}]}}' >"$REPO/.codex/hooks.json"
+out="$(cd "$REPO" && bash "$DOCTOR" --platform codex)"
+contains "codex-hook-nonexec" "$out" "not executable: .codex/hooks/dull.sh"
+
+chmod +x "$REPO/.codex/hooks/dull.sh"
+out="$(cd "$REPO" && bash "$DOCTOR" --platform codex)"
+contains "codex-hook-ok" "$out" "[ OK ] Codex hook script"
+
+jq -n '{hooks:{}}' >"$REPO/.codex/hooks.json"
+out="$(cd "$REPO" && bash "$DOCTOR" --platform codex)"
+contains "codex-hook-empty" "$out" "none wired in hooks.json"
+rm -f "$REPO/.codex/hooks.json"
+
 misc="$(make_claude_cache misc 5 0)"
 planning="$(make_claude_cache planning 5 5)"
 quality="$(make_claude_cache quality 7 1)"
