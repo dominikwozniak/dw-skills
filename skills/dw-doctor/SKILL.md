@@ -39,8 +39,9 @@ the repo declares, so nothing about a stack is assumed:
   `*.sh` is checked for existence + the executable bit.
 - `.ai/`, `AGENTS.md`, `DW.local.md`, and legacy Claude files — shared state, precedence, and
   migration diagnostics.
-- `codex plugin list --json` — exact `dw-skills@dw-skills` installed/enabled/version state and its
-  cache (17 skills, 5 explicit-only policies, executable runtime helpers).
+- `codex --version` and `codex plugin list --json` — Codex CLI 0.142.0 minimum, exact
+  `dw-skills@dw-skills` installed/enabled/version state, and its cache (17 skills, 5 explicit-only
+  policies, executable runtime helpers).
 - `claude plugin list --json` — the three exact `*@dw-skills` packages, their `installPath`, skill
   counts, and `scripts/runtime` payload.
 - `.claude-plugin/marketplace.json` — only if present (a marketplace repo); a

@@ -52,6 +52,21 @@ conductor drives them.
 
 Each recipe: when you reach for it, what it reads and writes, and where it points next.
 
+### 0. Install and bootstrap a host
+
+- **Install:** Codex CLI 0.142.0 or newer uses
+  `codex plugin marketplace add dominikwozniak/dw-skills`, then
+  `codex plugin add dw-skills@dw-skills`. Claude installs the three selective packages shown in the
+  [README quick start](../README.md#-quick-start).
+- **Bootstrap:** invoke `dw-bootstrap --platform codex` or `--platform claude` to create the shared
+  `.ai/`, `AGENTS.md`, and ignored `DW.local.md` layer plus that host's hook adapter. Use
+  `--platform both` only when the same repository will actively use both hosts; `auto` follows the
+  current host and asks if it cannot determine one.
+- **Verify:** start a fresh task and run `dw-doctor --platform codex`, `claude`, or `both`. Doctor is
+  read-only: it reports installation, cache, hooks, trust, and migration warnings without repairing
+  anything.
+- **Next:** start the first feature with `dw-spec`.
+
 ### 1. Start a feature
 
 - **Trigger:** "spec this out", "write a spec", or `/dw-spec`.

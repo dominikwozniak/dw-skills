@@ -1,0 +1,45 @@
+name: Validate Codex compatibility
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compatibility:
+    name: Validate Codex compatibility (${{ matrix.os }}, Codex ${{ matrix.codex }})
+    continue-on-error: ${{ matrix.codex == 'latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        codex: ["0.142.0", "latest"]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Set up pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          run_install: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Codex CLI
+        run: npm install --global "@openai/codex@${{ matrix.codex }}"
+      - name: Install Claude Code CLI
+        run: npm install --global @anthropic-ai/claude-code@2.1.179
+      - name: Validate compatibility
+        run: pnpm validate:compat
+      - name: Validate installation
+        run: pnpm validate:install

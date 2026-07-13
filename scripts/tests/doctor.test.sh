@@ -19,7 +19,7 @@ touch "$REPO/AGENTS.md" "$REPO/DW.local.md"
 
 cat >"$BIN/codex" <<'SH'
 #!/usr/bin/env bash
-if [ "${1:-}" = "--version" ]; then echo "codex-cli 0.122.0"; exit 0; fi
+if [ "${1:-}" = "--version" ]; then echo "codex-cli ${CODEX_CLI_VERSION:-0.142.0}"; exit 0; fi
 if [ "${1:-} ${2:-} ${3:-}" = "plugin list --json" ]; then cat "$CODEX_FIXTURE"; exit 0; fi
 exit 1
 SH
@@ -58,6 +58,9 @@ contains() {
   local name="$1" output="$2" needle="$3"
   case "$output" in *"$needle"*) note_pass "$name" ;; *) note_fail "$name" "missing '$needle'" ;; esac
 }
+
+out="$(cd "$REPO" && CODEX_CLI_VERSION=0.141.0 bash "$DOCTOR" --platform codex)"
+contains "codex-unsupported" "$out" "unsupported 0.141.0; dw-skills requires Codex CLI >=0.142.0"
 
 make_codex_cache 0.4.0
 CODEX_FIXTURE="$TMP/codex.json"; export CODEX_FIXTURE

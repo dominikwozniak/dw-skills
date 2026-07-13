@@ -37,6 +37,7 @@ Portable Codex and Claude Code skills, distributed as installable plugin marketp
 - `package.json.version` is canonical and must match both marketplaces and all four manifests.
 - Explicit-only skills need both Claude frontmatter and Codex `agents/openai.yaml` policy.
 - Descriptions are ≤350 characters each and ≤6000 total.
+- Codex CLI 0.142.0 is the minimum supported installer; `latest` is an informational CI row.
 
 ## When adding a new skill
 
@@ -50,13 +51,13 @@ Portable Codex and Claude Code skills, distributed as installable plugin marketp
 4. Bump `package.json.version`, all three Claude manifests, the Claude marketplace metadata and
    entries, and `.codex-plugin/plugin.json` together. The package version is canonical.
 5. Update the docs that name skills — more than just the README Plugins + task-router. Grep the
-   skill name across `README.md` and `docs/DESIGN.md` to catch every hit; the usual ones:
+   skill name across `README.md` and `docs/` to catch every hit; the usual ones:
    - README **Plugins** section and **task-router table** row (trigger phrase + output shape).
    - README **workflow diagram** if the skill joins the core spec→ship loop, and the **Quick
      start** install-comment if a plugin's skill list changes.
    - If explicit-invoke (`disable-model-invocation: true`): the `⭑` in the task-router table, plus
-     the explicit-only lists in README **How it works** _and_ `docs/DESIGN.md` — all three are
-     enforced by `pnpm validate:docs`, so a missed one fails CI rather than drifting silently.
+     the explicit-only lists in README **How it works**, `docs/DESIGN.md`, `docs/WORKFLOWS.md`, and
+     `docs/SKILL-ANATOMY.md`. `pnpm validate:docs` enforces the complete set.
 6. Run `pnpm lint`, `pnpm format`, `pnpm validate:manifests`, `pnpm validate:docs`,
    `pnpm validate:artifacts`, `pnpm validate:compat`, and `pnpm validate:install`.
 
@@ -80,12 +81,17 @@ via `<this-skill-dir>/…`), e.g. `dw-doctor` — no canon/symlink needed.
 
 Runs on every PR + push to `main`:
 
+Workflow and job display names use verb-first sentence case and match each other, for example
+`Validate docs` or `Scan secrets`. Matrix jobs append their OS and tool version. Every step has a
+short verb-first name, action references are pinned to a commit SHA, and workflow filenames use
+kebab-case `.yaml`.
+
 - `pnpm lint` — `agnix` validates `CLAUDE.md`/`SKILL.md`/manifests.
 - `pnpm format` — `prettier --check` (`proseWrap: preserve`).
 - `pnpm validate:manifests` — `claude plugin validate` + marketplace↔plugin version sync.
 - `pnpm validate:artifacts` — `.ai/` artifact schema + runtime-script self-tests under `scripts/tests/`.
-- `pnpm validate:docs` — README/`docs/DESIGN.md` ↔ skills sync (dead links, undocumented skills,
-  explicit-invoke `⭑` consistency).
+- `pnpm validate:docs` — public docs ↔ skills sync (dead links, undocumented skills, explicit-invoke
+  `⭑` consistency).
 - `pnpm validate:compat` — cross-host metadata, description budget, explicit-only parity, paths,
   and unified version.
 - `pnpm validate:install` — isolated Codex and Claude marketplace/cache smoke.

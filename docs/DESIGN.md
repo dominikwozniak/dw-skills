@@ -134,10 +134,17 @@ Claude expresses this with `disable-model-invocation: true`; Codex uses the matc
 ## One corpus, two hosts
 
 `skills/` and `scripts/runtime/` are the only sources of truth. Codex installs one aggregate root
-plugin with real directories; Claude installs three selective packages whose symlinks are
-materialized by its installer. Skills resolve runtime helpers relative to their loaded `SKILL.md`,
-not through a host-specific environment variable. Shared project instructions live in `AGENTS.md`
-and private machine context in `DW.local.md`; Claude files are thin imports.
+plugin with real directories. Its marketplace entry points at the repository root, so the installed
+cache contains all 17 skills and the shared runtime without symlinks or a generated copy. This shape
+requires Codex CLI 0.142.0 or newer: older installers can register the marketplace but cannot resolve
+the root-level aggregate plugin. Duplicating the payload under a compatibility subdirectory would
+create a second source of truth, so the compatibility boundary is explicit instead.
+
+Claude installs three selective packages whose repository symlinks are materialized as real files by
+its installer. Those symlinks are distribution wiring, not another source tree. Skills on both hosts
+resolve runtime helpers relative to their loaded `SKILL.md`, not through a host-specific environment
+variable. Shared project instructions live in `AGENTS.md` and private machine context in
+`DW.local.md`; Claude files are thin imports.
 
 ## Loops vs persistence — why these skills don't auto-run
 

@@ -43,7 +43,7 @@ The _why_ behind each design choice is in [`docs/DESIGN.md`](docs/DESIGN.md).
 
 ## ▸ Quick start
 
-Codex (all 17 skills in one plugin):
+Codex (all 17 skills in one plugin; Codex CLI 0.142.0 or newer):
 
 ```
 codex plugin marketplace add dominikwozniak/dw-skills
@@ -51,7 +51,12 @@ codex plugin add dw-skills@dw-skills
 ```
 
 Start a new Codex task after installation. Invoke explicitly with `$dw-spec` in CLI/IDE, or select
-`dw-skills` in the app and ask to use `dw-spec`.
+`dw-skills` in the app and ask to use `dw-spec`. Run `$dw-doctor --platform codex` in that new task
+to verify the installed version, cache payload, and hook trust.
+
+Codex 0.141 and older can add the marketplace but cannot install this root-level aggregate plugin;
+upgrade the CLI before retrying. The project intentionally does not duplicate its skill payload to
+work around that older installer limitation.
 
 Claude Code (three selective packages):
 
@@ -66,7 +71,7 @@ Then start a feature: `/dw-spec`. Resume after a `/clear`: `/dw-resume`.
 
 | Surface             | Support                      | Package shape                          | Hook setup                                  |
 | ------------------- | ---------------------------- | -------------------------------------- | ------------------------------------------- |
-| Codex CLI, IDE, app | macOS, Linux/WSL; CLI ≥0.122 | one `dw-skills` plugin                 | opt-in via `dw-bootstrap --platform codex`  |
+| Codex CLI, IDE, app | macOS, Linux/WSL; CLI ≥0.142 | one `dw-skills` plugin                 | opt-in via `dw-bootstrap --platform codex`  |
 | Claude Code         | existing supported hosts     | `dw-planning`, `dw-quality`, `dw-misc` | opt-in via `dw-bootstrap --platform claude` |
 
 Codex cloud and native Windows are outside v1. Codex `.env` hooks are best-effort, not a security
@@ -108,7 +113,8 @@ required after blockers, optional after a medium/low-only pass.
 
 ### Setup (once per repo)
 
-- `/dw-bootstrap` — scaffold a repo for this loop (tracked `.ai/` + `.claude/`).
+- `/dw-bootstrap` — scaffold shared `.ai/`, `AGENTS.md`, and `DW.local.md`, plus the selected
+  Claude, Codex, or both hook adapters.
 - `/dw-doctor` — read-only health check of the tools and hooks the loop assumes.
 - `/dw-setup-precommit` — wire git-level husky + lint-staged pre-commit hooks.
 
@@ -202,6 +208,8 @@ docs/SKILL-ANATOMY.md           the shape every SKILL.md follows
 
 Remove empty legacy Codex installs named `dw-misc`, `dw-planning`, or `dw-quality`, add this
 marketplace again, and install `dw-skills@dw-skills`. Start a new task so Codex reloads the catalog.
+If `codex plugin add` is unavailable or the aggregate plugin is not found, upgrade to Codex CLI
+0.142.0 or newer first.
 
 ## ◈ Contributing
 

@@ -5,6 +5,7 @@ import path from "node:path"
 import process from "node:process"
 
 const root = process.cwd()
+const minimumCodexVersion = "0.142.0"
 const fail = (message) => {
   console.error(`::error::${message}`)
   process.exitCode = 1
@@ -33,6 +34,25 @@ const doctorScript = fs.readFileSync(path.join(root, "skills/dw-doctor/scripts/d
 const doctorVersion = doctorScript.match(/^DW_SKILLS_VERSION="([^"]+)"$/m)?.[1]
 if (doctorVersion !== packageVersion) {
   fail(`dw-doctor version is ${doctorVersion ?? "missing"}; expected ${packageVersion}`)
+}
+const doctorCodexMinimum = doctorScript.match(/^DW_CODEX_MIN_VERSION="([^"]+)"$/m)?.[1]
+if (doctorCodexMinimum !== minimumCodexVersion) {
+  fail(
+    `dw-doctor Codex minimum is ${doctorCodexMinimum ?? "missing"}; expected ${minimumCodexVersion}`,
+  )
+}
+
+const compatibilityWorkflow = fs.readFileSync(
+  path.join(root, ".github/workflows/validate-codex-compatibility.yaml"),
+  "utf8",
+)
+if (!compatibilityWorkflow.includes(`codex: ["${minimumCodexVersion}", "latest"]`)) {
+  fail(`Codex compatibility workflow must require ${minimumCodexVersion} and observe latest`)
+}
+const readme = fs.readFileSync(path.join(root, "README.md"), "utf8")
+const minimumCodexMinor = minimumCodexVersion.split(".").slice(0, 2).join(".")
+if (!readme.includes(`CLI ≥${minimumCodexMinor}`)) {
+  fail(`README support matrix must declare Codex CLI ≥${minimumCodexMinor}`)
 }
 
 const skillsDir = path.join(root, "skills")
@@ -126,6 +146,6 @@ for (const publishedRoot of publishedRoots) {
 
 if (!process.exitCode) {
   console.log(
-    `OK  ${skillNames.length} skills; descriptions ${descriptionBudget}/6000; version ${packageVersion}`,
+    `OK  ${skillNames.length} skills; descriptions ${descriptionBudget}/6000; version ${packageVersion}; Codex >=${minimumCodexVersion}`,
   )
 }

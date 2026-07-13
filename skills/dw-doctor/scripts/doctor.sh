@@ -16,6 +16,7 @@
 set -uo pipefail
 
 DW_SKILLS_VERSION="0.4.0"
+DW_CODEX_MIN_VERSION="0.142.0"
 
 PLATFORM=auto
 while [ "$#" -gt 0 ]; do
@@ -51,6 +52,24 @@ group() { printf '\n%s%s%s\n' "$C_DIM" "$1" "$C_RST"; }
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
+version_at_least() {
+  # Numeric semver comparison, compatible with macOS Bash 3.2.
+  local current="$1" minimum="$2" current_major current_minor current_patch minimum_major minimum_minor minimum_patch
+  IFS=. read -r current_major current_minor current_patch <<EOF
+$current
+EOF
+  IFS=. read -r minimum_major minimum_minor minimum_patch <<EOF
+$minimum
+EOF
+  current_patch="${current_patch%%[^0-9]*}"
+  minimum_patch="${minimum_patch%%[^0-9]*}"
+  [ "${current_major:-0}" -gt "${minimum_major:-0}" ] && return 0
+  [ "${current_major:-0}" -lt "${minimum_major:-0}" ] && return 1
+  [ "${current_minor:-0}" -gt "${minimum_minor:-0}" ] && return 0
+  [ "${current_minor:-0}" -lt "${minimum_minor:-0}" ] && return 1
+  [ "${current_patch:-0}" -ge "${minimum_patch:-0}" ]
+}
+
 count_files() {
   local root="$1" pattern="$2"
   [ -d "$root" ] || { printf '0\n'; return; }
@@ -58,12 +77,18 @@ count_files() {
 }
 
 check_codex_plugin() {
-  local json plugin version cache skills policies runtime nonexec
+  local json plugin version cache skills policies runtime nonexec cli_line cli_version
   if ! have codex; then
     report warn "Codex plugin" "CLI absent — dw-skills installation cannot be inspected"
     return
   fi
-  report ok "codex" "$(codex --version 2>/dev/null | head -n1)"
+  cli_line="$(codex --version 2>/dev/null | head -n1)"
+  cli_version="$(printf '%s\n' "$cli_line" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)"
+  report ok "codex" "$cli_line"
+  if [ -z "$cli_version" ] || ! version_at_least "$cli_version" "$DW_CODEX_MIN_VERSION"; then
+    report warn "Codex support" "unsupported ${cli_version:-unknown}; dw-skills requires Codex CLI >=$DW_CODEX_MIN_VERSION"
+    return
+  fi
   if ! have jq; then
     report warn "Codex plugin" "state skipped — jq is required to parse plugin list --json"
     return

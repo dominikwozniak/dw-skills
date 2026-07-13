@@ -16,11 +16,17 @@ agent (and CI) already read it.
 ## Before you push
 
 ```bash
-pnpm lint && pnpm format && pnpm validate:manifests
+pnpm lint
+pnpm format
+pnpm validate:manifests
+pnpm validate:docs
+pnpm validate:artifacts
+pnpm validate:compat
+pnpm validate:install
 ```
 
-CI runs the same gates (agnix lint, prettier, manifest + version-sync validation, trufflehog secrets
-scan) on every PR and push to `main`. The gates are listed in [`AGENTS.md`](AGENTS.md).
+CI runs the same gates plus the secrets scan and Codex 0.142.0/latest installation matrix on every
+PR and push to `main`. The gates are listed in [`AGENTS.md`](AGENTS.md).
 
 ## Design rationale
 

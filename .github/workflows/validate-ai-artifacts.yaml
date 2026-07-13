@@ -1,23 +1,27 @@
-name: Validate .ai artifacts
+name: Validate AI artifacts
 
 on:
   pull_request:
     paths:
       - ".ai/**"
+      - ".claude/hooks/**"
+      - "plugins/*/scripts/runtime/**"
+      - "scripts/runtime/**"
       - scripts/tests/**
-      - plugins/dw-planning/scripts/validate-ai-artifacts.sh
-      - plugins/dw-planning/scripts/plan-status.sh
-      - plugins/dw-planning/scripts/slugify.sh
+      - "skills/dw-bootstrap/references/templates/hooks/**"
+      - "skills/dw-doctor/scripts/**"
       - scripts/validate-artifacts.sh
       - .github/workflows/validate-ai-artifacts.yaml
   push:
     branches: [main]
     paths:
       - ".ai/**"
+      - ".claude/hooks/**"
+      - "plugins/*/scripts/runtime/**"
+      - "scripts/runtime/**"
       - scripts/tests/**
-      - plugins/dw-planning/scripts/validate-ai-artifacts.sh
-      - plugins/dw-planning/scripts/plan-status.sh
-      - plugins/dw-planning/scripts/slugify.sh
+      - "skills/dw-bootstrap/references/templates/hooks/**"
+      - "skills/dw-doctor/scripts/**"
       - scripts/validate-artifacts.sh
       - .github/workflows/validate-ai-artifacts.yaml
 
@@ -27,14 +31,15 @@ concurrency:
 
 jobs:
   validate:
-    name: Validate .ai artifacts
+    name: Validate AI artifacts
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 1
-      - name: Validate artifacts
+      - name: Validate AI artifacts
         shell: bash
         run: ./scripts/validate-artifacts.sh

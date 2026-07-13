@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# validate-docs.sh — guard the README / DESIGN ↔ skills contract that AGENTS.md's add-a-skill
+# validate-docs.sh — guard the public docs ↔ skills contract that AGENTS.md's add-a-skill
 # checklist otherwise keeps by hand. CI already validates manifests and .ai/ artifacts but never the
 # prose, so a skill added / renamed / removed — or an explicit-invoke flag flipped — can ship with
 # the docs silently out of sync. Three mechanical, no-judgement checks:
 #   1. no dead skill links   — every skills/<x>/SKILL.md linked in README exists on disk
 #   2. no undocumented skill — every skills/<x>/ on disk is linked in the README task-router
 #   3. explicit-invoke sync  — a skill's `disable-model-invocation: true` <=> it is marked `⭑` in
-#                              the task-router AND named in the README + DESIGN explicit-only lists
+#                              the task-router AND named in every explicit-only list
 # Run from the repo root (`pnpm validate:docs`) or via CI. Exit 0 iff the docs match the skills.
 set -uo pipefail
 export LC_ALL=C
@@ -16,6 +16,8 @@ cd "$ROOT" || exit 1
 
 README="README.md"
 DESIGN="docs/DESIGN.md"
+WORKFLOWS="docs/WORKFLOWS.md"
+ANATOMY="docs/SKILL-ANATOMY.md"
 FAILED=0
 
 # in_list <needle> <space-separated-haystack> — exit 0 if present.
@@ -72,34 +74,40 @@ for name in $disk_skills; do
 done
 readme_line="$(grep -F '**Explicit-only skills**' "$README" || true)"
 design_section="$(awk '/^## Explicit-only skills/{f=1;next} f&&/^## /{exit} f{print}' "$DESIGN")"
+workflows_section="$(awk '/^\*\*Explicit-invoke-only skills\*\*/{f=1} f&&/^---$/{exit} f{print}' "$WORKFLOWS")"
+anatomy_section="$(awk '/^- \*\*`disable-model-invocation: true`\*\*/{f=1} f&&/^## Body order/{exit} f{print}' "$ANATOMY")"
 
 # contains_name <text> <skill> — text mentions `<skill>` (backtick-wrapped).
 contains_name() { case "$1" in *"\`$2\`"*) return 0 ;; *) return 1 ;; esac; }
 
-# forward: each explicit-on-disk skill must appear in all three doc places.
+check_explicit_doc_set() {
+  local label="$1" text="$2" name
+  for name in $explicit_disk; do
+    contains_name "$text" "$name" \
+      || { echo "::error::$name is explicit but is not named in $label"; FAILED=1; }
+  done
+  for name in $(printf '%s\n' "$text" | grep -oE 'dw-[a-z-]+' | sort -u); do
+    in_list "$name" "$explicit_disk" \
+      || { echo "::error::$name is listed in $label but is not explicit on disk"; FAILED=1; }
+  done
+}
+
+# Forward: each explicit-on-disk skill must carry the task-router marker.
 for name in $explicit_disk; do
   in_list "$name" "$star_rows" \
     || { echo "::error::$name is explicit (disable-model-invocation) but has no \`⭑\` in the $README task-router"; FAILED=1; }
-  contains_name "$readme_line" "$name" \
-    || { echo "::error::$name is explicit but is not named in the $README \"Explicit-only skills\" list"; FAILED=1; }
-  contains_name "$design_section" "$name" \
-    || { echo "::error::$name is explicit but is not named in $DESIGN's \"Explicit-only skills\" section"; FAILED=1; }
 done
+
+check_explicit_doc_set "$README explicit-only list" "$readme_line"
+check_explicit_doc_set "$DESIGN Explicit-only skills section" "$design_section"
+check_explicit_doc_set "$WORKFLOWS explicit-invoke-only list" "$workflows_section"
+check_explicit_doc_set "$ANATOMY disable-model-invocation list" "$anatomy_section"
 
 # reverse: nothing may claim explicit status it doesn't actually have on disk.
 for name in $star_rows; do
   in_list "$name" "$explicit_disk" \
     || { echo "::error::$name carries \`⭑\` in $README but its SKILL.md is not disable-model-invocation: true"; FAILED=1; }
 done
-for name in $(printf '%s\n' "$readme_line" | grep -oE 'dw-[a-z-]+' | sort -u); do
-  in_list "$name" "$explicit_disk" \
-    || { echo "::error::$name is listed in the $README \"Explicit-only skills\" sentence but is not explicit on disk"; FAILED=1; }
-done
-for name in $(printf '%s\n' "$design_section" | grep -oE 'dw-[a-z-]+' | sort -u); do
-  in_list "$name" "$explicit_disk" \
-    || { echo "::error::$name is listed in $DESIGN's \"Explicit-only skills\" section but is not explicit on disk"; FAILED=1; }
-done
-
 echo
 if [ "$FAILED" -eq 0 ]; then
   echo "All doc checks passed."
