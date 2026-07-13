@@ -13,7 +13,11 @@ command -v claude >/dev/null || { echo "::error::claude CLI is required"; exit 1
 
 echo "Codex install smoke"
 CODEX_HOME="$TMP/codex" codex plugin marketplace add "$ROOT" >/dev/null
-CODEX_HOME="$TMP/codex" codex plugin add dw-skills@dw-skills >/dev/null
+if CODEX_HOME="$TMP/codex" codex plugin add --help >/dev/null 2>&1; then
+  CODEX_HOME="$TMP/codex" codex plugin add dw-skills@dw-skills >/dev/null
+else
+  CODEX_HOME="$TMP/codex" codex plugin install dw-skills@dw-skills >/dev/null
+fi
 CODEX_LIST=$(CODEX_HOME="$TMP/codex" codex plugin list --json)
 jq -e --arg version "$VERSION" '[.installed[] | select(.pluginId == "dw-skills@dw-skills" and .installed == true and .enabled == true and .version == $version)] | length == 1' <<<"$CODEX_LIST" >/dev/null || {
   echo "::error::Codex plugin list does not contain one enabled dw-skills@$VERSION entry"; exit 1;
