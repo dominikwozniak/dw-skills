@@ -199,10 +199,19 @@ printf '%srepo: %s%s\n' "$C_DIM" "$ROOT" "$C_RST"
 if [ "$PLATFORM" = auto ]; then
   if [ -d "$ROOT/.claude" ] && [ -d "$ROOT/.codex" ]; then PLATFORM=both
   elif [ -d "$ROOT/.codex" ]; then PLATFORM=codex
-  else PLATFORM=claude
+  elif [ -d "$ROOT/.claude" ]; then PLATFORM=claude
+  else
+    # No adapter dir to infer from — the pre-bootstrap case doctor exists to
+    # diagnose. Silently assuming Claude here would skip every Codex check and
+    # report irrelevant Claude gaps, so check both and flag the ambiguity. The
+    # invoking skill should pass --platform for the active host when it knows it.
+    PLATFORM=both; PLATFORM_AMBIGUOUS=1
   fi
 fi
 printf '%splatform: %s%s\n' "$C_DIM" "$PLATFORM" "$C_RST"
+if [ "${PLATFORM_AMBIGUOUS:-0}" = 1 ]; then
+  report warn "platform" "no .claude/ or .codex/ found — checking both; pass --platform claude|codex to narrow"
+fi
 
 # --- core tools ---------------------------------------------------------------
 group "Core tools"

@@ -53,10 +53,13 @@ the repo declares, so nothing about a stack is assumed:
 
 ### 1. Run the bundled script
 
-From anywhere inside the target repo, run the script shipped with this skill:
+From anywhere inside the target repo, run the script shipped with this skill. Pass `--platform` for
+the host you are running in — `codex` when you are Codex, `claude` when you are Claude Code — so the
+diagnostic targets the adapter that is actually active. Use `auto` only when the host is genuinely
+unknown:
 
 ```
-bash "<this-skill-dir>/scripts/doctor.sh" --platform auto
+bash "<this-skill-dir>/scripts/doctor.sh" --platform codex   # or: claude | both | auto
 ```
 
 `<this-skill-dir>` is the directory holding this `SKILL.md` (e.g.
@@ -64,8 +67,10 @@ bash "<this-skill-dir>/scripts/doctor.sh" --platform auto
 script resolves the repo itself, so the working directory only needs to be
 somewhere inside the repo you want diagnosed.
 
-Accepted platforms are `auto`, `claude`, `codex`, and `both`. In Codex mode, always surface that
-`.env` protection is best-effort because not every built-in read is hookable.
+Accepted platforms are `auto`, `claude`, `codex`, and `both`. Prefer the explicit host: `auto` infers
+from the `.claude/` / `.codex/` adapter directories, and when neither exists yet (a pre-bootstrap
+repo) it checks both and flags the ambiguity rather than silently assuming one host. In Codex mode,
+always surface that `.env` protection is best-effort because not every built-in read is hookable.
 
 ### 2. Relay the report
 

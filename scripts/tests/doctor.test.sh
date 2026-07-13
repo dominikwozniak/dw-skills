@@ -148,6 +148,13 @@ rm "$quality/skills/s7/SKILL.md"
 out="$(cd "$REPO" && CLAUDE_FIXTURE="$TMP/claude.json" bash "$DOCTOR" --platform claude)"
 contains "claude-broken-cache" "$out" "incomplete: skills=6/7"
 
+# auto with no .claude/ or .codex/ (pre-bootstrap) must not silently pick claude:
+# it checks both and warns, so Codex gaps aren't hidden in the case doctor exists for.
+AMBIG="$TMP/ambig"; mkdir -p "$AMBIG"; git -C "$AMBIG" init -q
+out="$(cd "$AMBIG" && bash "$DOCTOR" --platform auto 2>&1)"
+contains "auto-ambiguous-warns" "$out" "no .claude/ or .codex/ found"
+contains "auto-ambiguous-both" "$out" "platform: both"
+
 echo
 echo "doctor self-test: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
