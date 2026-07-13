@@ -32,7 +32,8 @@ jq -e --arg version "$VERSION" '.version == $version' "$CODEX_CACHE/.codex-plugi
 [ "$(find "$CODEX_CACHE/skills" -name SKILL.md | wc -l | tr -d ' ')" = 17 ]
 [ "$(find "$CODEX_CACHE" -type l | wc -l | tr -d ' ')" = 0 ]
 [ "$(find "$CODEX_CACHE/skills" -path '*/agents/openai.yaml' | wc -l | tr -d ' ')" = 5 ]
-find "$CODEX_CACHE/scripts/runtime" -type f -name '*.sh' -exec test -x {} \;
+nonexec="$(find "$CODEX_CACHE/scripts/runtime" -type f -name '*.sh' ! -perm -u+x 2>/dev/null)"
+[ -z "$nonexec" ] || { echo "::error::Codex cache has non-executable runtime helpers: $(echo "$nonexec" | tr '\n' ' ')"; exit 1; }
 if grep -R '/Users/dominik.wozniak' "$CODEX_CACHE/skills" "$CODEX_CACHE/scripts/runtime" "$CODEX_CACHE/.codex-plugin" >/dev/null 2>&1; then
   grep -R -l '/Users/dominik.wozniak' "$CODEX_CACHE/skills" "$CODEX_CACHE/scripts/runtime" "$CODEX_CACHE/.codex-plugin" | head -n5
   echo "::error::author-local absolute path found in Codex cache"; exit 1
@@ -64,7 +65,8 @@ for plugin in dw-misc dw-planning dw-quality; do
   [ ! -d "$install_path/scripts/runtime" ] || runtime_count=$(find "$install_path/scripts/runtime" -type f -name '*.sh' | wc -l | tr -d ' ')
   [ "$runtime_count" = "$expected_runtime" ] || { echo "::error::$id runtime payload incomplete"; exit 1; }
   if [ "$expected_runtime" -gt 0 ]; then
-    find "$install_path/scripts/runtime" -type f -name '*.sh' -exec test -x {} \;
+    nonexec="$(find "$install_path/scripts/runtime" -type f -name '*.sh' ! -perm -u+x 2>/dev/null)"
+    [ -z "$nonexec" ] || { echo "::error::$id has non-executable runtime helpers: $(echo "$nonexec" | tr '\n' ' ')"; exit 1; }
   fi
 done
 if find "$TMP/claude/plugins/cache" -type l | grep -q .; then
