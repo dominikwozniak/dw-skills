@@ -32,7 +32,8 @@ in production would set in motion.
 Write to `.ai/verify/<branch-slug>/risk.md`. `.ai/` is tracked in git — risk assessment is real
 work documentation, committed alongside the code.
 
-- Branch slug for the folder name —
+- Branch slug for the folder name — resolve `<runtime-dir>` to the absolute
+  `<this-skill-dir>/../../scripts/runtime` path, then
   `bash "<runtime-dir>/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
   (e.g. `ABC-123/password-reset` → `abc-123-password-reset`) — the **same slug** `dw-explain`
   and `dw-verify` used, so your `risk.md` lands beside their artifacts.
