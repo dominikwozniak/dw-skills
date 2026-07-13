@@ -64,7 +64,10 @@ dw_hook_local_command() {
   local label="$1" placeholder="$2" instructions from_md
   for instructions in DW.local.md CLAUDE.local.md; do
     [ -f "$instructions" ] || continue
-    from_md="$(grep -E "^[[:space:]]*[-*]?[[:space:]]*\*\*?${label}\*\*?:" "$instructions" | sed -E 's/^[^:]+:[[:space:]]*//; s/^`//; s/`[[:space:]]*$//' | head -n1)"
+    # The command is the first backtick-delimited span when one exists
+    # ('`pnpm lint` — note' → 'pnpm lint'), so trailing annotations survive;
+    # a value without a backtick pair is taken whole, trimmed.
+    from_md="$(grep -E "^[[:space:]]*[-*]?[[:space:]]*\*\*?${label}\*\*?:" "$instructions" | sed -E 's/^[^:]+:[[:space:]]*//; s/^[^`]*`([^`]+)`.*$/\1/; s/^`//; s/`[[:space:]]*$//; s/[[:space:]]+$//' | head -n1)"
     if [ -n "$from_md" ] && [ "$from_md" != "$placeholder" ] && [ "$from_md" != "_(n/a)_" ]; then
       printf '%s\n' "$from_md"
       return

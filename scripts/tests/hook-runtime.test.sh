@@ -84,6 +84,11 @@ assert_eq "ruby-single-invocation" "1" "$(wc -l <"$HOOK_LOG" | tr -d ' ')"
 run_file "$HOOKS/lint-on-edit.sh" "$REPO/src/a.ts"
 case "$(cat "$HOOK_LOG")" in dw:*src/a.ts*) note_pass "claude-file-path" ;; *) note_fail "claude-file-path" "not dispatched" ;; esac
 
+printf '%s\n' '- **Lint command**: `dw-lint` — via eslint (auto-fix)' >"$REPO/DW.local.md"
+: >"$HOOK_LOG"
+run_file "$HOOKS/lint-on-edit.sh" "$REPO/src/a.ts" >/dev/null 2>&1
+case "$(cat "$HOOK_LOG")" in dw:*src/a.ts*) note_pass "annotated-command-extracted" ;; *) note_fail "annotated-command-extracted" "log: '$(cat "$HOOK_LOG")'" ;; esac
+
 rm "$REPO/DW.local.md" "$REPO/CLAUDE.local.md"
 : >"$HOOK_LOG"
 run_file "$HOOKS/lint-on-edit.sh" "$REPO/src/a.ts"
