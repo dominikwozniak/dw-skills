@@ -59,6 +59,14 @@ contains() {
   case "$output" in *"$needle"*) note_pass "$name" ;; *) note_fail "$name" "missing '$needle'" ;; esac
 }
 
+# --platform with no value must exit 2 fast, never loop forever. Portable
+# watchdog (no `timeout` on macOS): kill the run if it outlives the deadline.
+( cd "$REPO" && bash "$DOCTOR" --platform >/dev/null 2>&1 ) & doctor_pid=$!
+( sleep 5; kill -9 "$doctor_pid" 2>/dev/null ) & watch_pid=$!
+wait "$doctor_pid" 2>/dev/null; rc=$?
+kill "$watch_pid" 2>/dev/null
+if [ "$rc" -eq 2 ]; then note_pass "platform-missing-value"; else note_fail "platform-missing-value" "want exit 2, got $rc (137 = hang killed)"; fi
+
 out="$(cd "$REPO" && CODEX_CLI_VERSION=0.141.0 bash "$DOCTOR" --platform codex)"
 contains "codex-unsupported" "$out" "unsupported 0.141.0; dw-skills requires Codex CLI >=0.142.0"
 

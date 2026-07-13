@@ -21,7 +21,9 @@ DW_CODEX_MIN_VERSION="0.142.0"
 PLATFORM=auto
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --platform) PLATFORM="${2:-}"; shift 2 ;;
+    --platform)
+      [ "$#" -ge 2 ] || { printf 'usage: doctor.sh [--platform auto|claude|codex|both]\n' >&2; exit 2; }
+      PLATFORM="$2"; shift 2 ;;
     --platform=*) PLATFORM="${1#*=}"; shift ;;
     *) printf 'usage: doctor.sh [--platform auto|claude|codex|both]\n' >&2; exit 2 ;;
   esac
