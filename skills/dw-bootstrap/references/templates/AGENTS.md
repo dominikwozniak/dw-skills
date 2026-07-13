@@ -14,6 +14,10 @@ Shared project instructions for Codex, Claude Code, and teammates.
 - **Lint command**: {{LINT_COMMAND}}
 - **Typecheck command**: {{TYPECHECK_COMMAND}}
 
+## Hooks installed
+
+{{HOOKS_INSTALLED}}
+
 ## Architecture and project specifics
 
 - **Stack**: {{STACK}}
