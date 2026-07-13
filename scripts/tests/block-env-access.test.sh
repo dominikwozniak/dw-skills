@@ -121,6 +121,10 @@ blocked_patch "patch-move-to-env-quoted" '*** Begin Patch
 *** Update File: config.txt
 *** Move to: ".env"
 *** End Patch'
+# Padded / CRLF header paths must still be caught (printf embeds a real
+# trailing space and a CR so the whitespace survives into the payload).
+blocked_patch "patch-add-env-trailing-space" "$(printf '*** Begin Patch\n*** Add File: .env \n*** End Patch')"
+blocked_patch "patch-move-env-crlf" "$(printf '*** Begin Patch\n*** Update File: config.txt\n*** Move to: .env\r\n*** End Patch')"
 allowed_patch "patch-move-to-example" '*** Begin Patch
 *** Update File: .env.sample
 *** Move to: .env.example

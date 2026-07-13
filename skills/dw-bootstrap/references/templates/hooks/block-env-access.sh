@@ -52,9 +52,16 @@ if [[ -n "$COMMAND" ]]; then
     # possibly quoted); the body is file content and is never token-scanned —
     # a patch that merely mentions .env in a doc or code line must pass.
     while IFS= read -r patch_path; do
-      [[ -z "$patch_path" ]] && continue
+      # A header path is the exact file — normalise it: trim surrounding
+      # whitespace (incl. a trailing CR from CRLF patches), strip one layer of
+      # quotes, trim again, so a padded or quoted `.env` can't slip the scan.
+      patch_path="${patch_path#"${patch_path%%[![:space:]]*}"}"
+      patch_path="${patch_path%"${patch_path##*[![:space:]]}"}"
       patch_path="${patch_path#\"}"; patch_path="${patch_path%\"}"
       patch_path="${patch_path#\'}"; patch_path="${patch_path%\'}"
+      patch_path="${patch_path#"${patch_path%%[![:space:]]*}"}"
+      patch_path="${patch_path%"${patch_path##*[![:space:]]}"}"
+      [[ -z "$patch_path" ]] && continue
       is_env_file "$patch_path" && block "apply_patch" "$patch_path"
     done < <(printf '%s\n' "$COMMAND" | sed -nE -e 's/^\*\*\* (Add|Update|Delete) File: (.*)$/\2/p' -e 's/^\*\*\* Move to: (.*)$/\1/p')
     exit 0
