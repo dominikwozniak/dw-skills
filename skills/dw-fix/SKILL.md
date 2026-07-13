@@ -29,6 +29,8 @@ verdict flipped clean. One finding at a time, blockers first.
   `risk.md`, `verify-run.md` — whichever exist), the real files each finding points at, and — **from
   the project, never hardcoded** — the test / lint commands and the commit convention
   (`## Git conventions`).
+- Instruction precedence: `DW.local.md` → legacy `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` →
+  autodetection.
 - **Writes:** the fix code; **one logical commit per finding**; each finding marked resolved (with its
   fix SHA) in the artifact that raised it; an appended `fix.md` log. The bookkeeping is the auditor's
   record updated in place — never amend the code commit to fold it in.

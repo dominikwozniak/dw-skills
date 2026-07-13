@@ -10,19 +10,19 @@ Portable Codex and Claude Code skills, distributed as installable plugin marketp
   `scripts/runtime/` payload; never add symlinks to the Codex payload.
 - **`.agents/plugins/marketplace.json`** — Codex marketplace with one `dw-skills` entry.
 - **`plugins/`** — Claude Code plugins exposed via `.claude-plugin/marketplace.json`. Each plugin's
-  `skills/<name>` and its shipped `scripts/<script>.sh` are **git-tracked symlinks** (mode 120000) →
-  the repo-root canon — `../../../skills/<name>` and `../../../scripts/runtime/<script>.sh` — plus
+  `skills/<name>` and shipped `scripts/runtime/<script>.sh` are **git-tracked symlinks** (mode 120000)
+  → the repo-root canon — `../../../skills/<name>` and `../../../../scripts/runtime/<script>.sh` — plus
   `plugins/<name>/.claude-plugin/plugin.json`. `claude plugin install` **dereferences** these
   symlinks: each plugin gets its own real copy in the plugin cache (verified — the installed cache
-  contains 0 symlinks), so a script is invoked from skill bodies via the unchanged
-  the installed skill's relative `../../scripts/runtime/<script>.sh`. Because install dereferences, one canonical script
+  contains 0 symlinks), so a script is invoked from the installed skill via its unchanged relative
+  `../../scripts/runtime/<script>.sh`. Because install dereferences, one canonical script
   can be symlinked into several plugins (e.g. `slugify.sh` into both `dw-planning` and `dw-quality`)
   with no duplication. (A script used by **one** skill instead stays bundled in that skill:
   `skills/<name>/scripts/` invoked via `<this-skill-dir>/…`, e.g. `dw-doctor`.)
 - **`scripts/`** — repo home for shell scripts, split by purpose:
-  - **`scripts/runtime/`** — canonical home for every **plugin-level shipped** script (invoked at
-    runtime via `${CLAUDE_PLUGIN_ROOT}/scripts/`, e.g. `slugify.sh`, `plan-status.sh`); symlinked
-    into each consuming `plugins/<name>/scripts/`.
+  - **`scripts/runtime/`** — canonical home for every **plugin-level shipped** script (resolved by a
+    skill as absolute `<this-skill-dir>/../../scripts/runtime/<script>.sh`); symlinked into each
+    consuming `plugins/<name>/scripts/runtime/` for Claude and shipped directly by the root Codex plugin.
   - **`scripts/`** (top level) — repo CI/validation tooling, never shipped (e.g.
     `validate-manifests.sh` / `validate-artifacts.sh` backing `pnpm validate:*`, `lint.sh`).
   - **`scripts/tests/`** — bash self-tests for the runtime scripts (`<script>.sh` ↔
@@ -42,12 +42,13 @@ Portable Codex and Claude Code skills, distributed as installable plugin marketp
 
 1. Create `skills/<name>/SKILL.md` (kebab-case `name`, `description` with trigger phrases),
    following the shape in [`docs/SKILL-ANATOMY.md`](docs/SKILL-ANATOMY.md).
-2. Create `plugins/<name>/.claude-plugin/plugin.json` AND
-   `ln -s ../../../skills/<name> plugins/<name>/skills/<name>` AND `git add` the symlink.
-3. Add a row to `.claude-plugin/marketplace.json` (version in sync with `plugin.json`).
-4. Bump the plugin's patch version in **both** `plugins/<name>/.claude-plugin/plugin.json` and the
-   matching `.claude-plugin/marketplace.json` entry — they must stay in sync (CI enforces it via
-   `validate-manifests.sh`).
+2. Choose one existing Claude collection (`dw-misc`, `dw-planning`, or `dw-quality`), then add
+   `plugins/<collection>/skills/<name>` as a tracked symlink to `../../../skills/<name>`. Do not
+   create a fourth Claude package unless the distribution design changes explicitly.
+3. The root Codex plugin discovers the real `skills/<name>` automatically; no Codex symlink or
+   per-skill marketplace entry is needed.
+4. Bump `package.json.version`, all three Claude manifests, the Claude marketplace metadata and
+   entries, and `.codex-plugin/plugin.json` together. The package version is canonical.
 5. Update the docs that name skills — more than just the README Plugins + task-router. Grep the
    skill name across `README.md` and `docs/DESIGN.md` to catch every hit; the usual ones:
    - README **Plugins** section and **task-router table** row (trigger phrase + output shape).
@@ -56,7 +57,8 @@ Portable Codex and Claude Code skills, distributed as installable plugin marketp
    - If explicit-invoke (`disable-model-invocation: true`): the `⭑` in the task-router table, plus
      the explicit-only lists in README **How it works** _and_ `docs/DESIGN.md` — all three are
      enforced by `pnpm validate:docs`, so a missed one fails CI rather than drifting silently.
-6. `pnpm lint && pnpm format && pnpm validate:manifests && pnpm validate:docs`.
+6. Run `pnpm lint`, `pnpm format`, `pnpm validate:manifests`, `pnpm validate:docs`,
+   `pnpm validate:artifacts`, `pnpm validate:compat`, and `pnpm validate:install`.
 
 Copy an existing skill (e.g. `dw-handoff`) as a starting point.
 
@@ -64,7 +66,7 @@ Copy an existing skill (e.g. `dw-handoff`) as a starting point.
 
 1. Put the real file once under `scripts/runtime/<script>.sh` (`chmod +x`).
 2. For each plugin that ships it:
-   `ln -s ../../../scripts/runtime/<script>.sh plugins/<plugin>/scripts/<script>.sh` AND
+   `ln -s ../../../../scripts/runtime/<script>.sh plugins/<plugin>/scripts/runtime/<script>.sh` AND
    `git add` the symlink (must be mode 120000, like the skill symlinks).
 3. Invoke it by resolving the absolute `<this-skill-dir>/../../scripts/runtime/<script>.sh` path.
 4. Add the basename to the `RUNTIME_SCRIPTS` list in `scripts/validate-manifests.sh`, and — where

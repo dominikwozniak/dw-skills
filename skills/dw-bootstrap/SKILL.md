@@ -99,8 +99,11 @@ a wrong clobber is expensive. Do not write before the user confirms.
 - Copy `references/templates/settings.json` → `.claude/settings.json`; **prune**
   the hook entries the user didn't select, then confirm the file still parses as
   valid JSON.
-- Copy the selected `references/templates/hooks/*.sh` → `.claude/hooks/` and
-  `chmod +x` each.
+- Copy `references/templates/hooks/hook-common.sh` plus the selected hook scripts to each chosen
+  host's hook directory, and `chmod +x` each. `hook-common.sh` is a sourced library and must not be
+  wired as a hook. Automatic runtime commands may come only from ignored `DW.local.md`, then legacy
+  `CLAUDE.local.md`; tracked `AGENTS.md` and `CLAUDE.md` are never execution sources. Local commands
+  are whitespace-delimited argv lists without shell syntax; detected fallbacks are fixed argv arrays.
 - Render the shared templates: substitute
   `{{PROJECT_NAME}}` `{{DEFAULT_BRANCH}}` `{{STACK}}` `{{TEST_COMMAND}}`
   `{{LINT_COMMAND}}` `{{TYPECHECK_COMMAND}}`, and build `{{HOOKS_INSTALLED}}` from
@@ -144,7 +147,7 @@ scaffold.
 - `ai-README.md` — the static `.ai/` layout doc, copied verbatim to `.ai/README.md`.
 - `settings.json` — tracked permissions + hooks (prune unselected hooks).
 - `gitignore-block.txt` — the marker-fenced managed block.
-- `hooks/block-dangerous-commands.sh` · `hooks/block-env-access.sh` ·
+- `hooks/hook-common.sh` (sourced helper) · `hooks/block-dangerous-commands.sh` · `hooks/block-env-access.sh` ·
   `hooks/block-non-pnpm.sh` · `hooks/lint-on-edit.sh` · `hooks/lint-on-edit-rb.sh` ·
   `hooks/typecheck-on-stop.sh`.
 

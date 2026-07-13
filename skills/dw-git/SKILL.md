@@ -19,8 +19,8 @@ is the skill the rest of the dw-\* family points at when it needs git done right
 
 ## What it reads
 
-Before any operation, resolve `## Git conventions` in this order: `DW.local.md`, legacy
-`CLAUDE.local.md`, `AGENTS.md`, then `CLAUDE.md`. Those values override the documented defaults for
+Before any operation, resolve `## Git conventions`. Instruction precedence: `DW.local.md` → legacy
+`CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` → autodetection. Declared values override defaults for
 commit format, default branch, naming, trailers, PR title, integration strategy, and signing.
 
 dw-git writes **no `.ai/` artifact** — its durable output is the git history

@@ -74,9 +74,9 @@ something real:
 - Read the step's **acceptance + verify** from its `PLAN.md` row and the `SPEC.md`.
   Open the actual files the step touches and confirm each with `Read` / `grep` — never
   edit a file you haven't opened.
-- Resolve the project's **commands** (don't assume a stack), in order: a declared block
-  (`## Commands` / `## Project specifics` in `DW.local.md`, legacy `CLAUDE.local.md`,
-  `AGENTS.md`, then `CLAUDE.md`), then manifests (`package.json` scripts, `Gemfile` +
+- Resolve the project's **commands** without assuming a stack. Instruction precedence:
+  `DW.local.md` → legacy `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` → autodetection. After the
+  instruction files, inspect manifests (`package.json` scripts, `Gemfile` +
   `bin/`, `Makefile`, `pyproject.toml`…), then the code itself.
 - Resolve the **commit convention** the same way — from `## Git conventions` in the
   project. Fall back to defaults only if none is declared: Conventional Commits

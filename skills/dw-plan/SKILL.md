@@ -66,9 +66,9 @@ same anti-hallucination discipline `dw-spec`'s Approach uses:
   them by path. Confirm each with `Read`/`grep` — never reference a file,
   module, or command you haven't verified exists.
 - Find the project's verify commands (you'll put one in each step's acceptance).
-  Read them **from the project**, never hardcode them: first a declared block
-  (`## Commands` / `## Project specifics` in `DW.local.md`, legacy `CLAUDE.local.md`,
-  `AGENTS.md`, then `CLAUDE.md`), then manifests (`package.json`
+  Read them **from the project**, never hardcode them. Instruction precedence: `DW.local.md` →
+  legacy `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` → autodetection. After the instruction
+  files, inspect manifests (`package.json`
   scripts, `Makefile`, `Gemfile` + `bin/`, `pyproject.toml`…), then the code
   itself. If a command can't be found, state the assumption and ask rather than
   inventing one.

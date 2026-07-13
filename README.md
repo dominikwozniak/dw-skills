@@ -102,7 +102,8 @@ required after blockers, optional after a medium/low-only pass.
 
 ### Anytime
 
-- `/dw-git` — commit / push / PR / sync / branch / stash, by your `CLAUDE.local.md` conventions.
+- `/dw-git` — commit / push / PR / sync / branch / stash, using `DW.local.md` → legacy
+  `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` → autodetection.
 - `/dw-handoff` — compact the session context for the next agent.
 
 ### Setup (once per repo)
@@ -122,8 +123,8 @@ never auto-fires).
 | Skill                                                          | Task                                                                                                          | Say                                                         | What you get                             |
 | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------- |
 | **Setup**                                                      |                                                                                                               |                                                             |                                          |
-| [`dw-bootstrap`](skills/dw-bootstrap/SKILL.md) `⭑`             | Scaffold a repo for the dw-\* loop: `.ai/`, tracked settings + hooks, `CLAUDE.local.md`, gitignore            | "set up this project", "bootstrap claude"                   | tracked `.ai/` + `.claude/` scaffold     |
-| [`dw-doctor`](skills/dw-doctor/SKILL.md)                       | Diagnose the env a dw-\* repo assumes — tools, hooks, `.ai/` sanity; report fixes (read-only)                 | "check my setup", "why aren't my hooks running"             | read-only health report + fixes          |
+| [`dw-bootstrap`](skills/dw-bootstrap/SKILL.md) `⭑`             | Scaffold shared `.ai/`/instructions plus Claude, Codex, or both hook adapters                                 | "set up this project", "bootstrap codex"                    | shared scaffold + selected host adapters |
+| [`dw-doctor`](skills/dw-doctor/SKILL.md)                       | Diagnose tools, hooks, exact plugin state, and cache completeness for either host (read-only)                 | "check my setup", "why aren't my hooks running"             | read-only health report + fixes          |
 | [`dw-setup-precommit`](skills/dw-setup-precommit/SKILL.md) `⭑` | Wire git-level pre-commit hooks (husky + lint-staged) for a pnpm node/ts/js repo — format + lint staged files | "set up pre-commit", "add husky", "configure lint-staged"   | tracked `.husky/` + `.lintstagedrc.json` |
 | **Spec & plan**                                                |                                                                                                               |                                                             |                                          |
 | [`dw-spec`](skills/dw-spec/SKILL.md)                           | Start a feature; surface unknowns via an open-questions gate                                                  | "spec this out", "write a spec"                             | `SPEC.md` under `.ai/runs/`              |
@@ -141,7 +142,7 @@ never auto-fires).
 | [`dw-risk`](skills/dw-risk/SKILL.md)                           | Assess blast radius, out-of-code impact, rollback                                                             | "what's the blast radius", "is this migration safe"         | `risk.md`                                |
 | [`dw-prune`](skills/dw-prune/SKILL.md) `⭑`                     | Trim redundant tests without dropping coverage                                                                | "prune tests", "remove redundant tests"                     | keep/merge/delete plan (consent-gated)   |
 | **Git**                                                        |                                                                                                               |                                                             |                                          |
-| [`dw-git`](skills/dw-git/SKILL.md)                             | All git ops — commit / push / PR / sync / branch / stash, by your conventions                                 | "commit", "push", "open PR", "sync with main"               | commits / PR per `CLAUDE.local.md`       |
+| [`dw-git`](skills/dw-git/SKILL.md)                             | All git ops — commit / push / PR / sync / branch / stash, by your conventions                                 | "commit", "push", "open PR", "sync with main"               | commits / PR per instruction precedence  |
 | **Handoff**                                                    |                                                                                                               |                                                             |                                          |
 | [`dw-handoff`](skills/dw-handoff/SKILL.md) `⭑`                 | Compact the session for the next agent                                                                        | "session handoff", "handoff"                                | `.ai/handoffs/<ts>.md`                   |
 

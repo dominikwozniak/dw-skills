@@ -29,6 +29,11 @@ for (const plugin of claudeMarketplace.plugins) {
 for (const [source, version] of versions) {
   if (version !== packageVersion) fail(`${source} has ${version}; expected ${packageVersion}`)
 }
+const doctorScript = fs.readFileSync(path.join(root, "skills/dw-doctor/scripts/doctor.sh"), "utf8")
+const doctorVersion = doctorScript.match(/^DW_SKILLS_VERSION="([^"]+)"$/m)?.[1]
+if (doctorVersion !== packageVersion) {
+  fail(`dw-doctor version is ${doctorVersion ?? "missing"}; expected ${packageVersion}`)
+}
 
 const skillsDir = path.join(root, "skills")
 const skillNames = fs
@@ -38,6 +43,22 @@ const skillNames = fs
   )
   .map((entry) => entry.name)
   .sort()
+
+const precedenceConsumers = [
+  "dw-build",
+  "dw-conform",
+  "dw-explain",
+  "dw-fix",
+  "dw-git",
+  "dw-plan",
+  "dw-prune",
+  "dw-review",
+  "dw-risk",
+  "dw-spec",
+  "dw-verify",
+]
+const canonicalPrecedence =
+  "Instruction precedence: `DW.local.md` → legacy `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` → autodetection."
 
 let descriptionBudget = 0
 const claudeExplicit = []
@@ -69,12 +90,21 @@ for (const name of skillNames) {
     fail(`${name}: uses $ARGUMENTS without the Codex literal-placeholder fallback`)
   }
   if (body.includes("AskUserQuestion")) fail(`${name}: names a host-specific question tool`)
+  if (precedenceConsumers.includes(name)) {
+    const normalizedBody = body.replace(/\s+/g, " ")
+    if (!normalizedBody.includes(canonicalPrecedence)) {
+      fail(`${name}: missing canonical instruction precedence declaration`)
+    }
+  }
 }
 if (descriptionBudget > 6000) fail(`description catalog is ${descriptionBudget} chars (max 6000)`)
 if (claudeExplicit.join() !== codexExplicit.sort().join()) {
   fail(`explicit-only mismatch: Claude=[${claudeExplicit}] Codex=[${codexExplicit.sort()}]`)
 }
 if (skillNames.length !== 17) fail(`expected 17 skills, found ${skillNames.length}`)
+for (const name of precedenceConsumers) {
+  if (!skillNames.includes(name)) fail(`precedence consumer does not exist: ${name}`)
+}
 
 const publishedRoots = ["skills", "scripts/runtime", ".codex-plugin", ".agents/plugins"]
 for (const publishedRoot of publishedRoots) {

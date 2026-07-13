@@ -19,9 +19,12 @@ re-bootstrapping. So:
   the About-me, language preferences, and any local-only overrides are yours, not
   the team's.
 
-Never duplicate shared prose between hosts. Precedence is `DW.local.md`, legacy
-`CLAUDE.local.md`, `AGENTS.md`, `CLAUDE.md`, then detection and defaults. A root
+Never duplicate shared prose between hosts. Instruction precedence is `DW.local.md`, legacy
+`CLAUDE.local.md`, `AGENTS.md`, `CLAUDE.md`, then autodetection. A root
 `AGENTS.override.md` masks `AGENTS.md`, so stop and ask which file owns shared instructions.
+Hook execution is intentionally narrower: custom commands come only from ignored `DW.local.md`,
+then legacy `CLAUDE.local.md`; otherwise hooks use fixed argv detected from manifests. They never
+execute commands from tracked instruction files.
 
 ## Stack → hooks
 
@@ -30,9 +33,9 @@ Never duplicate shared prose between hosts. Precedence is `DW.local.md`, legacy
 | `block-dangerous-commands` | always                          | stack-agnostic; blocks force-push, hard-reset, `clean` w/ `-d`/`-f`/`-x`, `branch -D`, `checkout .`, `restore .`, `stash clear`, `rm` aimed at `/` `~` `.`, `rmdir`, `find -delete`, `shred` |
 | `block-env-access`         | always                          | stack-agnostic; blocks Read/Edit/Write + Bash access to `.env*` / `.envrc` secrets; `.env.example` / `.env.sample` / `.env.template` allowed                                                 |
 | `block-non-pnpm`           | JS/TS (a `package.json` exists) | blocks `npm`/`yarn`/`bun`; allows `pnpm`, `pnpm dlx`, `npx`                                                                                                                                  |
-| `lint-on-edit`             | JS/TS                           | reads **Lint command** using the shared precedence; falls back to eslint                                                                                                                     |
-| `typecheck-on-stop`        | TS (a `tsconfig.json` exists)   | Stop hook; reads **Typecheck command**; skip with `DW_SKIP_TYPECHECK=1`                                                                                                                      |
-| `lint-on-edit-rb`          | Ruby (a `Gemfile` exists)       | lints edited `.rb`; reads **Lint command**, else Gemfile-detects `standardrb`/`rubocop`                                                                                                      |
+| `lint-on-edit`             | JS/TS                           | reads trusted local **Lint command** (`DW.local` → legacy), else fixed eslint argv                                                                                                           |
+| `typecheck-on-stop`        | TS (a `tsconfig.json` exists)   | reads trusted local **Typecheck command**, else fixed detected argv; skip with `DW_SKIP_TYPECHECK=1`                                                                                         |
+| `lint-on-edit-rb`          | Ruby (a `Gemfile` exists)       | lints every edited `.rb`; reads trusted local **Lint command**, else Gemfile-detects fixed `standardrb`/`rubocop` argv                                                                       |
 
 `lint-on-edit` (`.ts`/`.js`) and `lint-on-edit-rb` (`.rb`) gate on file extension,
 so they're complementary — install the one(s) matching the stack. For Rust /

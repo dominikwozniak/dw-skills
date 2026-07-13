@@ -1,71 +1,49 @@
 #!/usr/bin/env bash
-# PostToolUse hook — runs the project's Ruby lint command on the edited file.
-# Supports Claude file_path events and Codex apply_patch payloads.
-# Lint command resolved in order:
-#   1. CLAUDE.local.md "Lint command:" value (if present)
-#   2. Gemfile has `gem 'standard'`  → bundle exec standardrb --fix
-#   3. Gemfile has `gem 'rubocop'`   → bundle exec rubocop -A
-# Exits 0 on success or when no lint is configured; 2 + stderr on lint failure
-# so Claude self-corrects.
-#
-# Note: `bundle exec` adds ~1-2s per edit. Disable this hook if that's too slow.
+# PostToolUse hook — lints every existing Ruby file from a Claude edit or Codex patch.
+# Trusted local commands come only from DW.local.md, then legacy CLAUDE.local.md.
+# Otherwise the hook builds a fixed argv from Gemfile. No shell text is evaluated.
 
 set -uo pipefail
 
 command -v jq >/dev/null || exit 0
 
-input=$(cat)
-tool_name=$(jq -r '.tool_name // empty' <<<"$input")
-file_path=$(jq -r '.tool_input.file_path // empty' <<<"$input")
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# shellcheck source=hook-common.sh
+source "$SCRIPT_DIR/hook-common.sh"
 
+input="$(cat)"
+tool_name="$(jq -r '.tool_name // empty' <<<"$input")"
 case "$tool_name" in
   Edit|Write|MultiEdit|apply_patch) ;;
   *) exit 0 ;;
 esac
 
-if [[ "$tool_name" == "apply_patch" ]]; then
-  file_path=$(jq -r '.tool_input.command // empty' <<<"$input" | sed -nE 's/^\*\*\* (Add|Update) File: (.*)$/\2/p' | grep -E '\.rb$' | head -n1)
-fi
-
-[[ -z "$file_path" ]] && exit 0
-[[ -f "$file_path" ]] || exit 0
-[[ "$file_path" =~ \.rb$ ]] || exit 0
-
-repo_root="$(git -C "$(dirname "$file_path")" rev-parse --show-toplevel 2>/dev/null)" || exit 0
+repo_root="$(dw_hook_repo_root)" || exit 0
 cd "$repo_root" || exit 0
 
-resolve_lint_cmd() {
-  local instructions from_md
-  for instructions in DW.local.md CLAUDE.local.md AGENTS.md CLAUDE.md; do
-    [[ -f "$instructions" ]] || continue
-    from_md=$(grep -E "^\s*[-*]?\s*\*\*?Lint command\*\*?:" "$instructions" | sed -E 's/.*Lint command\*?\*?:\s*`?([^`]+)`?.*/\1/' | head -n1)
-    if [[ -n "$from_md" && "$from_md" != "{{LINT_COMMAND}}" && "$from_md" != "_(n/a)_" ]]; then
-      echo "$from_md"
-      return
-    fi
-  done
-  if [[ -f "Gemfile" ]] && command -v bundle >/dev/null; then
-    if grep -qE "^[[:space:]]*gem[[:space:]]+[\"']standard[\"']" Gemfile; then
-      echo "bundle exec standardrb --fix"
-      return
-    fi
-    if grep -qE "^[[:space:]]*gem[[:space:]]+[\"']rubocop" Gemfile; then
-      echo "bundle exec rubocop -A"
-      return
-    fi
-  fi
-  echo ""
-}
+files=()
+while IFS= read -r file_path; do
+  [[ "$file_path" =~ \.rb$ ]] || continue
+  files+=("$file_path")
+done < <(dw_hook_changed_paths "$input" "$repo_root")
+[ "${#files[@]}" -gt 0 ] || exit 0
 
-cmd=$(resolve_lint_cmd)
-[[ -z "$cmd" ]] && exit 0
+local_command="$(dw_hook_local_command "Lint command" "{{LINT_COMMAND}}")"
+if [ -n "$local_command" ]; then
+  dw_hook_parse_argv "$local_command" || exit $?
+  command_argv=("${DW_HOOK_ARGV[@]}")
+elif [ -f Gemfile ] && command -v bundle >/dev/null && grep -qE "^[[:space:]]*gem[[:space:]]+[\"']standard[\"']" Gemfile; then
+  command_argv=(bundle exec standardrb --fix)
+elif [ -f Gemfile ] && command -v bundle >/dev/null && grep -qE "^[[:space:]]*gem[[:space:]]+[\"']rubocop" Gemfile; then
+  command_argv=(bundle exec rubocop -A)
+else
+  exit 0
+fi
 
-if ! output=$(eval "$cmd \"$file_path\"" 2>&1); then
+if ! output="$("${command_argv[@]}" "${files[@]}" 2>&1)"; then
   {
-    echo "Lint failed for $file_path ($cmd):"
+    echo "Ruby lint failed for ${files[*]} (${command_argv[*]}):"
     echo "$output"
   } >&2
   exit 2
 fi
-
-exit 0

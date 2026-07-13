@@ -70,10 +70,11 @@ change.
 
 A finding is only fair if it's measured against _this_ project's standards, not a generic ideal.
 "This isn't how I'd write it" is noise; "this breaks the project's own convention at X" is signal.
-Discover, read-only, in this order:
+Instruction precedence: `DW.local.md` → legacy `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` →
+autodetection. Discover, read-only, in this order:
 
-1. **Declared block** — `## Commands` / `## Project specifics` / coding conventions in `CLAUDE.md`,
-   `CLAUDE.local.md`, or `AGENTS.md` (style, naming, the layers, the lint / format / typecheck
+1. **Declared block** — `## Commands` / `## Project specifics` / coding conventions from the
+   instruction files (style, naming, the layers, the lint / format / typecheck
    tooling, the git base).
 2. **Config & manifests** — the linter / formatter / type config (`.eslintrc`, `.rubocop.yml`,
    `ruff.toml`, `tsconfig.json`, …) and `package.json` / `Gemfile` / `go.mod`. Their presence also

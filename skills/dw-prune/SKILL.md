@@ -72,10 +72,11 @@ the scope.
 
 Both _where tests live and how they're named_ **and** _the command that runs them_ come from the
 project in front of you, never from a convention baked into this skill. A Ruby suite isn't a Go
-suite; one repo's `spec/` is another's `__tests__/`. Discover, read-only, in this order:
+suite; one repo's `spec/` is another's `__tests__/`. Instruction precedence: `DW.local.md` → legacy
+`CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` → autodetection. Discover, read-only, in this order:
 
-1. **Declared block** — `## Commands` / `## Project specifics` in `CLAUDE.md`, `CLAUDE.local.md`, or
-   `AGENTS.md` (the test command, the test directory, the naming convention).
+1. **Declared block** — `## Commands` / `## Project specifics` from the instruction files (the test
+   command, the test directory, the naming convention).
 2. **Manifests / scripts** — `package.json` scripts, `Gemfile` + `bin/`, `Makefile`, `pyproject.toml`,
    … (also how you detect the stack and its test-file shape: Gemfile → Ruby / `*_spec.rb`,
    package.json → Node / `*.test.ts`, go.mod → Go / `*_test.go`).

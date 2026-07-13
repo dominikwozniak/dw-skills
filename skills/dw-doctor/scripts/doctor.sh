@@ -6,14 +6,16 @@
 # (OK / WARN / FAIL) with a fix hint. It diagnoses the CURRENT git repo
 # (resolved from cwd), not the skill's own location.
 #
-# READ-ONLY: it never installs anything and never edits a file. It only runs
-# `command -v` and `--version` probes and reads files. Exits 0 always — the
+# READ-ONLY: it never installs anything and never edits a file. It runs
+# `command -v`, `--version`, and host `plugin list --json` probes, then reads files. Exits 0 always — the
 # report text carries the verdict.
 #
 # Stack checks are conditional on what the repo declares (package.json /
-# Gemfile / tsconfig.json / CLAUDE.local.md), mirroring how the hooks resolve
+# Gemfile / tsconfig.json / DW.local.md / legacy CLAUDE.local.md), mirroring how the hooks resolve
 # their commands — so nothing about a stack is hardcoded.
 set -uo pipefail
+
+DW_SKILLS_VERSION="0.4.0"
 
 PLATFORM=auto
 while [ "$#" -gt 0 ]; do
@@ -48,6 +50,116 @@ report() {
 group() { printf '\n%s%s%s\n' "$C_DIM" "$1" "$C_RST"; }
 
 have() { command -v "$1" >/dev/null 2>&1; }
+
+count_files() {
+  local root="$1" pattern="$2"
+  [ -d "$root" ] || { printf '0\n'; return; }
+  find "$root" -type f -name "$pattern" | wc -l | tr -d ' '
+}
+
+check_codex_plugin() {
+  local json plugin version cache skills policies runtime nonexec
+  if ! have codex; then
+    report warn "Codex plugin" "CLI absent — dw-skills installation cannot be inspected"
+    return
+  fi
+  report ok "codex" "$(codex --version 2>/dev/null | head -n1)"
+  if ! have jq; then
+    report warn "Codex plugin" "state skipped — jq is required to parse plugin list --json"
+    return
+  fi
+  if ! json="$(codex plugin list --json 2>/dev/null)"; then
+    report warn "Codex plugin" "plugin list --json failed"
+    return
+  fi
+  plugin="$(jq -c '[.installed[]? | select(.pluginId == "dw-skills@dw-skills")][0] // empty' <<<"$json")"
+  if [ -z "$plugin" ]; then
+    report warn "Codex plugin" "dw-skills@dw-skills is not installed"
+    return
+  fi
+  if [ "$(jq -r '.installed // false' <<<"$plugin")" != true ]; then
+    report warn "Codex plugin" "entry exists but is not installed"
+    return
+  fi
+  version="$(jq -r '.version // empty' <<<"$plugin")"
+  if [ "$(jq -r '.enabled // false' <<<"$plugin")" != true ]; then
+    report warn "Codex plugin" "installed but disabled (version ${version:-unknown})"
+  else
+    report ok "Codex plugin" "installed and enabled (version ${version:-unknown})"
+  fi
+  if [ "$version" = "$DW_SKILLS_VERSION" ]; then
+    report ok "Codex version" "$version"
+  else
+    report warn "Codex version" "installed ${version:-unknown}; expected $DW_SKILLS_VERSION"
+  fi
+
+  cache="${CODEX_HOME:-$HOME/.codex}/plugins/cache/dw-skills/dw-skills/$version"
+  if [ ! -d "$cache" ]; then
+    report fail "Codex cache" "missing for installed version at $cache"
+    return
+  fi
+  skills="$(count_files "$cache/skills" SKILL.md)"
+  policies="$(count_files "$cache/skills" openai.yaml)"
+  runtime="$(count_files "$cache/scripts/runtime" '*.sh')"
+  nonexec="$(find "$cache/scripts/runtime" -type f -name '*.sh' ! -perm -u+x 2>/dev/null | head -n1)"
+  if [ "$skills" = 17 ] && [ "$policies" = 5 ] && [ "$runtime" = 5 ] && [ -z "$nonexec" ]; then
+    report ok "Codex cache" "complete: 17 skills, 5 policies, 5 executable runtime helpers"
+  else
+    report fail "Codex cache" "incomplete: skills=$skills/17 policies=$policies/5 runtime=$runtime/5$([ -n "$nonexec" ] && echo ', non-executable helper found')"
+  fi
+}
+
+check_claude_plugins() {
+  local json id plugin enabled version install_path expected_skills expected_runtime skills runtime nonexec
+  if ! have claude; then
+    report warn "Claude plugins" "CLI absent — installations cannot be inspected"
+    return
+  fi
+  report ok "claude" "$(claude --version 2>/dev/null | head -n1)"
+  if ! have jq; then
+    report warn "Claude plugins" "state skipped — jq is required to parse plugin list --json"
+    return
+  fi
+  if ! json="$(claude plugin list --json 2>/dev/null)"; then
+    report warn "Claude plugins" "plugin list --json failed"
+    return
+  fi
+  for id in dw-misc@dw-skills dw-planning@dw-skills dw-quality@dw-skills; do
+    plugin="$(jq -c --arg id "$id" '[.[]? | select(.id == $id)][0] // empty' <<<"$json")"
+    if [ -z "$plugin" ]; then
+      report warn "$id" "not installed"
+      continue
+    fi
+    enabled="$(jq -r '.enabled // false' <<<"$plugin")"
+    version="$(jq -r '.version // empty' <<<"$plugin")"
+    install_path="$(jq -r '.installPath // empty' <<<"$plugin")"
+    if [ "$enabled" = true ]; then
+      report ok "$id" "installed and enabled (version ${version:-unknown})"
+    else
+      report warn "$id" "installed but disabled (version ${version:-unknown})"
+    fi
+    if [ "$version" != "$DW_SKILLS_VERSION" ]; then
+      report warn "${id%@*} version" "installed ${version:-unknown}; expected $DW_SKILLS_VERSION"
+    fi
+    case "$id" in
+      dw-misc@*) expected_skills=5; expected_runtime=0 ;;
+      dw-planning@*) expected_skills=5; expected_runtime=5 ;;
+      dw-quality@*) expected_skills=7; expected_runtime=1 ;;
+    esac
+    if [ -z "$install_path" ] || [ ! -d "$install_path" ]; then
+      report fail "${id%@*} cache" "installPath missing or unreadable: ${install_path:-unset}"
+      continue
+    fi
+    skills="$(count_files "$install_path/skills" SKILL.md)"
+    runtime="$(count_files "$install_path/scripts/runtime" '*.sh')"
+    nonexec="$(find "$install_path/scripts/runtime" -type f -name '*.sh' ! -perm -u+x 2>/dev/null | head -n1)"
+    if [ "$skills" = "$expected_skills" ] && [ "$runtime" = "$expected_runtime" ] && [ -z "$nonexec" ]; then
+      report ok "${id%@*} cache" "complete: $skills skills, $runtime runtime helpers"
+    else
+      report fail "${id%@*} cache" "incomplete: skills=$skills/$expected_skills runtime=$runtime/$expected_runtime$([ -n "$nonexec" ] && echo ', non-executable helper found')"
+    fi
+  done
+}
 
 # ver_ge MIN CUR → true when CUR >= MIN (version-sorted; MIN sorts first or ties).
 ver_ge() { [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]; }
@@ -174,7 +286,7 @@ if [ -f "$gemfile" ]; then
   elif grep -qE "^[[:space:]]*gem[[:space:]]+[\"']rubocop" "$gemfile"; then
     report info "lint" "Gemfile declares rubocop → bundle exec rubocop"
   else
-    report info "lint" "no rubocop/standard in Gemfile — lint-on-edit-rb hook no-ops (unless CLAUDE.local.md sets one)"
+    report info "lint" "no rubocop/standard in Gemfile — hook no-ops unless DW.local.md or legacy CLAUDE.local.md sets one"
   fi
 fi
 
@@ -241,10 +353,13 @@ if [ "$PLATFORM" = codex ] || [ "$PLATFORM" = both ]; then
   if [ -f "$ROOT/.codex/config.toml" ] && grep -qE 'hooks[[:space:]]*=[[:space:]]*false' "$ROOT/.codex/config.toml"; then
     report warn "Codex hooks" "explicitly disabled in .codex/config.toml"
   fi
-  if have codex; then report ok "codex" "$(codex --version 2>/dev/null | head -n1)"
-  else report warn "codex" "CLI absent — plugin/cache state cannot be checked"; fi
   report warn ".env guardrail" "Codex protection is best-effort; built-in reads are not all intercepted"
 fi
+
+# --- installed plugin state ---------------------------------------------------
+group "Installed plugins"
+if [ "$PLATFORM" = codex ] || [ "$PLATFORM" = both ]; then check_codex_plugin; fi
+if [ "$PLATFORM" = claude ] || [ "$PLATFORM" = both ]; then check_claude_plugins; fi
 
 # --- plugins (opportunistic: only a marketplace repo has this) ----------------
 mkt="$ROOT/.claude-plugin/marketplace.json"

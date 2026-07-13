@@ -47,8 +47,9 @@ Then fill in the SPEC body (below) under the `# Spec — …` heading the script
 - Read expanded arguments when available. If the host leaves literal `$ARGUMENTS`, ignore it and
   use the user's prompt. Read any linked ticket / PR /
   issue.
-- Read the project's own conventions — don't guess them:
-  - `CLAUDE.md` / `CLAUDE.local.md` / `AGENTS.md` → `## Project specifics`,
+- Read the project's own conventions — don't guess them. Instruction precedence: `DW.local.md` →
+  legacy `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` → autodetection.
+  - The instruction files provide `## Project specifics`,
     `## Commands`, `## Git conventions` (test / lint / run / db / server).
   - Manifests if no block is declared (`package.json` scripts, `Gemfile` +
     `bin/`, `Makefile`, `Procfile`, `pyproject.toml`, …) — their presence detects

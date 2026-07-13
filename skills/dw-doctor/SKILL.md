@@ -39,6 +39,10 @@ the repo declares, so nothing about a stack is assumed:
   `*.sh` is checked for existence + the executable bit.
 - `.ai/`, `AGENTS.md`, `DW.local.md`, and legacy Claude files — shared state, precedence, and
   migration diagnostics.
+- `codex plugin list --json` — exact `dw-skills@dw-skills` installed/enabled/version state and its
+  cache (17 skills, 5 explicit-only policies, executable runtime helpers).
+- `claude plugin list --json` — the three exact `*@dw-skills` packages, their `installPath`, skill
+  counts, and `scripts/runtime` payload.
 - `.claude-plugin/marketplace.json` — only if present (a marketplace repo); a
   light plugin/version-sync glance.
 - Tool presence on `PATH` via `command -v`: `git`, `jq`, `gh`, `node`, `pnpm`,
@@ -82,7 +86,7 @@ first run (or `dw-resume` if one already exists).
 ## Guardrails
 
 - **Read-only.** Never install a tool, edit a file, or run a suggested fix. The
-  script only probes and reads.
+  script only probes and reads, including the two hosts' read-only `plugin list --json` commands.
 - **Stack-adaptive.** JS/TS checks run only when `package.json` exists; Ruby
   checks only when `Gemfile` exists; `tsc` only when the repo asks for
   typechecking. It reports what's declared, never a hardcoded stack.

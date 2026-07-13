@@ -74,10 +74,11 @@ change.
 `dw-risk` **analyses, it does not execute** — this is the line between it and `dw-verify`. To
 judge out-of-code impact you need to know what _counts_ as a migration, a flag, or a secret in
 **this** project, and that fact comes from the project, never from a stack assumption baked into
-the skill. Discover, read-only, in this order:
+the skill. Instruction precedence: `DW.local.md` → legacy `CLAUDE.local.md` → `AGENTS.md` →
+`CLAUDE.md` → autodetection. Discover, read-only, in this order:
 
-1. **Declared block** — `## Commands` / `## Project specifics` in `CLAUDE.md`, `CLAUDE.local.md`,
-   or `AGENTS.md` (where migrations live, how flags are toggled, where env/secrets are declared,
+1. **Declared block** — `## Commands` / `## Project specifics` from the instruction files (where
+   migrations live, how flags are toggled, where env/secrets are declared,
    the deploy target).
 2. **Manifests / conventions** — `package.json`, `Gemfile` + `db/migrate/`, `Makefile`,
    `Procfile`, IaC files (`*.tf`, `docker-compose.yml`, k8s manifests), `.env.example`. Their

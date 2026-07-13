@@ -73,10 +73,11 @@ they diverge from, not in your memory of the change.
 Conformance is measured against _this_ repo's own patterns, never a generic ideal or your own taste.
 "I'd structure it differently" is noise; "this diverges from how `lib/http.ts` already does it" is
 signal. And the pattern must be something the repo **already established** — not something this change
-introduces. Discover, read-only, in this order:
+introduces. Instruction precedence: `DW.local.md` → legacy `CLAUDE.local.md` → `AGENTS.md` →
+`CLAUDE.md` → autodetection. Discover, read-only, in this order:
 
-1. **Declared block** — `## Commands` / `## Project specifics` / coding conventions in `CLAUDE.md`,
-   `CLAUDE.local.md`, or `AGENTS.md` (naming, the layers, where things live, the chosen libraries).
+1. **Declared block** — `## Commands` / `## Project specifics` / coding conventions from the
+   instruction files (naming, the layers, where things live, the chosen libraries).
 2. **Precedent files — the siblings** — the existing files that do the _same kind of thing_ the
    change does (another controller, another migration, another test). Find them by structure (a
    `controllers/` directory, a `*_spec.rb` neighbour) and by history: `git log` tells you which files

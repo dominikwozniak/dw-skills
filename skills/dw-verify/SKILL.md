@@ -76,10 +76,11 @@ default to the working diff:
 
 A scenario's `Type` is a technology-agnostic label; the **command that realises it**
 is always the project's real command. Never assume a framework or invent a runner.
-Discover in this order:
+Instruction precedence: `DW.local.md` → legacy `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` →
+autodetection. Discover in this order:
 
-1. **Declared block** — `## Commands` / `## Project specifics` in `CLAUDE.md`,
-   `CLAUDE.local.md`, or `AGENTS.md` (test / lint / run / db-console / server URL /
+1. **Declared block** — `## Commands` / `## Project specifics` from the instruction files (test /
+   lint / run / db-console / server URL /
    run-snippet). Reuse whatever the project documents.
 2. **Manifests / scripts** — `package.json` scripts, `Gemfile` + `bin/`, `Makefile`,
    `Procfile`, `composer.json`, `pyproject.toml`, … (also how you detect the stack:
