@@ -111,6 +111,7 @@ contains "codex-hook-nonexec" "$out" "not executable: .codex/hooks/dull.sh"
 chmod +x "$REPO/.codex/hooks/dull.sh"
 out="$(cd "$REPO" && bash "$DOCTOR" --platform codex)"
 contains "codex-hook-ok" "$out" "[ OK ] Codex hook script"
+contains "codex-hook-trust" "$out" "confirm hooks were approved in Codex"
 
 jq -n '{hooks:{}}' >"$REPO/.codex/hooks.json"
 out="$(cd "$REPO" && bash "$DOCTOR" --platform codex)"

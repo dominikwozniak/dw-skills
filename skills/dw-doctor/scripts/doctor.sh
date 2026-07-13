@@ -403,6 +403,10 @@ if [ "$PLATFORM" = codex ] || [ "$PLATFORM" = both ]; then
   if [ -f "$ROOT/.codex/config.toml" ] && grep -qE 'hooks[[:space:]]*=[[:space:]]*false' "$ROOT/.codex/config.toml"; then
     report warn "Codex hooks" "explicitly disabled in .codex/config.toml"
   fi
+  # Correctly-wired hooks still won't fire until Codex's per-hook trust prompt is
+  # approved; that state lives outside the repo and can't be read here. Flag it so
+  # a green wiring check doesn't imply the guardrails are actually live.
+  [ -f "$codex_hooks" ] && report info "Codex hook trust" "activation needs approval on first use — not verifiable here; confirm hooks were approved in Codex"
   report warn ".env guardrail" "Codex protection is best-effort; built-in reads are not all intercepted"
 fi
 
