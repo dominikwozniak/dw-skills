@@ -17,11 +17,15 @@ COMMAND=$(jq -r '.tool_input.command // empty' <<<"$INPUT")
 
 [[ -z "$COMMAND" ]] && exit 0
 
-# Normalize: drop a leading `sudo ` for matching only.
-NORMALIZED="${COMMAND#sudo }"
+# See through wrapper prefixes: a destructive command stays destructive when run
+# via sudo or wrapped by RTK's auto-rewrite (`rtk <cmd>` / `rtk proxy <cmd>`).
+# Consume zero or more wrappers right after a boundary so `rtk git push --force`
+# matches the same as `git push --force`.
+WRAPPER='(sudo[[:space:]]+|rtk[[:space:]]+(proxy[[:space:]]+)?)*'
 
-# Start-of-command boundary: line start, or right after ; & | (chain/pipe).
-BOUNDARY='(^|[;&|][[:space:]]*)'
+# Start-of-command boundary: line start, or right after ; & | (chain/pipe),
+# then any wrapper prefixes.
+BOUNDARY="(^|[;&|][[:space:]]*)${WRAPPER}"
 
 DANGEROUS_PATTERNS=(
   'git push( [^;&|]*)?( --force| -f\b)'                   # force push, any arg order (incl. --force-with-lease)
@@ -41,7 +45,7 @@ DANGEROUS_PATTERNS=(
 )
 
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
-  if echo "$NORMALIZED" | grep -qE "${BOUNDARY}${pattern}"; then
+  if echo "$COMMAND" | grep -qE "${BOUNDARY}${pattern}"; then
     echo "BLOCKED: '$COMMAND' matches dangerous pattern '$pattern'. Refused by dw-bootstrap guardrail. If you genuinely need this, the user must run it manually." >&2
     exit 2
   fi
