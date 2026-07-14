@@ -46,12 +46,18 @@ resume or verify — that's the core problem the catalog solves.
 **No stack knowledge is hardcoded — every command is read from your project.** A skill finds the
 commands it needs (test, lint, run, db-console, server URL) in this order:
 
-1. a declared `## Commands` / `## Project specifics` block in `CLAUDE.md` / `AGENTS.md`,
-2. then manifests and scripts (`package.json`, `Gemfile` + `bin/`, `Makefile`, `Procfile`, …),
-3. then the code itself.
+1. `DW.local.md`,
+2. legacy `CLAUDE.local.md`,
+3. `AGENTS.md`,
+4. `CLAUDE.md`,
+5. then autodetection from manifests, scripts, and code.
 
 Stack is detected by which manifest is present, never branched on by name. With no declared commands a
 skill auto-detects and **states its assumption, asking when ambiguous** — it never guesses silently.
+
+Generated hooks use a deliberately narrower trust boundary. They may execute a custom argv list
+only from ignored `DW.local.md`, then legacy `CLAUDE.local.md`; otherwise they construct fixed argv
+from manifests. Tracked `AGENTS.md` and `CLAUDE.md` remain agent guidance, never hook code.
 
 Verification scenarios are _typed_, so the skill stays stack-neutral and the project fills in the
 concrete command:
@@ -121,6 +127,24 @@ It stays inside the thesis three ways:
 never auto-trigger — they scaffold a repo, install shared tooling, compact or mutate state, or act on
 an explicit drift signal, so the model shouldn't reach for them unbidden. Everything else can be
 model-invoked when the task fits.
+
+Claude expresses this with `disable-model-invocation: true`; Codex uses the matching
+`agents/openai.yaml` policy. `pnpm validate:compat` requires exact parity.
+
+## One corpus, two hosts
+
+`skills/` and `scripts/runtime/` are the only sources of truth. Codex installs one aggregate root
+plugin with real directories. Its marketplace entry points at the repository root, so the installed
+cache contains all 17 skills and the shared runtime without symlinks or a generated copy. This shape
+requires Codex CLI 0.142.0 or newer: older installers can register the marketplace but cannot resolve
+the root-level aggregate plugin. Duplicating the payload under a compatibility subdirectory would
+create a second source of truth, so the compatibility boundary is explicit instead.
+
+Claude installs three selective packages whose repository symlinks are materialized as real files by
+its installer. Those symlinks are distribution wiring, not another source tree. Skills on both hosts
+resolve runtime helpers relative to their loaded `SKILL.md`, not through a host-specific environment
+variable. Shared project instructions live in `AGENTS.md` and private machine context in
+`DW.local.md`; Claude files are thin imports.
 
 ## Loops vs persistence — why these skills don't auto-run
 

@@ -1,8 +1,8 @@
 {
   "name": "dw-skills",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "private": true,
-  "description": "A personal bucket of Claude Code skills, distributed as an installable plugin marketplace.",
+  "description": "Portable spec-to-ship skills for Codex and Claude Code.",
   "packageManager": "pnpm@10.14.0",
   "scripts": {
     "lint": "scripts/lint.sh",
@@ -12,6 +12,8 @@
     "validate:manifests": "scripts/validate-manifests.sh",
     "validate:artifacts": "scripts/validate-artifacts.sh",
     "validate:docs": "scripts/validate-docs.sh",
+    "validate:compat": "node scripts/validate-compat.mjs",
+    "validate:install": "scripts/validate-install.sh",
     "prepare": "husky"
   },
   "devDependencies": {

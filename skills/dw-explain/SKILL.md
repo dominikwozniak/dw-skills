@@ -1,21 +1,16 @@
 ---
 name: dw-explain
 description: >-
-  After implementing a change, explain what it does and generate runnable,
-  code-grounded verification scenarios — written to `.ai/verify/` so a later
-  pass (`dw-verify`) can execute them. Resolves the change three ways (working
-  diff, a branch against its base, or a PR via `gh pr diff`), reads the
-  project's own test/run/db commands instead of assuming a stack, and anchors
-  every scenario to a real referent (a route, a column, a file) — never a
-  fabricated command. Use when you have just written or reviewed code, or whenever
-  someone says "explain this change", "explain the diff", "what does this PR
-  do", "how do I prove this works", "write verification scenarios", "walk me
-  through what changed", or invokes "dw-explain". Prefer this over an ad-hoc
-  verbal summary whenever a change needs explaining or checking.
+  Explain a working diff, branch, or PR and write grounded, runnable verification scenarios to
+  .ai/verify/explain.md for dw-verify. Reads commands from the project and never fabricates a
+  referent. Use for "explain this change", "what does this PR do", or "dw-explain".
 argument-hint: "Which change should I explain? (diff, branch, or PR)"
 ---
 
 # dw-explain — explain the change, then generate runnable verification scenarios
+
+Use expanded invocation arguments when available. If the host leaves literal `$ARGUMENTS`, ignore
+the placeholder and infer scope from the user's prompt.
 
 You just implemented (or reviewed) a change. The valuable next step is to explain
 **what it does** and lay out **how to prove it works** — but that thinking usually
@@ -34,8 +29,9 @@ scenario — it sends the next pass chasing a ghost. Hence the one hard rule bel
 Write to `.ai/verify/<branch-slug>/explain.md`. `.ai/` is tracked in git —
 verification artifacts are real work documentation, committed alongside the code.
 
-- Branch slug for the folder name —
-  `bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
+- Branch slug for the folder name — resolve `<runtime-dir>` to the absolute
+  `<this-skill-dir>/../../scripts/runtime` path, then
+  `bash "<runtime-dir>/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
   (e.g. `ABC-123/password-reset` → `abc-123-password-reset`).
 - `mkdir -p .ai/verify/<branch-slug>` before writing.
 
@@ -65,10 +61,11 @@ your memory of what you wrote.
 ## Read the project's commands (don't hardcode a stack)
 
 Scenarios are **runnable** only if the commands are the project's real commands.
-Never assume a framework or invent a runner. Discover in this order:
+Never assume a framework or invent a runner. Instruction precedence: `DW.local.md` → legacy
+`CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` → autodetection. Discover in this order:
 
-1. **Declared block** — `## Commands` / `## Project specifics` in `CLAUDE.md`,
-   `CLAUDE.local.md`, or `AGENTS.md` (test / lint / run / db-console / server URL /
+1. **Declared block** — `## Commands` / `## Project specifics` from the instruction files (test /
+   lint / run / db-console / server URL /
    run-snippet). Reuse whatever the project already documents.
 2. **Manifests / scripts** — `package.json` scripts, `Gemfile` + `bin/`,
    `Makefile`, `Procfile`, `composer.json`, `pyproject.toml`, … Their presence is

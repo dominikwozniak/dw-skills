@@ -9,7 +9,10 @@ node_modules/
 /research.md
 
 # Vendored external dev tool (improve skill) + worktree scratch — personal, not this repo's product
-/.agents/
+/.agents/*
+!/.agents/plugins/
+/.agents/plugins/*
+!/.agents/plugins/marketplace.json
 /.claude/skills/
 /.claude/worktrees/
 /skills-lock.json

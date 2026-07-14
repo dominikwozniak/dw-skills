@@ -1,22 +1,16 @@
 ---
 name: dw-git
 description: >-
-  One skill for every git operation in this project — commit, push, open PR,
-  sync, branch, stash — applying the repo's own conventions instead of generic
-  defaults. Reads `## Git conventions` from `CLAUDE.local.md` (commit format,
-  default branch, trailer policy, signing) and falls back to documented defaults
-  when absent. Stages by name (never `git add -A`), keeps history atomic, and
-  refuses dangerous operations. Use when committing, pushing, opening a pull
-  request, rebasing onto the default branch, creating a branch, or stashing.
-  Trigger phrases: "commit", "push", "open PR", "create pull request", "sync with
-  main", "new branch", "stash my work", "dw-git". Use this for any git intent —
-  even when the user just says "commit this" or "push" without naming the skill.
-  Prefer it over ad-hoc git commands so the project's conventions are applied
-  consistently.
+  Handle commit, push, PR, sync, branch, and stash using repository conventions from the shared
+  instruction contract. Stages paths explicitly, keeps history atomic, and refuses dangerous
+  operations. Use for any git intent including "commit", "push", "open PR", or "dw-git".
 argument-hint: "Which git op? e.g. commit, push, open PR, sync, branch, stash"
 ---
 
 # dw-git — all git ops, by the project's own conventions
+
+Use expanded invocation arguments when available. If the host leaves literal `$ARGUMENTS`, ignore
+the placeholder and infer the operation from the user's prompt.
 
 One skill, every git operation. The point is consistency: read the conventions
 the repo already documents and apply them, rather than guessing per-commit. This
@@ -25,11 +19,9 @@ is the skill the rest of the dw-\* family points at when it needs git done right
 
 ## What it reads
 
-Before any operation, read `CLAUDE.local.md` (repo root) if present and look for a
-`## Git conventions` block. Those values **override** the defaults below —
-commit format, default branch, branch naming, trailer policy, PR title format,
-rebase-vs-merge, signing. If there's no `CLAUDE.local.md` or no such block, use
-the documented defaults.
+Before any operation, resolve `## Git conventions`. Instruction precedence: `DW.local.md` → legacy
+`CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` → autodetection. Declared values override defaults for
+commit format, default branch, naming, trailers, PR title, integration strategy, and signing.
 
 dw-git writes **no `.ai/` artifact** — its durable output is the git history
 itself (commits, branches, the opened PR). It's an action skill, not a
@@ -62,7 +54,7 @@ document-producing one.
    If found, prefix `[KEY] `.
 6. Commit — `-m` for the subject, repeat `-m` for the body (no heredoc needed for a
    short body). Use plain `git commit` and follow the project's signing convention
-   from `CLAUDE.local.md`; don't add `-S` or run `git config` to change signing.
+   from the instruction precedence above; don't add `-S` or run `git config` to change signing.
    Surface an error only if the commit genuinely fails.
 7. `git log --oneline -1` — confirm.
 

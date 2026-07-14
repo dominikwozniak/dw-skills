@@ -1,22 +1,17 @@
 ---
 name: dw-prune
 description: >-
-  Prune the tests around a change — trim the redundant, overlapping, dead, and low-value ones —
-  and, only with explicit consent, merge or delete them without losing real coverage. Writes a
-  durable prune.md to `.ai/verify/`: a keep / merge / delete plan where every merge or delete names
-  the retained test (`file:line`) that still catches the behavior, so production coverage never
-  drops. The only dw-quality skill that mutates — it proposes the plan and STOPS, editing only on
-  your word (per-row or batch), then re-runs the project's own test suite to confirm it's still
-  green. Reads the project's test layout and command instead of assuming a stack; resolves the
-  change three ways (working diff, branch vs base, or PR via `gh pr diff`). Explicit-invoke only.
-  Use when you want to trim a change's tests; trigger phrases: "dw-prune", "prune tests", "remove
-  redundant tests", "remove duplicate tests", "trim the test suite", "clean up tests", "are these
-  tests redundant".
+  Propose a grounded keep, merge, or delete plan for redundant tests, then mutate only after explicit
+  approval and re-run project tests. Writes .ai/verify/prune.md and preserves real coverage. Use
+  explicitly for "prune tests", "remove redundant tests", or "dw-prune".
 argument-hint: "Which tests to prune? (working diff, branch, PR, or a path to widen the scope)"
 disable-model-invocation: true
 ---
 
 # dw-prune — trim redundant tests without losing coverage
+
+Use expanded invocation arguments when available. If the host leaves literal `$ARGUMENTS`, ignore
+the placeholder and infer scope from the user's prompt.
 
 A change lands and, over time, the test suite around it has quietly accreted weight: two tests that
 assert the same behavior in slightly different words, a test for a code path this change just
@@ -37,8 +32,9 @@ STOPS, and touches a test only after you explicitly approve it.
 Write to `.ai/verify/<branch-slug>/prune.md`. `.ai/` is tracked in git — a prune plan is real work
 documentation, committed alongside the code.
 
-- Branch slug for the folder name —
-  `bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
+- Branch slug for the folder name — resolve `<runtime-dir>` to the absolute
+  `<this-skill-dir>/../../scripts/runtime` path, then
+  `bash "<runtime-dir>/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
   (e.g. `ABC-123/password-reset` → `abc-123-password-reset`) — the **same slug** the rest of
   `dw-quality` uses, so your `prune.md` lands beside its siblings.
 - `mkdir -p .ai/verify/<branch-slug>` before writing.
@@ -77,10 +73,11 @@ the scope.
 
 Both _where tests live and how they're named_ **and** _the command that runs them_ come from the
 project in front of you, never from a convention baked into this skill. A Ruby suite isn't a Go
-suite; one repo's `spec/` is another's `__tests__/`. Discover, read-only, in this order:
+suite; one repo's `spec/` is another's `__tests__/`. Instruction precedence: `DW.local.md` → legacy
+`CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` → autodetection. Discover, read-only, in this order:
 
-1. **Declared block** — `## Commands` / `## Project specifics` in `CLAUDE.md`, `CLAUDE.local.md`, or
-   `AGENTS.md` (the test command, the test directory, the naming convention).
+1. **Declared block** — `## Commands` / `## Project specifics` from the instruction files (the test
+   command, the test directory, the naming convention).
 2. **Manifests / scripts** — `package.json` scripts, `Gemfile` + `bin/`, `Makefile`, `pyproject.toml`,
    … (also how you detect the stack and its test-file shape: Gemfile → Ruby / `*_spec.rb`,
    package.json → Node / `*.test.ts`, go.mod → Go / `*_test.go`).

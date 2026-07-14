@@ -1,0 +1,19 @@
+{
+  "name": "dw-skills",
+  "version": "0.4.0",
+  "description": "Portable spec-to-ship workflows for planning, implementation, review, verification, and project setup.",
+  "author": {
+    "name": "Dominik Wozniak",
+    "url": "https://github.com/dominikwozniak"
+  },
+  "homepage": "https://github.com/dominikwozniak/dw-skills",
+  "repository": "https://github.com/dominikwozniak/dw-skills",
+  "license": "MIT",
+  "keywords": ["skills", "planning", "review", "verification", "workflow"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "dw-skills",
+    "shortDescription": "Persistent spec-to-ship workflows",
+    "category": "Productivity"
+  }
+}

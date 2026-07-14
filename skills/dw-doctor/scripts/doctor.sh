@@ -6,14 +6,29 @@
 # (OK / WARN / FAIL) with a fix hint. It diagnoses the CURRENT git repo
 # (resolved from cwd), not the skill's own location.
 #
-# READ-ONLY: it never installs anything and never edits a file. It only runs
-# `command -v` and `--version` probes and reads files. Exits 0 always — the
+# READ-ONLY: it never installs anything and never edits a file. It runs
+# `command -v`, `--version`, and host `plugin list --json` probes, then reads files. Exits 0 always — the
 # report text carries the verdict.
 #
 # Stack checks are conditional on what the repo declares (package.json /
-# Gemfile / tsconfig.json / CLAUDE.local.md), mirroring how the hooks resolve
+# Gemfile / tsconfig.json / DW.local.md / legacy CLAUDE.local.md), mirroring how the hooks resolve
 # their commands — so nothing about a stack is hardcoded.
 set -uo pipefail
+
+DW_SKILLS_VERSION="0.4.0"
+DW_CODEX_MIN_VERSION="0.142.0"
+
+PLATFORM=auto
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --platform)
+      [ "$#" -ge 2 ] || { printf 'usage: doctor.sh [--platform auto|claude|codex|both]\n' >&2; exit 2; }
+      PLATFORM="$2"; shift 2 ;;
+    --platform=*) PLATFORM="${1#*=}"; shift ;;
+    *) printf 'usage: doctor.sh [--platform auto|claude|codex|both]\n' >&2; exit 2 ;;
+  esac
+done
+case "$PLATFORM" in auto|claude|codex|both) ;; *) printf 'invalid platform: %s\n' "$PLATFORM" >&2; exit 2 ;; esac
 
 # --- output helpers (color only on a TTY) ------------------------------------
 if [ -t 1 ]; then
@@ -39,6 +54,140 @@ group() { printf '\n%s%s%s\n' "$C_DIM" "$1" "$C_RST"; }
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
+version_at_least() {
+  # Numeric semver comparison, compatible with macOS Bash 3.2.
+  local current="$1" minimum="$2" current_major current_minor current_patch minimum_major minimum_minor minimum_patch
+  IFS=. read -r current_major current_minor current_patch <<EOF
+$current
+EOF
+  IFS=. read -r minimum_major minimum_minor minimum_patch <<EOF
+$minimum
+EOF
+  current_patch="${current_patch%%[^0-9]*}"
+  minimum_patch="${minimum_patch%%[^0-9]*}"
+  [ "${current_major:-0}" -gt "${minimum_major:-0}" ] && return 0
+  [ "${current_major:-0}" -lt "${minimum_major:-0}" ] && return 1
+  [ "${current_minor:-0}" -gt "${minimum_minor:-0}" ] && return 0
+  [ "${current_minor:-0}" -lt "${minimum_minor:-0}" ] && return 1
+  [ "${current_patch:-0}" -ge "${minimum_patch:-0}" ]
+}
+
+count_files() {
+  local root="$1" pattern="$2"
+  [ -d "$root" ] || { printf '0\n'; return; }
+  find "$root" -type f -name "$pattern" | wc -l | tr -d ' '
+}
+
+check_codex_plugin() {
+  local json plugin version cache skills policies runtime nonexec cli_line cli_version
+  if ! have codex; then
+    report warn "Codex plugin" "CLI absent — dw-skills installation cannot be inspected"
+    return
+  fi
+  cli_line="$(codex --version 2>/dev/null | head -n1)"
+  cli_version="$(printf '%s\n' "$cli_line" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)"
+  report ok "codex" "$cli_line"
+  if [ -z "$cli_version" ] || ! version_at_least "$cli_version" "$DW_CODEX_MIN_VERSION"; then
+    report warn "Codex support" "unsupported ${cli_version:-unknown}; dw-skills requires Codex CLI >=$DW_CODEX_MIN_VERSION"
+    return
+  fi
+  if ! have jq; then
+    report warn "Codex plugin" "state skipped — jq is required to parse plugin list --json"
+    return
+  fi
+  if ! json="$(codex plugin list --json 2>/dev/null)"; then
+    report warn "Codex plugin" "plugin list --json failed"
+    return
+  fi
+  plugin="$(jq -c '[.installed[]? | select(.pluginId == "dw-skills@dw-skills")][0] // empty' <<<"$json")"
+  if [ -z "$plugin" ]; then
+    report warn "Codex plugin" "dw-skills@dw-skills is not installed"
+    return
+  fi
+  if [ "$(jq -r '.installed // false' <<<"$plugin")" != true ]; then
+    report warn "Codex plugin" "entry exists but is not installed"
+    return
+  fi
+  version="$(jq -r '.version // empty' <<<"$plugin")"
+  if [ "$(jq -r '.enabled // false' <<<"$plugin")" != true ]; then
+    report warn "Codex plugin" "installed but disabled (version ${version:-unknown})"
+  else
+    report ok "Codex plugin" "installed and enabled (version ${version:-unknown})"
+  fi
+  if [ "$version" = "$DW_SKILLS_VERSION" ]; then
+    report ok "Codex version" "$version"
+  else
+    report warn "Codex version" "installed ${version:-unknown}; expected $DW_SKILLS_VERSION"
+  fi
+
+  cache="${CODEX_HOME:-$HOME/.codex}/plugins/cache/dw-skills/dw-skills/$version"
+  if [ ! -d "$cache" ]; then
+    report fail "Codex cache" "missing for installed version at $cache"
+    return
+  fi
+  skills="$(count_files "$cache/skills" SKILL.md)"
+  policies="$(count_files "$cache/skills" openai.yaml)"
+  runtime="$(count_files "$cache/scripts/runtime" '*.sh')"
+  nonexec="$(find "$cache/scripts/runtime" -type f -name '*.sh' ! -perm -u+x 2>/dev/null | head -n1)"
+  if [ "$skills" = 17 ] && [ "$policies" = 5 ] && [ "$runtime" = 5 ] && [ -z "$nonexec" ]; then
+    report ok "Codex cache" "complete: 17 skills, 5 policies, 5 executable runtime helpers"
+  else
+    report fail "Codex cache" "incomplete: skills=$skills/17 policies=$policies/5 runtime=$runtime/5$([ -n "$nonexec" ] && echo ', non-executable helper found')"
+  fi
+}
+
+check_claude_plugins() {
+  local json id plugin enabled version install_path expected_skills expected_runtime skills runtime nonexec
+  if ! have claude; then
+    report warn "Claude plugins" "CLI absent — installations cannot be inspected"
+    return
+  fi
+  report ok "claude" "$(claude --version 2>/dev/null | head -n1)"
+  if ! have jq; then
+    report warn "Claude plugins" "state skipped — jq is required to parse plugin list --json"
+    return
+  fi
+  if ! json="$(claude plugin list --json 2>/dev/null)"; then
+    report warn "Claude plugins" "plugin list --json failed"
+    return
+  fi
+  for id in dw-misc@dw-skills dw-planning@dw-skills dw-quality@dw-skills; do
+    plugin="$(jq -c --arg id "$id" '[.[]? | select(.id == $id)][0] // empty' <<<"$json")"
+    if [ -z "$plugin" ]; then
+      report warn "$id" "not installed"
+      continue
+    fi
+    enabled="$(jq -r '.enabled // false' <<<"$plugin")"
+    version="$(jq -r '.version // empty' <<<"$plugin")"
+    install_path="$(jq -r '.installPath // empty' <<<"$plugin")"
+    if [ "$enabled" = true ]; then
+      report ok "$id" "installed and enabled (version ${version:-unknown})"
+    else
+      report warn "$id" "installed but disabled (version ${version:-unknown})"
+    fi
+    if [ "$version" != "$DW_SKILLS_VERSION" ]; then
+      report warn "${id%@*} version" "installed ${version:-unknown}; expected $DW_SKILLS_VERSION"
+    fi
+    case "$id" in
+      dw-misc@*) expected_skills=5; expected_runtime=0 ;;
+      dw-planning@*) expected_skills=5; expected_runtime=5 ;;
+      dw-quality@*) expected_skills=7; expected_runtime=1 ;;
+    esac
+    if [ -z "$install_path" ] || [ ! -d "$install_path" ]; then
+      report fail "${id%@*} cache" "installPath missing or unreadable: ${install_path:-unset}"
+      continue
+    fi
+    skills="$(count_files "$install_path/skills" SKILL.md)"
+    runtime="$(count_files "$install_path/scripts/runtime" '*.sh')"
+    nonexec="$(find "$install_path/scripts/runtime" -type f -name '*.sh' ! -perm -u+x 2>/dev/null | head -n1)"
+    if [ "$skills" = "$expected_skills" ] && [ "$runtime" = "$expected_runtime" ] && [ -z "$nonexec" ]; then
+      report ok "${id%@*} cache" "complete: $skills skills, $runtime runtime helpers"
+    else
+      report fail "${id%@*} cache" "incomplete: skills=$skills/$expected_skills runtime=$runtime/$expected_runtime$([ -n "$nonexec" ] && echo ', non-executable helper found')"
+    fi
+  done
+}
+
 # ver_ge MIN CUR → true when CUR >= MIN (version-sorted; MIN sorts first or ties).
 ver_ge() { [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]; }
 
@@ -47,6 +196,22 @@ ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 
 printf '%sdw-doctor%s — read-only environment diagnostic\n' "$C_DIM" "$C_RST"
 printf '%srepo: %s%s\n' "$C_DIM" "$ROOT" "$C_RST"
+if [ "$PLATFORM" = auto ]; then
+  if [ -d "$ROOT/.claude" ] && [ -d "$ROOT/.codex" ]; then PLATFORM=both
+  elif [ -d "$ROOT/.codex" ]; then PLATFORM=codex
+  elif [ -d "$ROOT/.claude" ]; then PLATFORM=claude
+  else
+    # No adapter dir to infer from — the pre-bootstrap case doctor exists to
+    # diagnose. Silently assuming Claude here would skip every Codex check and
+    # report irrelevant Claude gaps, so check both and flag the ambiguity. The
+    # invoking skill should pass --platform for the active host when it knows it.
+    PLATFORM=both; PLATFORM_AMBIGUOUS=1
+  fi
+fi
+printf '%splatform: %s%s\n' "$C_DIM" "$PLATFORM" "$C_RST"
+if [ "${PLATFORM_AMBIGUOUS:-0}" = 1 ]; then
+  report warn "platform" "no .claude/ or .codex/ found — checking both; pass --platform claude|codex to narrow"
+fi
 
 # --- core tools ---------------------------------------------------------------
 group "Core tools"
@@ -58,7 +223,7 @@ fi
 if have jq; then
   report ok "jq" "$(jq --version 2>/dev/null)"
 else
-  report fail "jq" "MISSING — every .claude/hooks/*.sh silently no-ops without it. Install: brew install jq"
+  report fail "jq" "MISSING — dw hook scripts silently no-op without it. Install: brew install jq"
 fi
 
 # --- optional tools -----------------------------------------------------------
@@ -157,13 +322,25 @@ if [ -f "$gemfile" ]; then
   elif grep -qE "^[[:space:]]*gem[[:space:]]+[\"']rubocop" "$gemfile"; then
     report info "lint" "Gemfile declares rubocop → bundle exec rubocop"
   else
-    report info "lint" "no rubocop/standard in Gemfile — lint-on-edit-rb hook no-ops (unless CLAUDE.local.md sets one)"
+    report info "lint" "no rubocop/standard in Gemfile — hook no-ops unless DW.local.md or legacy CLAUDE.local.md sets one"
   fi
 fi
 
 # --- repo structure -----------------------------------------------------------
 group "Structure"
+for common in .ai AGENTS.md DW.local.md; do
+  if [ -e "$ROOT/$common" ]; then report ok "$common" "present"
+  else report warn "$common" "absent — run dw-bootstrap"; fi
+done
+if [ -f "$ROOT/AGENTS.override.md" ]; then
+  report warn "AGENTS.override.md" "present at repo root — it masks AGENTS.md"
+fi
+if [ -f "$ROOT/CLAUDE.local.md" ] && [ ! -f "$ROOT/DW.local.md" ]; then
+  report warn "legacy profile" "CLAUDE.local.md needs migration to DW.local.md"
+fi
+
 settings="$ROOT/.claude/settings.json"
+if [ "$PLATFORM" = claude ] || [ "$PLATFORM" = both ]; then
 if [ -f "$settings" ]; then
   if have jq && ! jq empty "$settings" 2>/dev/null; then
     report fail ".claude/settings.json" "invalid JSON"
@@ -196,18 +373,56 @@ if [ -f "$settings" ]; then
 else
   report warn ".claude/settings.json" "absent — no hooks/guardrails in this repo"
 fi
-
-if [ -d "$ROOT/.ai" ]; then
-  report ok ".ai/" "present"
-else
-  report warn ".ai/" "absent — run dw-bootstrap, or dw-spec to start a run"
 fi
 
-if [ -f "$ROOT/CLAUDE.local.md" ]; then
-  report ok "CLAUDE.local.md" "present"
-else
-  report warn "CLAUDE.local.md" "absent — hooks + dw-git read it for commands & conventions"
+if [ "$PLATFORM" = codex ] || [ "$PLATFORM" = both ]; then
+  codex_hooks="$ROOT/.codex/hooks.json"
+  if [ -f "$codex_hooks" ]; then
+    if ! have jq; then
+      report warn ".codex/hooks.json" "skipped (needs jq to parse)"
+    elif ! jq empty "$codex_hooks" 2>/dev/null; then
+      report fail ".codex/hooks.json" "invalid JSON"
+    else
+      report ok ".codex/hooks.json" "present and valid JSON"
+      # Parity with the Claude per-script check above: valid JSON is not enough —
+      # enumerate every wired command and verify each script resolves and is
+      # executable, else that guardrail silently never runs.
+      found_hook=0
+      while IFS= read -r cmd; do
+        [ -z "$cmd" ] && continue
+        cmd="${cmd//\$(git rev-parse --show-toplevel)/$ROOT}"
+        script_path="$(printf '%s' "$cmd" | grep -oE "[^'\" ]*\.sh" | head -n1)"
+        [ -z "$script_path" ] && continue
+        found_hook=1
+        case "$script_path" in /*) ;; *) script_path="$ROOT/$script_path" ;; esac
+        rel="${script_path#"$ROOT"/}"
+        if [ ! -f "$script_path" ]; then
+          report fail "Codex hook script" "missing: $rel — that guardrail won't run"
+        elif [ ! -x "$script_path" ]; then
+          report fail "Codex hook script" "not executable: $rel — fix: chmod +x"
+        else
+          report ok "Codex hook script" "$rel"
+        fi
+      done < <(jq -r '.hooks // {} | to_entries[] | .value[]? | .hooks[]? | .command // empty' "$codex_hooks" 2>/dev/null)
+      [ "$found_hook" -eq 0 ] && report warn "Codex hooks" "none wired in hooks.json — guardrails inactive"
+    fi
+  else
+    report warn ".codex/hooks.json" "absent — Codex guardrails are not enabled"
+  fi
+  if [ -f "$ROOT/.codex/config.toml" ] && grep -qE 'hooks[[:space:]]*=[[:space:]]*false' "$ROOT/.codex/config.toml"; then
+    report warn "Codex hooks" "explicitly disabled in .codex/config.toml"
+  fi
+  # Correctly-wired hooks still won't fire until Codex's per-hook trust prompt is
+  # approved; that state lives outside the repo and can't be read here. Flag it so
+  # a green wiring check doesn't imply the guardrails are actually live.
+  [ -f "$codex_hooks" ] && report info "Codex hook trust" "activation needs approval on first use — not verifiable here; confirm hooks were approved in Codex"
+  report warn ".env guardrail" "Codex protection is best-effort; built-in reads are not all intercepted"
 fi
+
+# --- installed plugin state ---------------------------------------------------
+group "Installed plugins"
+if [ "$PLATFORM" = codex ] || [ "$PLATFORM" = both ]; then check_codex_plugin; fi
+if [ "$PLATFORM" = claude ] || [ "$PLATFORM" = both ]; then check_claude_plugins; fi
 
 # --- plugins (opportunistic: only a marketplace repo has this) ----------------
 mkt="$ROOT/.claude-plugin/marketplace.json"

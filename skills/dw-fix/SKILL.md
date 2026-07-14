@@ -1,21 +1,16 @@
 ---
 name: dw-fix
 description: >-
-  Apply the findings the quality auditors recorded — read `review.md` / `conform.md` /
-  `risk.md` under `.ai/verify/`, fix each one severity-ordered, one logical commit per
-  fix, mark it resolved, and write a durable `fix.md` log. The single writer in the
-  quality pipeline: the auditors only diagnose, dw-fix treats. Severity-gated —
-  `blockers` fixes the critical / high findings first and stops for a re-audit, so
-  downstream checks never run on broken code; the default pass fixes the whole worklist.
-  Grounded: it only touches findings the artifacts already record, never invents work,
-  and never issues a verdict (re-running the auditor does that). Reads the project's own
-  test / lint commands and `## Git conventions`. Use after a review or conformance pass,
-  or when someone says "fix the findings", "address the review", "apply the review
-  fixes", "fix the drift", "remediate the findings", or invokes "dw-fix".
+  Apply recorded review, conformance, and risk findings in severity order, one logical commit per
+  fix, and maintain .ai/verify/fix.md. Only treats grounded findings; auditors issue verdicts. Use
+  for "fix the findings", "address the review", "fix the drift", or "dw-fix".
 argument-hint: "empty = fix all open findings severity-ordered; 'blockers' = critical/high only"
 ---
 
 # dw-fix — apply the quality findings, one commit per fix
+
+Use expanded invocation arguments when available. If the host leaves literal `$ARGUMENTS`, ignore
+the placeholder and infer mode from the user's prompt.
 
 The quality auditors are deliberately **read-only**: `dw-review`, `dw-conform`, `dw-explain`,
 `dw-verify`, and `dw-risk` diagnose a change and record what they find, but none of them edits code.
@@ -34,6 +29,8 @@ verdict flipped clean. One finding at a time, blockers first.
   `risk.md`, `verify-run.md` — whichever exist), the real files each finding points at, and — **from
   the project, never hardcoded** — the test / lint commands and the commit convention
   (`## Git conventions`).
+- Instruction precedence: `DW.local.md` → legacy `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` →
+  autodetection.
 - **Writes:** the fix code; **one logical commit per finding**; each finding marked resolved (with its
   fix SHA) in the artifact that raised it; an appended `fix.md` log. The bookkeeping is the auditor's
   record updated in place — never amend the code commit to fold it in.
@@ -43,8 +40,9 @@ verdict flipped clean. One finding at a time, blockers first.
 Write `fix.md` to `.ai/verify/<branch-slug>/fix.md`. `.ai/` is tracked in git — the treatment log is
 real work documentation, committed alongside the code.
 
-- Branch slug for the folder name —
-  `bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
+- Branch slug for the folder name — resolve `<runtime-dir>` to the absolute
+  `<this-skill-dir>/../../scripts/runtime` path, then
+  `bash "<runtime-dir>/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
   (e.g. `ABC-123/password-reset` → `abc-123-password-reset`) — the **same slug** the rest of
   `dw-quality` uses, so `fix.md` lands beside the artifacts it acts on.
 - `mkdir -p .ai/verify/<branch-slug>` before writing.

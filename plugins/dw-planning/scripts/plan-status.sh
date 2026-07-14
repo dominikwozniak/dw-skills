@@ -1,1 +1,0 @@
-../../../scripts/runtime/plan-status.sh

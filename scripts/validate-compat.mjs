@@ -1,0 +1,151 @@
+#!/usr/bin/env node
+
+import fs from "node:fs"
+import path from "node:path"
+import process from "node:process"
+
+const root = process.cwd()
+const minimumCodexVersion = "0.142.0"
+const fail = (message) => {
+  console.error(`::error::${message}`)
+  process.exitCode = 1
+}
+const readJson = (file) => JSON.parse(fs.readFileSync(path.join(root, file), "utf8"))
+const packageVersion = readJson("package.json").version
+const codexManifest = readJson(".codex-plugin/plugin.json")
+const claudeMarketplace = readJson(".claude-plugin/marketplace.json")
+
+const versions = new Map([
+  ["package.json", packageVersion],
+  [".codex-plugin/plugin.json", codexManifest.version],
+  [".claude-plugin/marketplace.json metadata", claudeMarketplace.metadata.version],
+])
+for (const plugin of claudeMarketplace.plugins) {
+  versions.set(`Claude marketplace ${plugin.name}`, plugin.version)
+  versions.set(
+    `${plugin.source}/.claude-plugin/plugin.json`,
+    readJson(`${plugin.source}/.claude-plugin/plugin.json`).version,
+  )
+}
+for (const [source, version] of versions) {
+  if (version !== packageVersion) fail(`${source} has ${version}; expected ${packageVersion}`)
+}
+const doctorScript = fs.readFileSync(path.join(root, "skills/dw-doctor/scripts/doctor.sh"), "utf8")
+const doctorVersion = doctorScript.match(/^DW_SKILLS_VERSION="([^"]+)"$/m)?.[1]
+if (doctorVersion !== packageVersion) {
+  fail(`dw-doctor version is ${doctorVersion ?? "missing"}; expected ${packageVersion}`)
+}
+const doctorCodexMinimum = doctorScript.match(/^DW_CODEX_MIN_VERSION="([^"]+)"$/m)?.[1]
+if (doctorCodexMinimum !== minimumCodexVersion) {
+  fail(
+    `dw-doctor Codex minimum is ${doctorCodexMinimum ?? "missing"}; expected ${minimumCodexVersion}`,
+  )
+}
+
+const compatibilityWorkflow = fs.readFileSync(
+  path.join(root, ".github/workflows/validate-codex-compatibility.yaml"),
+  "utf8",
+)
+if (!compatibilityWorkflow.includes(`codex: ["${minimumCodexVersion}", "latest"]`)) {
+  fail(`Codex compatibility workflow must require ${minimumCodexVersion} and observe latest`)
+}
+const readme = fs.readFileSync(path.join(root, "README.md"), "utf8")
+const minimumCodexMinor = minimumCodexVersion.split(".").slice(0, 2).join(".")
+if (!readme.includes(`CLI ≥${minimumCodexMinor}`)) {
+  fail(`README support matrix must declare Codex CLI ≥${minimumCodexMinor}`)
+}
+
+const skillsDir = path.join(root, "skills")
+const skillNames = fs
+  .readdirSync(skillsDir, { withFileTypes: true })
+  .filter(
+    (entry) => entry.isDirectory() && fs.existsSync(path.join(skillsDir, entry.name, "SKILL.md")),
+  )
+  .map((entry) => entry.name)
+  .sort()
+
+const precedenceConsumers = [
+  "dw-build",
+  "dw-conform",
+  "dw-explain",
+  "dw-fix",
+  "dw-git",
+  "dw-plan",
+  "dw-prune",
+  "dw-review",
+  "dw-risk",
+  "dw-spec",
+  "dw-verify",
+]
+const canonicalPrecedence =
+  "Instruction precedence: `DW.local.md` → legacy `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` → autodetection."
+
+let descriptionBudget = 0
+const claudeExplicit = []
+const codexExplicit = []
+for (const name of skillNames) {
+  const file = path.join(skillsDir, name, "SKILL.md")
+  const body = fs.readFileSync(file, "utf8")
+  const frontmatter = body.match(/^---\n([\s\S]*?)\n---/m)?.[1] ?? ""
+  const descriptionMatch = frontmatter.match(
+    /^description:\s*(?:>-\s*\n((?:[ \t]+.*\n?)+)|([^\n]+))/m,
+  )
+  const description = (descriptionMatch?.[1] ?? descriptionMatch?.[2] ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .join(" ")
+    .trim()
+  if (!description) fail(`${name}: missing description`)
+  if (description.length > 350)
+    fail(`${name}: description is ${description.length} chars (max 350)`)
+  descriptionBudget += description.length
+  if (/^disable-model-invocation:\s*true$/m.test(frontmatter)) claudeExplicit.push(name)
+  const openaiFile = path.join(skillsDir, name, "agents/openai.yaml")
+  if (fs.existsSync(openaiFile)) {
+    const openai = fs.readFileSync(openaiFile, "utf8")
+    if (/allow_implicit_invocation:\s*false/.test(openai)) codexExplicit.push(name)
+  }
+  if (body.includes("${CLAUDE_PLUGIN_ROOT}")) fail(`${name}: contains CLAUDE_PLUGIN_ROOT`)
+  if (body.includes("$ARGUMENTS") && !body.includes("literal `$ARGUMENTS`")) {
+    fail(`${name}: uses $ARGUMENTS without the Codex literal-placeholder fallback`)
+  }
+  if (body.includes("AskUserQuestion")) fail(`${name}: names a host-specific question tool`)
+  if (precedenceConsumers.includes(name)) {
+    const normalizedBody = body.replace(/\s+/g, " ")
+    if (!normalizedBody.includes(canonicalPrecedence)) {
+      fail(`${name}: missing canonical instruction precedence declaration`)
+    }
+  }
+}
+if (descriptionBudget > 6000) fail(`description catalog is ${descriptionBudget} chars (max 6000)`)
+if (claudeExplicit.join() !== codexExplicit.sort().join()) {
+  fail(`explicit-only mismatch: Claude=[${claudeExplicit}] Codex=[${codexExplicit.sort()}]`)
+}
+if (skillNames.length !== 17) fail(`expected 17 skills, found ${skillNames.length}`)
+for (const name of precedenceConsumers) {
+  if (!skillNames.includes(name)) fail(`precedence consumer does not exist: ${name}`)
+}
+
+const publishedRoots = ["skills", "scripts/runtime", ".codex-plugin", ".agents/plugins"]
+for (const publishedRoot of publishedRoots) {
+  const stack = [path.join(root, publishedRoot)]
+  while (stack.length) {
+    const current = stack.pop()
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const target = path.join(current, entry.name)
+      if (entry.isDirectory()) stack.push(target)
+      else if (
+        entry.isFile() &&
+        fs.readFileSync(target, "utf8").includes("/Users/dominik.wozniak")
+      ) {
+        fail(`${path.relative(root, target)} contains an author-local absolute path`)
+      }
+    }
+  }
+}
+
+if (!process.exitCode) {
+  console.log(
+    `OK  ${skillNames.length} skills; descriptions ${descriptionBudget}/6000; version ${packageVersion}; Codex >=${minimumCodexVersion}`,
+  )
+}

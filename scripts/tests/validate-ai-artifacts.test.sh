@@ -11,7 +11,7 @@ set -uo pipefail
 export LC_ALL=C
 
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-VALIDATOR="$ROOT/plugins/dw-planning/scripts/validate-ai-artifacts.sh"
+VALIDATOR="$ROOT/plugins/dw-planning/scripts/runtime/validate-ai-artifacts.sh"
 
 # Document builders ("fixtures") live in a sibling file, sourced relative to this script.
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

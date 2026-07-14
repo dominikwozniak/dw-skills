@@ -1,23 +1,16 @@
 ---
 name: dw-verify
 description: >-
-  Take the runnable verification scenarios from `explain.md` and actually execute
-  them with the project's own commands, recording for each one the actual output, a
-  verdict (PASS / FAIL / INCONCLUSIVE), and the evidence — written to `.ai/verify/`
-  so the result is a durable artifact instead of a conversation that evaporates.
-  Resolves the change three ways (working diff, a branch against its base, or a PR
-  via `gh pr diff`), reads the project's own test/run/db commands instead of
-  assuming a stack, runs only scenarios anchored to a real referent, auto-runs
-  read-only checks but asks before any mutation, and never reports PASS without
-  captured output. Use when you have an `explain.md` to run, or whenever someone
-  says "verify this change", "run the verification scenarios", "prove the fix
-  works", "execute the verify scenarios", "does this actually work", "check the
-  explain scenarios", or invokes "dw-verify". Prefer this over an ad-hoc manual
-  check whenever a change needs proving.
+  Execute grounded scenarios from explain.md with project-native commands and record output,
+  evidence, and PASS, FAIL, or INCONCLUSIVE verdicts in .ai/verify. Ask before mutation and never
+  claim PASS without output. Use for "verify this change", "prove the fix", or "dw-verify".
 argument-hint: "What to verify? (all scenarios, a #, a type, or a priority)"
 ---
 
 # dw-verify — run the scenarios, record the evidence
+
+Use expanded invocation arguments when available. If the host leaves literal `$ARGUMENTS`, ignore
+the placeholder and infer scenario scope from the user's prompt.
 
 You have an `explain.md` full of runnable verification scenarios (or a change that
 needs proving). The valuable next step is to actually **run** them — fire the SQL,
@@ -37,8 +30,9 @@ run something you say so (`INCONCLUSIVE`) rather than guessing a verdict.
 Write to `.ai/verify/<branch-slug>/verify-run.md`. `.ai/` is tracked in git —
 verification results are real work documentation, committed alongside the code.
 
-- Branch slug for the folder name —
-  `bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
+- Branch slug for the folder name — resolve `<runtime-dir>` to the absolute
+  `<this-skill-dir>/../../scripts/runtime` path, then
+  `bash "<runtime-dir>/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
   (e.g. `ABC-123/password-reset` → `abc-123-password-reset`) — the same slug
   `dw-explain` used, so your `verify-run.md` lands beside its `explain.md`.
 - `mkdir -p .ai/verify/<branch-slug>` before writing.
@@ -83,10 +77,11 @@ default to the working diff:
 
 A scenario's `Type` is a technology-agnostic label; the **command that realises it**
 is always the project's real command. Never assume a framework or invent a runner.
-Discover in this order:
+Instruction precedence: `DW.local.md` → legacy `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` →
+autodetection. Discover in this order:
 
-1. **Declared block** — `## Commands` / `## Project specifics` in `CLAUDE.md`,
-   `CLAUDE.local.md`, or `AGENTS.md` (test / lint / run / db-console / server URL /
+1. **Declared block** — `## Commands` / `## Project specifics` from the instruction files (test /
+   lint / run / db-console / server URL /
    run-snippet). Reuse whatever the project documents.
 2. **Manifests / scripts** — `package.json` scripts, `Gemfile` + `bin/`, `Makefile`,
    `Procfile`, `composer.json`, `pyproject.toml`, … (also how you detect the stack:

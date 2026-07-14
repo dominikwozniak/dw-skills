@@ -1,17 +1,9 @@
 ---
 name: dw-sync
 description: >-
-  Re-align the active run's `PLAN.md` with the real state of the code and git after
-  manual edits or drift — the reconciler `dw-build` defers to. Reads the run's
-  `PLAN.md` (branch-matched, like `dw-resume`), `git log` / `git diff`, and the code,
-  then proposes a re-sync: flip `todo` / `doing` rows to `done` + short SHA where a real
-  commit covers the step, append new rows with fresh ids for off-plan work, and flag
-  `blocked` where code and plan diverge. The only `dw-planning` skill that mutates — it
-  shows the plan diff and STOPS, applying only on your explicit word (per-row or batch),
-  then appends a `NOTES.md` changelog. Never renumbers a committed step, and never flips
-  a row without a commit verified in `git log`. Explicit-invoke only. Use when the plan
-  has drifted from the code, or someone says "sync the plan", "re-sync plan to code",
-  "re-align the plan", "reconcile plan with commits", or invokes "dw-sync".
+  Reconcile PLAN.md with code and git after drift: verify commits, propose status changes and new
+  immutable rows, show the diff, and apply only after explicit approval. Updates NOTES.md. Use
+  explicitly for "sync the plan", "reconcile plan with commits", or "dw-sync".
 argument-hint: "empty = re-sync the active run's plan to code; or name a run id"
 disable-model-invocation: true
 ---
@@ -75,13 +67,13 @@ flip — it stays as it is, or it's flagged for the user, never invented.
 
 ### 1. Find the run (branch-matched, no index)
 
-If `$ARGUMENTS` names a run id, use that run. Otherwise resolve it with
-`bash "${CLAUDE_PLUGIN_ROOT}/scripts/find-active-run.sh"` — it matches the current
+Read expanded arguments; if the host leaves literal `$ARGUMENTS`, ignore it and use the user's
+prompt. If they name a run id, use that run. Otherwise resolve `<runtime-dir>` to the absolute
+`<this-skill-dir>/../../scripts/runtime` path and run
+`bash "<runtime-dir>/find-active-run.sh"` — it matches the current
 git branch against each run's `SPEC.md` `branch:` field, prints the run directory
 (newest wins when several match), and exits non-zero when none does.
-`${CLAUDE_PLUGIN_ROOT}` is the env var Claude Code substitutes to this plugin's
-install dir; the script ships with the plugin, not the project repo. Interpret its
-result, stop at the first that applies:
+Interpret its result, stop at the first that applies:
 
 1. **No `.ai/runs/` directory, or no run for this branch** → there's nothing to sync. If a
    `SPEC.md` exists but no `PLAN.md`, point to `dw-plan`; if neither, point to `dw-spec`.
@@ -143,11 +135,10 @@ the conversation is a correct outcome. Never apply on silence, on inference, or 
 ### 5. Apply the approved changes and log them
 
 Apply only what was approved, editing `PLAN.md` in place — flip Status/Commit, append the
-new rows, set `blocked` where flagged. Then run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/plan-status.sh"
+new rows, set `blocked` where flagged. Then run `bash "<runtime-dir>/plan-status.sh"
 <PLAN.md>` to refresh the frontmatter `status:` from the table — it's _derived_ state (idempotent;
-never hand-set the scalar). `${CLAUDE_PLUGIN_ROOT}` is an env var Claude Code substitutes to this
-plugin's install dir; the script ships with the plugin, not the project repo. Then run
-`bash "${CLAUDE_PLUGIN_ROOT}/scripts/validate-ai-artifacts.sh" <run-dir>` to confirm the reconciled
+never hand-set the scalar). Then run
+`bash "<runtime-dir>/validate-ai-artifacts.sh" <run-dir>` to confirm the reconciled
 `PLAN.md` still satisfies the structural schema (column shape, status enum, every done row's SHA) —
 fix any reported error before logging. Then append a `NOTES.md` entry (newest at the bottom,
 under a `## YYYY-MM-DD HH:MM` heading) recording what was reconciled: which rows flipped to

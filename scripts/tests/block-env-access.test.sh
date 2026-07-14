@@ -21,6 +21,7 @@ note_fail() { FAIL=$((FAIL + 1)); echo "  ✗ $1 — $2"; }
 
 run_file() { jq -n --arg t "$1" --arg p "$2" '{tool_name:$t,tool_input:{file_path:$p}}' | bash "$HOOK" >/dev/null 2>&1; }
 run_bash() { jq -n --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}' | bash "$HOOK" >/dev/null 2>&1; }
+run_patch() { jq -n --arg c "$1" '{tool_name:"apply_patch",tool_input:{command:$c}}' | bash "$HOOK" >/dev/null 2>&1; }
 
 # blocked_file <name> <tool> <path> / blocked_bash <name> <command> — must exit 2.
 blocked_file() {
@@ -39,6 +40,14 @@ allowed_file() {
 }
 allowed_bash() {
   run_bash "$2"; rc=$?
+  if [ "$rc" -eq 0 ]; then note_pass "$1"; else note_fail "$1" "want exit 0, got $rc"; fi
+}
+blocked_patch() {
+  run_patch "$2"; rc=$?
+  if [ "$rc" -eq 2 ]; then note_pass "$1"; else note_fail "$1" "want exit 2, got $rc"; fi
+}
+allowed_patch() {
+  run_patch "$2"; rc=$?
   if [ "$rc" -eq 0 ]; then note_pass "$1"; else note_fail "$1" "want exit 0, got $rc"; fi
 }
 
@@ -79,6 +88,57 @@ allowed_bash "empty-input"       ""
 echo "bash commands — multiline still blocked (exit 2):"
 blocked_bash "multiline-cat-env" 'echo start
 cat .env'
+
+echo "codex apply_patch — blocked and allowed:"
+blocked_patch "patch-add-env" '*** Begin Patch
+*** Add File: .env
+*** End Patch'
+blocked_patch "patch-update-env-local" '*** Begin Patch
+*** Update File: config/.env.local
+*** End Patch'
+blocked_patch "patch-delete-env" '*** Begin Patch
+*** Delete File: .env.production
+*** End Patch'
+blocked_patch "patch-multiple-one-secret" '*** Begin Patch
+*** Update File: src/app.ts
+*** Update File: .env.test
+*** Update File: README.md
+*** End Patch'
+allowed_patch "patch-env-example" '*** Begin Patch
+*** Update File: .env.example
+*** Add File: config/.env.template
+*** Delete File: .env.sample
+*** End Patch'
+allowed_patch "patch-ordinary-files" '*** Begin Patch
+*** Update File: src/env.ts
+*** Add File: docs/environment.md
+*** End Patch'
+blocked_patch "patch-move-to-env" '*** Begin Patch
+*** Update File: config.txt
+*** Move to: .env
+*** End Patch'
+blocked_patch "patch-move-to-env-quoted" '*** Begin Patch
+*** Update File: config.txt
+*** Move to: ".env"
+*** End Patch'
+# Padded / CRLF header paths must still be caught (printf embeds a real
+# trailing space and a CR so the whitespace survives into the payload).
+blocked_patch "patch-add-env-trailing-space" "$(printf '*** Begin Patch\n*** Add File: .env \n*** End Patch')"
+blocked_patch "patch-move-env-crlf" "$(printf '*** Begin Patch\n*** Update File: config.txt\n*** Move to: .env\r\n*** End Patch')"
+allowed_patch "patch-move-to-example" '*** Begin Patch
+*** Update File: .env.sample
+*** Move to: .env.example
+*** End Patch'
+allowed_patch "patch-body-mentions-env" '*** Begin Patch
+*** Update File: README.md
+@@
++Copy .env.example to .env before starting the app.
+*** End Patch'
+allowed_patch "patch-body-env-token" '*** Begin Patch
+*** Add File: docker-compose.yml
+@@
++    env_file: .env
+*** End Patch'
 
 echo
 echo "block-env-access self-test: $PASS passed, $FAIL failed"

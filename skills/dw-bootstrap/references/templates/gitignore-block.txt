@@ -1,5 +1,6 @@
 # >>> dw-bootstrap managed block >>>
 # Personal agent memory & local overrides — never committed.
+/DW.local.md
 /CLAUDE.local.md
 /.claude/settings.local.json
 
@@ -10,7 +11,8 @@
 .idea/
 .obsidian/
 
-# NOTE: `.ai/`, `.claude/settings.json`, and `.claude/hooks/` are TRACKED on
+# NOTE: `AGENTS.md`, `.ai/`, `.claude/settings.json`, `.claude/hooks/`,
+# `.codex/hooks.json`, and `.codex/hooks/` are TRACKED on
 # purpose — dw-* treats agent infra (specs, plans, handoffs, guardrails) as
 # shared, committed work. Do NOT add them here.
 # <<< dw-bootstrap managed block <<<

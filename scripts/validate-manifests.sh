@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# Validate every marketplace.json + plugin.json via Claude CLI, verify version sync between
-# marketplace.json[].version and each <source>/.claude-plugin/plugin.json.version, and check the
-# shipped scripts (canon in scripts/runtime/, symlinked into each plugin's scripts/ dir).
+# Validate Claude manifests, shared versioning, and the shipped runtime layout.
 set -uo pipefail
 
 FOUND=0
@@ -13,7 +11,7 @@ while IFS= read -r file; do
   if ! claude plugin validate "$file"; then
     FAILED=1
   fi
-done < <(find . -type f \( -name 'marketplace.json' -o -name 'plugin.json' \) -not -path './node_modules/*' | sort)
+done < <(find . -type f \( -path './.claude-plugin/marketplace.json' -o -path './plugins/*/.claude-plugin/plugin.json' \) | sort)
 
 if [ "$FOUND" -eq 0 ]; then
   echo "No manifest files found."
@@ -22,6 +20,16 @@ fi
 
 echo
 echo "Checking version sync between marketplace.json and plugin.json..."
+canonical_version=$(jq -r '.version' package.json)
+for pair in \
+  ".claude-plugin/marketplace.json:$(jq -r '.metadata.version' .claude-plugin/marketplace.json)" \
+  ".codex-plugin/plugin.json:$(jq -r '.version' .codex-plugin/plugin.json)"; do
+  file=${pair%%:*}; version=${pair#*:}
+  if [ "$version" != "$canonical_version" ]; then
+    echo "::error::$file=$version vs package.json=$canonical_version"
+    FAILED=1
+  fi
+done
 while IFS=$'\t' read -r name source mp_v; do
   pj_v=$(jq -r '.version' "${source#./}/.claude-plugin/plugin.json")
   if [ "$mp_v" = "$pj_v" ]; then
@@ -35,9 +43,9 @@ done < <(jq -r '.plugins[] | [.name, .source, .version] | @tsv' .claude-plugin/m
 echo
 echo "Checking shipped scripts (canon in scripts/runtime/, symlinked into plugins)..."
 # Shipped scripts live once under scripts/runtime/ and are exposed to each plugin via a
-# git-tracked symlink plugins/<p>/scripts/<s>.sh -> ../../../scripts/runtime/<s>.sh. `claude
+# git-tracked symlink plugins/<p>/scripts/runtime/<s>.sh -> ../../../../scripts/runtime/<s>.sh. `claude
 # plugin install` dereferences the symlink into a real file in the plugin cache, so the runtime
-# path ${CLAUDE_PLUGIN_ROOT}/scripts/<s>.sh resolves. We assert (1) each canon exists and is
+# installed skills resolve helpers through their relative scripts/runtime layout. We assert each canon and link.
 # executable, and (2) each plugin entry is a symlink that resolves to it — never a real file
 # (a real file would reintroduce the duplication this layout removes).
 RUNTIME_SCRIPTS="slugify.sh new-run.sh find-active-run.sh plan-status.sh validate-ai-artifacts.sh"
@@ -75,8 +83,8 @@ check_symlink() {
 echo
 echo "Checking plugin script symlinks resolve to the canon..."
 for s in $RUNTIME_SCRIPTS; do
-  check_symlink "plugins/dw-planning/scripts/$s"
+  check_symlink "plugins/dw-planning/scripts/runtime/$s"
 done
-check_symlink "plugins/dw-quality/scripts/slugify.sh"
+check_symlink "plugins/dw-quality/scripts/runtime/slugify.sh"
 
 exit $FAILED

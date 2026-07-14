@@ -20,6 +20,11 @@ disable-model-invocation: true # ONLY for explicit-invoke-only skills (see below
 ---
 ```
 
+Descriptions are at most 350 characters and the full 17-skill catalog at most 6000 characters.
+Explicit-only skills also contain `agents/openai.yaml` with
+`policy.allow_implicit_invocation: false`. Shared helpers are resolved from the loaded skill as the
+absolute `<this-skill-dir>/../../scripts/runtime/<script>.sh` path.
+
 - **`name`** — kebab-case, equals the directory. Linted.
 - **`description`** — the discovery surface. Pack the trigger phrases here; the model reads this, not
   the body, to decide whether to fire. Spec/review show the bar.
@@ -27,7 +32,21 @@ disable-model-invocation: true # ONLY for explicit-invoke-only skills (see below
   (e.g. `dw-resume`).
 - **`disable-model-invocation: true`** — set this _only_ on skills that compact or mutate state, or
   that act on an explicit drift signal, so the model never reaches for them unbidden:
-  **`dw-bootstrap`, `dw-handoff`, `dw-prune`, `dw-sync`**. Everything else is model-invocable.
+  **`dw-bootstrap`, `dw-handoff`, `dw-prune`, `dw-sync`, `dw-setup-precommit`**. Everything else is
+  model-invocable.
+
+## Host portability
+
+- Resolve a shared helper from the loaded `SKILL.md`: turn
+  `<this-skill-dir>/../../scripts/runtime/<script>.sh` into an absolute path before invoking it.
+  Never depend on `${CLAUDE_PLUGIN_ROOT}` or another host-only environment variable.
+- Claude may expand `$ARGUMENTS`; Codex may expose it literally. A skill that mentions the token must
+  say to ignore literal `$ARGUMENTS` and derive mode or scope from the user's prompt.
+- Skills that consume project commands or conventions use exactly this order: `DW.local.md` → legacy
+  `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` → autodetection. Tracked instruction files guide the
+  agent; hooks execute only trusted local overrides or manifest-derived argv.
+- Name host capabilities generically in procedures (for example, ask through the host's user-input
+  mechanism) unless a field is deliberately host-specific metadata such as `argument-hint`.
 
 ## Body order
 

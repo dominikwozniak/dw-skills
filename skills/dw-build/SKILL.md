@@ -1,19 +1,9 @@
 ---
 name: dw-build
 description: >-
-  Build the active run's plan one step at a time. Take the run's `PLAN.md`, build the
-  first not-done row as a single thin slice end-to-end: RED (failing verify), GREEN
-  (make it pass), regression (broader test + lint), commit one logical change, then
-  flip the row to `done` + short SHA and append `NOTES.md`. Reads the step's
-  acceptance from the plan and `SPEC.md`, the files it touches, and the project's own
-  test / lint / run commands and `## Git conventions` — never assuming a framework or
-  a commit format. Builds one step by default; `auto` runs the whole plan, still
-  pausing before any irreversible action (migration, drop, deploy, force-push,
-  production data). Never renumbers a committed step — that is `dw-sync`'s job. Use
-  when a `PLAN.md` exists and it is time to build the next step, or any time someone
-  says "build the next step", "implement the plan", "build this", "continue the
-  build", or invokes "dw-build". Prefer this over ad-hoc coding whenever a run's plan
-  is the source of truth.
+  Build the active PLAN.md one thin slice at a time: RED, GREEN, regression checks, one logical
+  commit, then durable plan and notes updates. Reads project commands and conventions. Use for
+  "build the next step", "implement the plan", "continue the build", or "dw-build".
 argument-hint: "empty = next not-done step; 'auto' = build the whole plan"
 ---
 
@@ -44,13 +34,12 @@ short SHA that landed it.
 
 ### 1. Find the run (branch-matched, no index)
 
-Resolve the run with `bash "${CLAUDE_PLUGIN_ROOT}/scripts/find-active-run.sh" --step`
+Resolve `<runtime-dir>` to the absolute `<this-skill-dir>/../../scripts/runtime` path, then run
+`bash "<runtime-dir>/find-active-run.sh" --step`
 — it matches the current git branch against each run's `SPEC.md` `branch:` field,
 prints the run directory (newest wins when several match), and with `--step` also
 prints the first PLAN row whose Status ≠ `done` (the step to build). It exits
-non-zero when no run matches. `${CLAUDE_PLUGIN_ROOT}` is the env var Claude Code
-substitutes to this plugin's install dir; the script ships with the plugin, not the
-project repo. Interpret its result, stop at the first that applies:
+non-zero when no run matches. Interpret its result, stop at the first that applies:
 
 1. **No `.ai/runs/` directory, or no run for this branch** → there's nothing to build
    yet. If a `SPEC.md` exists but no `PLAN.md`, point to `dw-plan`; if there's no spec
@@ -85,9 +74,9 @@ something real:
 - Read the step's **acceptance + verify** from its `PLAN.md` row and the `SPEC.md`.
   Open the actual files the step touches and confirm each with `Read` / `grep` — never
   edit a file you haven't opened.
-- Resolve the project's **commands** (don't assume a stack), in order: a declared block
-  (`## Commands` / `## Project specifics` in `CLAUDE.md` / `CLAUDE.local.md` /
-  `AGENTS.md` — test / lint / run), then manifests (`package.json` scripts, `Gemfile` +
+- Resolve the project's **commands** without assuming a stack. Instruction precedence:
+  `DW.local.md` → legacy `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` → autodetection. After the
+  instruction files, inspect manifests (`package.json` scripts, `Gemfile` +
   `bin/`, `Makefile`, `pyproject.toml`…), then the code itself.
 - Resolve the **commit convention** the same way — from `## Git conventions` in the
   project. Fall back to defaults only if none is declared: Conventional Commits
@@ -116,11 +105,10 @@ The heart of the skill. One step, one cycle:
   (resolved in step 3). Plain `git commit` — it auto-signs; never add `-S` or "fix"
   signing. Capture the short SHA with `git rev-parse --short HEAD`.
 - **mark-done.** Flip the row's Status to `done` and write that short SHA into the
-  Commit column, then run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/plan-status.sh" <PLAN.md>` to refresh
+  Commit column, then run `bash "<runtime-dir>/plan-status.sh" <PLAN.md>` to refresh
   the frontmatter `status:` from the table — you own the row, the script owns the scalar (it's
-  _derived_; idempotent; never hand-edit it). `${CLAUDE_PLUGIN_ROOT}` is an env var Claude Code
-  substitutes to this plugin's install dir; the script ships with the plugin, not the project repo.
-  Then validate the edited artifacts: `bash "${CLAUDE_PLUGIN_ROOT}/scripts/validate-ai-artifacts.sh" <run-dir>`
+  _derived_; idempotent; never hand-edit it).
+  Then validate the edited artifacts: `bash "<runtime-dir>/validate-ai-artifacts.sh" <run-dir>`
   (the run dir `find-active-run.sh` printed) confirms `PLAN.md` still satisfies the structural schema —
   column shape, status enum, the done row's SHA; fix any reported error before continuing, never skip past it.
   Append a `NOTES.md` entry (newest at the bottom) recording what landed,
@@ -140,7 +128,8 @@ its position in the table.
   pause _between_ steps — until every row is `done`, a verify can't be made to pass, or
   regression fails. The stop-and-ask guard (next section) still fires inside `auto`.
 
-Read the mode from `$ARGUMENTS`: treat `auto` as whole-plan mode, a specific step id as
+Read the mode from expanded arguments. If the host leaves literal `$ARGUMENTS`, ignore it and use
+the user's prompt. Treat `auto` as whole-plan mode, a specific step id as
 "build that one", and anything else (including empty) as the default single-step mode.
 
 ### 6. Stop-and-ask on irreversible actions (hard guard)

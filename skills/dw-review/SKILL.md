@@ -1,21 +1,16 @@
 ---
 name: dw-review
 description: >-
-  Review a change across five axes — correctness, readability, architecture, security, and
-  performance — and write a durable review.md to `.ai/verify/`: an overall verdict plus findings,
-  each one a real `file:line`, a severity (critical / high / medium / low), and a concrete fix.
-  Read-only and self-contained — it reviews the change itself rather than deferring to CI or another
-  reviewer, grounds every finding in a line that exists in the diff, and never invents problems
-  outside it. Resolves the change three ways (working diff, branch vs base, or a PR via
-  `gh pr diff`) and reads the project's own conventions instead of imposing a generic standard.
-  Use when a change is ready for review or about to merge, or when someone says "review this
-  change", "review the diff", "review my PR", "code review", "any issues with this", "look over my
-  change", or invokes "dw-review". Prefer this over an ad-hoc eyeball whenever a change needs
-  reviewing.
+  Review a working diff, branch, or PR for correctness, readability, architecture, security, and
+  performance. Write .ai/verify/review.md with a verdict and grounded file:line findings, severity,
+  and fixes. Read-only. Use for "review this change", "review my PR", or "dw-review".
 argument-hint: "What should I review? (working diff, branch, or PR)"
 ---
 
 # dw-review — multi-axis review of a change, grounded in real lines
+
+Use expanded invocation arguments when available. If the host leaves literal `$ARGUMENTS`, ignore
+the placeholder and infer scope from the user's prompt.
 
 A change is written, maybe about to go up as a PR — and the valuable next step before it merges is a
 real review. Not "looks fine", but a deliberate pass across the axes where code actually goes wrong:
@@ -36,8 +31,9 @@ It does the reading itself.
 Write to `.ai/verify/<branch-slug>/review.md`. `.ai/` is tracked in git — a review is real work
 documentation, committed alongside the code.
 
-- Branch slug for the folder name —
-  `bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
+- Branch slug for the folder name — resolve `<runtime-dir>` to the absolute
+  `<this-skill-dir>/../../scripts/runtime` path, then
+  `bash "<runtime-dir>/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
   (e.g. `ABC-123/password-reset` → `abc-123-password-reset`) — the **same slug** the rest of
   `dw-quality` uses, so your `review.md` lands beside its siblings.
 - `mkdir -p .ai/verify/<branch-slug>` before writing.
@@ -75,10 +71,11 @@ change.
 
 A finding is only fair if it's measured against _this_ project's standards, not a generic ideal.
 "This isn't how I'd write it" is noise; "this breaks the project's own convention at X" is signal.
-Discover, read-only, in this order:
+Instruction precedence: `DW.local.md` → legacy `CLAUDE.local.md` → `AGENTS.md` → `CLAUDE.md` →
+autodetection. Discover, read-only, in this order:
 
-1. **Declared block** — `## Commands` / `## Project specifics` / coding conventions in `CLAUDE.md`,
-   `CLAUDE.local.md`, or `AGENTS.md` (style, naming, the layers, the lint / format / typecheck
+1. **Declared block** — `## Commands` / `## Project specifics` / coding conventions from the
+   instruction files (style, naming, the layers, the lint / format / typecheck
    tooling, the git base).
 2. **Config & manifests** — the linter / formatter / type config (`.eslintrc`, `.rubocop.yml`,
    `ruff.toml`, `tsconfig.json`, …) and `package.json` / `Gemfile` / `go.mod`. Their presence also

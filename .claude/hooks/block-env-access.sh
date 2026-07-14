@@ -1,10 +1,10 @@
 #!/bin/bash
 # PreToolUse hook — blocks reading/editing/writing .env files (secrets).
-# Wire with matcher "Read|Edit|Write|MultiEdit|NotebookEdit|Grep|Bash":
+# Wire with matcher "Read|Edit|Write|MultiEdit|NotebookEdit|Grep|Bash|apply_patch":
 # file tools are checked via tool_input.file_path/.notebook_path/.path,
 # Bash via tokens of tool_input.command (cat .env, source .env, cp x .env).
 # Allowed basenames: .env.example / .env.sample / .env.template (secret-free).
-# Exit 2 + stderr message causes Claude to see the block and self-correct.
+# Exit 2 + stderr message causes the host to see the block and self-correct.
 # Guardrail against accidental secret exposure — NOT a security boundary
 # (quoted paths in Bash slip through; permissions.deny is the backstop).
 
@@ -47,6 +47,25 @@ fi
 # (heredoc-style commit body) would otherwise leak its inner lines as tokens.
 COMMAND=$(jq -r '.tool_input.command // empty' <<<"$INPUT")
 if [[ -n "$COMMAND" ]]; then
+  if [[ "$TOOL_NAME" == "apply_patch" ]]; then
+    # Patch headers name every touched path (incl. "Move to:" rename targets,
+    # possibly quoted); the body is file content and is never token-scanned —
+    # a patch that merely mentions .env in a doc or code line must pass.
+    while IFS= read -r patch_path; do
+      # A header path is the exact file — normalise it: trim surrounding
+      # whitespace (incl. a trailing CR from CRLF patches), strip one layer of
+      # quotes, trim again, so a padded or quoted `.env` can't slip the scan.
+      patch_path="${patch_path#"${patch_path%%[![:space:]]*}"}"
+      patch_path="${patch_path%"${patch_path##*[![:space:]]}"}"
+      patch_path="${patch_path#\"}"; patch_path="${patch_path%\"}"
+      patch_path="${patch_path#\'}"; patch_path="${patch_path%\'}"
+      patch_path="${patch_path#"${patch_path%%[![:space:]]*}"}"
+      patch_path="${patch_path%"${patch_path##*[![:space:]]}"}"
+      [[ -z "$patch_path" ]] && continue
+      is_env_file "$patch_path" && block "apply_patch" "$patch_path"
+    done < <(printf '%s\n' "$COMMAND" | sed -nE -e 's/^\*\*\* (Add|Update|Delete) File: (.*)$/\2/p' -e 's/^\*\*\* Move to: (.*)$/\1/p')
+    exit 0
+  fi
   STRIPPED=$(printf '%s\n' "$COMMAND" | tr '\n' ' ' | sed -E 's/"[^"]*"//g' | sed -E "s/'[^']*'//g")
   while IFS= read -r token; do
     [[ -z "$token" ]] && continue

@@ -1,5 +1,8 @@
 # Workflows
 
+These recipes work in Codex and Claude Code. Use `$dw-name` in Codex CLI/IDE and `/dw-name` in
+Claude. In the Codex app, select the installed `dw-skills` plugin and name the skill in the task.
+
 How to actually _use_ these skills day to day — the loop, the recipes for common
 situations, and the decisions you'll hit along the way. The [README](../README.md) is the
 index (what each skill is, one row each); [`DESIGN.md`](DESIGN.md) is the _why_; this is
@@ -48,6 +51,21 @@ conductor drives them.
 ## Scenario recipes
 
 Each recipe: when you reach for it, what it reads and writes, and where it points next.
+
+### 0. Install and bootstrap a host
+
+- **Install:** Codex CLI 0.142.0 or newer uses
+  `codex plugin marketplace add dominikwozniak/dw-skills`, then
+  `codex plugin add dw-skills@dw-skills`. Claude installs the three selective packages shown in the
+  [README quick start](../README.md#-quick-start).
+- **Bootstrap:** invoke `dw-bootstrap --platform codex` or `--platform claude` to create the shared
+  `.ai/`, `AGENTS.md`, and ignored `DW.local.md` layer plus that host's hook adapter. Use
+  `--platform both` only when the same repository will actively use both hosts; `auto` follows the
+  current host and asks if it cannot determine one.
+- **Verify:** start a fresh task and run `dw-doctor --platform codex`, `claude`, or `both`. Doctor is
+  read-only: it reports installation, cache, hooks, trust, and migration warnings without repairing
+  anything.
+- **Next:** start the first feature with `dw-spec`.
 
 ### 1. Start a feature
 
