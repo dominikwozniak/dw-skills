@@ -30,13 +30,13 @@ and frontmatter are derived one way every time — the bug that motivated this w
 `.ai/verify/<abc-123-…>`.
 
 1. **Don't clobber an existing run.** Check whether this branch already has one:
-   `bash "${CLAUDE_PLUGIN_ROOT}/scripts/find-active-run.sh"`. If it prints a run
+   `bash "<this-skill-dir>/scripts/find-active-run.sh"`. If it prints a run
    directory, **continue that SPEC** — only start a new run for a genuinely new unit
-   of work; when unsure, ask. (`${CLAUDE_PLUGIN_ROOT}` is the env var Claude Code
-   substitutes to this plugin's install dir; the script ships with the plugin, not
-   the project repo.)
+   of work; when unsure, ask. (`<this-skill-dir>` is the dir holding this `SKILL.md` —
+   Claude's plugin cache or Codex `.agents/skills/`; the script ships inside the skill,
+   not the project repo.)
 2. **Create the run:**
-   `bash "${CLAUDE_PLUGIN_ROOT}/scripts/new-run.sh" <ticket> "<short description>"` —
+   `bash "<this-skill-dir>/scripts/new-run.sh" <ticket> "<short description>"` —
    pass the ticket from the branch if it encodes one (e.g. `ABC-123`), else `none`.
    It creates `.ai/runs/<YYYYMMDD>-<ticket-lower>-<slug>/SPEC.md` with the frontmatter
    filled (`run / ticket / status: draft / created / branch`), prints the run
