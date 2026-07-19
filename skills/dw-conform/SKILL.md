@@ -1,17 +1,12 @@
 ---
 name: dw-conform
 description: >-
-  Check a change for conformance with the repo's existing, pre-committed patterns — its
-  siblings — and write a durable conform.md to `.ai/verify/`: a verdict plus drift findings,
-  each a real `file:line` paired with the pre-existing pattern it diverges from (confirmed via
-  `git log` to pre-date the change). A different axis from dw-review: not internal quality but
-  fit with established patterns. Self-contained and read-only — grounds each finding in a
-  pre-existing referent, never treats a file this change introduced as the pattern, and reports
-  honestly when there's no precedent instead of inventing drift. Resolves the change three ways
-  (working diff, branch vs base, or PR via `gh pr diff`). Use when a change is ready for review
-  or about to merge, or when someone says "does this match our patterns", "is this consistent
-  with the codebase", "check for drift", "consistency check", or invokes "dw-conform". Prefer
-  this over an ad-hoc consistency gut-check whenever a change should match existing patterns.
+  Check a change for conformance with the repo's existing, pre-committed patterns and write a
+  durable `conform.md` to `.ai/verify/` — a verdict plus drift findings, each a real `file:line`
+  paired with the established pattern it diverges from. A different axis from `dw-review`: fit
+  with existing patterns, not internal quality. Read-only. Use when a change is ready to merge,
+  or when someone says "does this match our patterns", "check for drift", "consistency check",
+  or invokes "dw-conform".
 argument-hint: "What should I check for conformance? (working diff, branch, or PR)"
 ---
 

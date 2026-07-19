@@ -1,17 +1,12 @@
 ---
 name: dw-explain
 description: >-
-  After implementing a change, explain what it does and generate runnable,
-  code-grounded verification scenarios — written to `.ai/verify/` so a later
-  pass (`dw-verify`) can execute them. Resolves the change three ways (working
-  diff, a branch against its base, or a PR via `gh pr diff`), reads the
-  project's own test/run/db commands instead of assuming a stack, and anchors
-  every scenario to a real referent (a route, a column, a file) — never a
-  fabricated command. Use when you have just written or reviewed code, or whenever
-  someone says "explain this change", "explain the diff", "what does this PR
-  do", "how do I prove this works", "write verification scenarios", "walk me
-  through what changed", or invokes "dw-explain". Prefer this over an ad-hoc
-  verbal summary whenever a change needs explaining or checking.
+  After a change, explain what it does and generate runnable, code-grounded verification
+  scenarios — written to `.ai/verify/` so a later pass (`dw-verify`) can execute them. Reads the
+  project's own test/run/db commands instead of assuming a stack, and anchors every scenario to a
+  real referent (a route, a column, a file). Read-only. Use when you've just written or reviewed
+  code, or someone says "explain this change", "explain the diff", "how do I prove this works",
+  "write verification scenarios", or invokes "dw-explain".
 argument-hint: "Which change should I explain? (diff, branch, or PR)"
 ---
 

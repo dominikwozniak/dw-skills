@@ -2,16 +2,12 @@
 name: dw-fix
 description: >-
   Apply the findings the quality auditors recorded — read `review.md` / `conform.md` /
-  `risk.md` under `.ai/verify/`, fix each one severity-ordered, one logical commit per
-  fix, mark it resolved, and write a durable `fix.md` log. The single writer in the
-  quality pipeline: the auditors only diagnose, dw-fix treats. Severity-gated —
-  `blockers` fixes the critical / high findings first and stops for a re-audit, so
-  downstream checks never run on broken code; the default pass fixes the whole worklist.
-  Grounded: it only touches findings the artifacts already record, never invents work,
-  and never issues a verdict (re-running the auditor does that). Reads the project's own
-  test / lint commands and `## Git conventions`. Use after a review or conformance pass,
-  or when someone says "fix the findings", "address the review", "apply the review
-  fixes", "fix the drift", "remediate the findings", or invokes "dw-fix".
+  `risk.md` under `.ai/verify/`, fix each severity-ordered (one commit per fix), mark it
+  resolved, and write a durable `fix.md` log. The single writer in the quality pipeline: the
+  auditors only diagnose, `dw-fix` treats — and it never issues a verdict. Severity-gated:
+  `blockers` fixes critical / high first and stops for a re-audit; the default pass fixes the
+  whole worklist. Use after a review or conformance pass, or when someone says "fix the
+  findings", "address the review", "apply the fixes", or invokes "dw-fix".
 argument-hint: "empty = fix all open findings severity-ordered; 'blockers' = critical/high only"
 ---
 

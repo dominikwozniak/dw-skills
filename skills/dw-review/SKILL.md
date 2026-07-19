@@ -1,17 +1,12 @@
 ---
 name: dw-review
 description: >-
-  Review a change across five axes — correctness, readability, architecture, security, and
-  performance — and write a durable review.md to `.ai/verify/`: an overall verdict plus findings,
-  each one a real `file:line`, a severity (critical / high / medium / low), and a concrete fix.
-  Read-only and self-contained — it reviews the change itself rather than deferring to CI or another
-  reviewer, grounds every finding in a line that exists in the diff, and never invents problems
-  outside it. Resolves the change three ways (working diff, branch vs base, or a PR via
-  `gh pr diff`) and reads the project's own conventions instead of imposing a generic standard.
-  Use when a change is ready for review or about to merge, or when someone says "review this
-  change", "review the diff", "review my PR", "code review", "any issues with this", "look over my
-  change", or invokes "dw-review". Prefer this over an ad-hoc eyeball whenever a change needs
-  reviewing.
+  Review a change across five axes — correctness, readability, architecture, security,
+  performance — and write a durable `review.md` to `.ai/verify/`: an overall verdict plus
+  findings, each a real `file:line`, a severity (critical / high / medium / low), and a concrete
+  fix. Reads the project's own conventions instead of imposing a generic standard. Read-only. Use
+  when a change is ready for review or about to merge, or when someone says "review this change",
+  "review my PR", "code review", or invokes "dw-review".
 argument-hint: "What should I review? (working diff, branch, or PR)"
 ---
 

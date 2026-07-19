@@ -1,19 +1,12 @@
 ---
 name: dw-verify
 description: >-
-  Take the runnable verification scenarios from `explain.md` and actually execute
-  them with the project's own commands, recording for each one the actual output, a
-  verdict (PASS / FAIL / INCONCLUSIVE), and the evidence — written to `.ai/verify/`
-  so the result is a durable artifact instead of a conversation that evaporates.
-  Resolves the change three ways (working diff, a branch against its base, or a PR
-  via `gh pr diff`), reads the project's own test/run/db commands instead of
-  assuming a stack, runs only scenarios anchored to a real referent, auto-runs
-  read-only checks but asks before any mutation, and never reports PASS without
-  captured output. Use when you have an `explain.md` to run, or whenever someone
-  says "verify this change", "run the verification scenarios", "prove the fix
-  works", "execute the verify scenarios", "does this actually work", "check the
-  explain scenarios", or invokes "dw-verify". Prefer this over an ad-hoc manual
-  check whenever a change needs proving.
+  Take the runnable verification scenarios from `explain.md` and actually execute them with the
+  project's own commands, recording for each the actual output, a verdict (PASS / FAIL /
+  INCONCLUSIVE), and the evidence — written to `.ai/verify/` as a durable artifact. Auto-runs
+  read-only checks but asks before any mutation, and never reports PASS without captured output.
+  Use when you have an `explain.md` to run, or when someone says "verify this change", "run the
+  verification scenarios", "prove the fix works", or invokes "dw-verify".
 argument-hint: "What to verify? (all scenarios, a #, a type, or a priority)"
 ---
 

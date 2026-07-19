@@ -1,17 +1,13 @@
 ---
 name: dw-sync
 description: >-
-  Re-align the active run's `PLAN.md` with the real state of the code and git after
-  manual edits or drift — the reconciler `dw-build` defers to. Reads the run's
-  `PLAN.md` (branch-matched, like `dw-resume`), `git log` / `git diff`, and the code,
-  then proposes a re-sync: flip `todo` / `doing` rows to `done` + short SHA where a real
-  commit covers the step, append new rows with fresh ids for off-plan work, and flag
-  `blocked` where code and plan diverge. The only `dw-planning` skill that mutates — it
-  shows the plan diff and STOPS, applying only on your explicit word (per-row or batch),
-  then appends a `NOTES.md` changelog. Never renumbers a committed step, and never flips
-  a row without a commit verified in `git log`. Explicit-invoke only. Use when the plan
-  has drifted from the code, or someone says "sync the plan", "re-sync plan to code",
-  "re-align the plan", "reconcile plan with commits", or invokes "dw-sync".
+  Re-align the active run's `PLAN.md` with the real state of the code and git after manual edits or
+  drift — the reconciler `dw-build` defers to. Reads the branch-matched `PLAN.md`, `git log` /
+  `git diff`, and the code, then proposes a re-sync: flip rows to `done` + SHA where a commit
+  covers the step, append rows for off-plan work, flag `blocked` where they diverge. The only
+  dw-planning skill that mutates — shows the diff and STOPS, never flips a row without a commit in
+  `git log`. Explicit-invoke only. Use for "sync the plan", "reconcile plan with commits",
+  "re-align the plan", or "dw-sync".
 argument-hint: "empty = re-sync the active run's plan to code; or name a run id"
 disable-model-invocation: true
 ---

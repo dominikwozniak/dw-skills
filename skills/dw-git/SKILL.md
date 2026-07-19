@@ -1,18 +1,12 @@
 ---
 name: dw-git
 description: >-
-  One skill for every git operation in this project — commit, push, open PR,
-  sync, branch, stash — applying the repo's own conventions instead of generic
-  defaults. Reads `## Git conventions` from `CLAUDE.local.md` (commit format,
-  default branch, trailer policy, signing) and falls back to documented defaults
-  when absent. Stages by name (never `git add -A`), keeps history atomic, and
-  refuses dangerous operations. Use when committing, pushing, opening a pull
-  request, rebasing onto the default branch, creating a branch, or stashing.
-  Trigger phrases: "commit", "push", "open PR", "create pull request", "sync with
-  main", "new branch", "stash my work", "dw-git". Use this for any git intent —
-  even when the user just says "commit this" or "push" without naming the skill.
-  Prefer it over ad-hoc git commands so the project's conventions are applied
-  consistently.
+  One skill for every git operation in this project — commit, push, open PR, sync, branch, stash —
+  applying the repo's own `## Git conventions` from `CLAUDE.local.md` (commit format, default
+  branch, trailer policy, signing) instead of generic defaults. Stages by name (never
+  `git add -A`), keeps history atomic, and refuses dangerous operations. Use for any git intent —
+  committing, pushing, opening a PR, rebasing, branching, stashing — or when someone says "commit",
+  "push", "open PR", "sync with main", or invokes "dw-git".
 argument-hint: "Which git op? e.g. commit, push, open PR, sync, branch, stash"
 ---
 

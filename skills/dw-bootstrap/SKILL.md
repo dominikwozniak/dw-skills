@@ -2,14 +2,12 @@
 name: dw-bootstrap
 description: >-
   Set up a project's Claude Code scaffolding — `.ai/` memory dirs, a tracked
-  `.claude/settings.json` with guardrail hooks, a personal `CLAUDE.local.md`, and
-  a cleaned `.gitignore` — wired to the `dw-spec → dw-plan → dw-build` loop. Two
-  modes: a blank **skeleton** from templates, or a **tuned** setup that
-  interviews you and fills `CLAUDE.local.md` to the project and your preferences.
-  Use when setting up a new repo for Claude Code or standardizing an existing
-  one. Trigger phrases: "set up this project", "bootstrap claude", "scaffold the
-  agent files", "dw-bootstrap". Prefer this over hand-writing
-  CLAUDE.md/settings/hooks or cloning a separate starter kit.
+  `.claude/settings.json` with guardrail hooks, a `CLAUDE.local.md`, and a cleaned `.gitignore` —
+  wired to the `dw-spec → dw-plan → dw-build` loop. Two modes: a blank **skeleton** from templates,
+  or a **tuned** setup that interviews you and fills `CLAUDE.local.md` to the project.
+  Explicit-invoke only. Use when setting up a new repo for Claude Code or standardizing an existing
+  one; trigger phrases: "set up this project", "bootstrap claude", "scaffold the agent files", or
+  invokes "dw-bootstrap".
 argument-hint: "skeleton | tuned — and any project context to seed"
 disable-model-invocation: true
 ---

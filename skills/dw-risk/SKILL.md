@@ -1,18 +1,13 @@
 ---
 name: dw-risk
 description: >-
-  Assess a change's blast radius and out-of-code impact, and write a durable
-  risk.md to `.ai/verify/`: (a) what it touches, in impact tiers; (b) out-of-code
-  work (DB migrations, env vars, feature flags, infra, secrets); (c) follow-ups and
-  rollback, with every irreversible step flagged as a one-way-door. Analytical and
-  read-only — it reads the diff plus any neighbouring review.md / conform.md /
-  explain.md / verify-run.md, detects stack signals from the project, and never
-  executes anything. Grounds every item in a real referent; a section it can't
-  ground is marked NOT VERIFIED, not a false "no risk". Resolves the change three
-  ways (working diff, branch vs base, or a PR via `gh pr diff`). Use when a change
-  is about to merge or deploy, or when someone says "what's the blast radius", "what
-  could this break", "assess the risk", "is this migration safe", "what's the
-  rollback plan", or invokes "dw-risk".
+  Assess a change's blast radius and out-of-code impact, and write a durable `risk.md` to
+  `.ai/verify/`: what it touches in impact tiers; out-of-code work (DB migrations, env vars,
+  feature flags, infra, secrets); and follow-ups plus rollback, with every irreversible step
+  flagged as a one-way door. Reads the diff and any neighbouring `review.md` / `conform.md`, and
+  never executes anything. Read-only. Use when a change is about to merge or deploy, or when
+  someone says "what's the blast radius", "what could this break", "is this migration safe",
+  "what's the rollback plan", or invokes "dw-risk".
 argument-hint: "What should I assess for risk? (working diff, branch, or PR)"
 ---
 
