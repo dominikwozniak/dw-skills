@@ -31,8 +31,8 @@ the catalog is the set of reusable steps I pulled out of that loop. Each skill k
   numbered Open-Questions gate and HARD STOPS until you answer.
 - **"Done" is claimed but never proven** — `dw-explain` writes runnable scenarios; `dw-verify` runs
   them and never reports PASS without captured output.
-- **The work is too big for one plan** — `dw-tickets` decomposes a spec into a dependency graph of
-  tickets with a takeable frontier, instead of one spine no single session can finish.
+- **The work is too big for one plan** — `dw-split` decomposes a spec into a dependency graph of
+  slices with a takeable frontier, instead of one spine no single session can finish.
 - **The plan silently drifts from the code** — `dw-sync` re-aligns `PLAN.md` with what actually shipped.
 - **A change merges on an eyeball, not a real pass** — `dw-review` / `dw-conform` / `dw-risk` weigh it
   across axes, against the repo's own patterns, and for blast radius.
@@ -46,7 +46,7 @@ The _why_ behind each design choice is in [`docs/DESIGN.md`](docs/DESIGN.md).
 
 ```
 claude plugin marketplace add git@github.com:dominikwozniak/dw-skills.git
-claude plugin install dw-planning   # spec → plan → tickets → build → resume → sync
+claude plugin install dw-planning   # spec → plan → split → build → resume → sync
 claude plugin install dw-quality    # review · conform · fix · prune · explain · verify · risk
 claude plugin install dw-misc       # bootstrap · git · handoff · doctor · setup-precommit
 ```
@@ -65,7 +65,7 @@ Then start a feature: `/dw-spec`. Resume after a `/clear`: `/dw-resume`.
 ```
   SPEC         PLAN         BUILD                   REVIEW · VERIFY           SHIP
   /dw-spec  →  /dw-plan  →  /dw-build       →       /dw-review  /dw-explain → (open PR — your own tooling)
-             ↳ /dw-tickets (too big for one plan → ticket graph)
+             ↳ /dw-split (too big for one plan → slice graph)
                           ↺ /dw-resume (pick up)    /dw-conform /dw-verify
                             /dw-sync (fix drift)    /dw-prune   /dw-risk
   └────────────── .ai/runs/<id>/ ──────────────┘    └─ .ai/verify/<branch-slug>/ ─┘
@@ -111,7 +111,7 @@ never auto-fires).
 | [`dw-spec`](skills/dw-spec/SKILL.md)                           | Start a feature; surface unknowns via an open-questions gate                                                  | "spec this out", "write a spec"                             | `SPEC.md` under `.ai/runs/`              |
 | [`dw-resume`](skills/dw-resume/SKILL.md)                       | Pick up after a `/clear`; find the first not-done step                                                        | "where were we", "resume"                                   | read-only status report                  |
 | [`dw-plan`](skills/dw-plan/SKILL.md)                           | Turn a ready spec into thin vertical slices                                                                   | "plan this", "break this into tasks"                        | `PLAN.md` status table                   |
-| [`dw-tickets`](skills/dw-tickets/SKILL.md)                     | Break a spec too big for one plan into a dependency graph of takeable tickets                                 | "break this into tickets", "what can I pick up next"        | `tickets/NN-slug.md` + `INDEX.md`        |
+| [`dw-split`](skills/dw-split/SKILL.md) `⭑`                     | Split a spec too big for one plan into a dependency graph of takeable slices                                  | "split the spec", "what can I pick up next"                 | `slices/NN-slug.md` + `INDEX.md`         |
 | **Build**                                                      |                                                                                                               |                                                             |                                          |
 | [`dw-build`](skills/dw-build/SKILL.md)                         | Build the next slice: RED → GREEN → regression → commit                                                       | "build the next step", "implement the plan"                 | code + `done` row + SHA                  |
 | [`dw-sync`](skills/dw-sync/SKILL.md) `⭑`                       | Re-align the plan with the code after drift                                                                   | "sync the plan", "reconcile plan with commits"              | reconciled `PLAN.md` (consent-gated)     |
@@ -139,8 +139,8 @@ writer — it applies the findings the auditors record (blockers first), then yo
 Three plugins, grouped by job. The [task router](#-task-router--which-skill-for-which-task) above says
 what each skill does — here's which plugin ships it and where its artifacts land.
 
-- **`dw-planning`** — the spec→plan→build loop. `dw-spec` · `dw-resume` · `dw-plan` · `dw-tickets` ·
-  `dw-build` · `dw-sync`. `dw-tickets` is the escape hatch when a spec is too big for one `PLAN.md`.
+- **`dw-planning`** — the spec→plan→build loop. `dw-spec` · `dw-resume` · `dw-plan` · `dw-split` ·
+  `dw-build` · `dw-sync`. `dw-split` is the escape hatch when a spec is too big for one `PLAN.md`.
   Artifacts: `.ai/runs/<id>/`.
 - **`dw-quality`** — the change-quality pipeline. `dw-review` · `dw-conform` · `dw-fix` · `dw-prune` ·
   `dw-explain` · `dw-verify` · `dw-risk`. The auditors diagnose (read-only); `dw-fix` is the one
@@ -164,8 +164,7 @@ Full design rationale — the _why_ behind each choice — lives in [`docs/DESIG
 - **Composable, not chained.** Skills stay separate and link through shared `.ai/` artifacts + a
   "Next:" pointer — a recommendation, never a forced sequence. Why there's no autonomous loop closing
   this is in [`docs/DESIGN.md`](docs/DESIGN.md), "Loops vs persistence."
-- **Explicit-only skills** (`dw-bootstrap`, `dw-handoff`, `dw-prune`, `dw-sync`, `dw-setup-precommit`)
-  are invoked by name and never auto-trigger; the rest can be model-invoked when the task fits.
+- **Explicit-only skills** (`dw-bootstrap`, `dw-handoff`, `dw-prune`, `dw-split`, `dw-sync`, `dw-setup-precommit`) are invoked by name and never auto-trigger; the rest can be model-invoked when the task fits.
 
 ## ▤ Project structure
 

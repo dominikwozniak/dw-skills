@@ -79,11 +79,13 @@ ready`).
   wrong split surfaces before the whole build is committed on top of it.
 - **Artifact:** `.ai/runs/<id>/PLAN.md` — the status table `Phase | Step | Title | Status |
 Commit`. Step ids are immutable once committed.
-- **Too big for one plan?** Use `/dw-tickets` instead. It decomposes the same `ready` spec into
-  `.ai/runs/<id>/tickets/NN-slug.md` — tracer-bullet slices that each declare the tickets
-  blocking them, so you read a **frontier** (everything takeable now) rather than a next row.
-  `dw-tickets take <NN>` then promotes one ticket into its own run, and you continue there with
-  `/dw-plan` → `/dw-build` as normal.
+- **Too big for one plan?** Use `/dw-split` instead — one run gets a plan **or** a slice graph,
+  never both. It decomposes the same `ready` spec into `.ai/runs/<id>/slices/NN-slug.md` —
+  tracer-bullet slices that each declare the slices blocking them, so you read a **frontier**
+  (everything takeable now) rather than a next row. `dw-split take <NN>` then promotes one slice
+  into its own run — born `ready`, so you continue there with `/dw-plan` → `/dw-build` as normal.
+  These are _internal_ slices of one spec, not tracker tickets; the external `ABC-123` stays in
+  the parent run's `ticket:`.
 - **Next:** `/dw-build`.
 
 ### 4. Build the next step

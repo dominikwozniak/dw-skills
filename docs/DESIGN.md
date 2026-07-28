@@ -15,7 +15,7 @@ choices below are what make those answers hold:
 | Agent runs on a wrong assumption          | HARD STOP gates surface unknowns before any code              |
 | "Done" is claimed but never proven        | Verify runs real commands and records the real output         |
 | The plan silently drifts from the code    | One writer, branch-matched runs, immutable step ids           |
-| The work is too big for one plan          | A ticket graph with a frontier, each ticket its own run       |
+| The work is too big for one plan          | A slice graph with a frontier, each slice its own run         |
 | One skill grows into a do-everything blob | One skill, one job — they compose through `.ai/`, not chains  |
 
 Each section below states the choice in one line, then the detail.
@@ -116,7 +116,7 @@ It stays inside the thesis three ways:
   re-audit, so the other checks never run against code a review already flagged broken. The
   lower-severity findings are then fixed in one batch on a stable picture.
 
-## A spine or a graph — `dw-plan` vs `dw-tickets`
+## A spine or a graph — `dw-plan` vs `dw-split`
 
 **One artifact shape doesn't fit every scope, so there are two.** `PLAN.md` is a **spine**: an
 ordered status table whose first not-`done` row is the resume point. That shape is what makes
@@ -127,26 +127,47 @@ It has a size limit. Past a certain scope the plan outgrows a context window, th
 serialises work that was never sequential, and a spec whose real structure is "these three are
 blocked on another team, those two are independent cleanups" can't be expressed as a list.
 
-`dw-tickets` keeps the decomposition discipline and changes the topology to a **graph**. Each ticket
-is still a tracer-bullet vertical slice with observable acceptance, but it also declares the tickets
+`dw-split` keeps the decomposition discipline and changes the topology to a **graph**. Each slice
+is still a tracer-bullet vertical slice with observable acceptance, but it also declares the slices
 that block it — so the artifact yields a _frontier_ (everything takeable now) instead of a next row.
-It sits above the loop rather than replacing it: `take <NN>` promotes a ticket into its own run via
-the same `new-run.sh` spine `dw-spec` uses, so `dw-plan` → `dw-build` → `dw-resume` run unchanged and
-nothing downstream had to learn about tickets.
+It sits above the loop rather than replacing it: `take <NN>` promotes a slice into its own run via
+the same `new-run.sh` spine `dw-spec` uses, so `dw-plan` → `dw-build` → `dw-resume` run unchanged.
 
-Two consequences worth naming. Ticket **numbers are immutable**, for the same reason committed step
-ids are — edges and taken runs point at them, so renumbering orphans history. And tickets **carry
-verified file anchors**, which the upstream `to-tickets` deliberately omits: a ticket has to be
-executable in a fresh session with no prior conversation, so it needs the grounding a `PLAN.md`
-inherits from the run around it. Anchors are orientation, never an edit script — the implementation
-decision still belongs to the session that takes the ticket.
+**A slice is not a ticket, and the words are kept apart.** A _ticket_ is the external tracker's unit —
+the Jira / Linear key that lands in a run's `SPEC.md` as `ticket: ABC-123` and in the commit subject
+as `[ABC-123]`. A _slice_ is internal to one run, numbered `NN`, and never leaves the repo. One
+external ticket → one spec → many slices, and a promoted slice inherits the parent's `ticket:` while
+recording `parent_slice:` beside it. Overloading one word across both would have made `ticket:` in the
+frontmatter ambiguous, which is why this skill is `dw-split` and not `dw-tickets`.
+
+Three consequences worth naming:
+
+- **Numbers are immutable**, for the same reason committed step ids are — edges and taken runs point
+  at them, so renumbering orphans history.
+- **One run, one topology.** A run holding both a `PLAN.md` and a `slices/` has two resume points,
+  which is none, so `validate-ai-artifacts.sh` fails it. The two compose the other way: each slice
+  taken from the graph gets its own run and its own plan.
+- **Slices carry verified file anchors**, which the upstream `to-tickets` deliberately omits: a slice
+  has to be executable in a fresh session with no prior conversation, so it needs the grounding a
+  `PLAN.md` inherits from the run around it. Anchors are orientation, never an edit script — and the
+  session that _takes_ a slice re-verifies them, because verification at write time doesn't survive
+  two weeks of other people's commits.
+
+The graph's derived state gets the same treatment as a plan's: `plan-status.sh` owns "the resume point
+is the first not-`done` row", and `slice-status.sh` owns the frontier plus the invariants a list
+doesn't have — every edge recorded on both ends, every number resolvable. `dw-split` and `dw-resume`
+both call it rather than re-deriving in-context, so a one-sided edge fails loudly instead of silently
+hiding the dependency the graph existed to expose.
 
 ## Explicit-only skills
 
-`dw-bootstrap`, `dw-handoff`, `dw-prune`, `dw-sync`, and `dw-setup-precommit` are invoked by name and
-never auto-trigger — they scaffold a repo, install shared tooling, compact or mutate state, or act on
-an explicit drift signal, so the model shouldn't reach for them unbidden. Everything else can be
-model-invoked when the task fits.
+`dw-bootstrap`, `dw-handoff`, `dw-prune`, `dw-split`, `dw-sync`, and `dw-setup-precommit` are invoked
+by name and never auto-trigger — they scaffold a repo, install shared tooling, compact or mutate state,
+or act on an explicit drift signal, so the model shouldn't reach for them unbidden. `dw-split` is here
+for a different reason: it picks the artifact _topology_ for a spec, and that pick is effectively
+irreversible (numbers are immutable, `slices/` is never overwritten, and a graph excludes a plan). A
+model that reaches for a graph where you wanted a spine costs you the run, so the choice stays with
+you. Everything else can be model-invoked when the task fits.
 
 ## Loops vs persistence — why these skills don't auto-run
 
