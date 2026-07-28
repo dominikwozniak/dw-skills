@@ -15,6 +15,7 @@ choices below are what make those answers hold:
 | Agent runs on a wrong assumption          | HARD STOP gates surface unknowns before any code              |
 | "Done" is claimed but never proven        | Verify runs real commands and records the real output         |
 | The plan silently drifts from the code    | One writer, branch-matched runs, immutable step ids           |
+| The work is too big for one plan          | A ticket graph with a frontier, each ticket its own run       |
 | One skill grows into a do-everything blob | One skill, one job — they compose through `.ai/`, not chains  |
 
 Each section below states the choice in one line, then the detail.
@@ -114,6 +115,31 @@ It stays inside the thesis three ways:
 - **Severity-gated** — `blockers` (the critical/high findings) are fixed first, then it stops for a
   re-audit, so the other checks never run against code a review already flagged broken. The
   lower-severity findings are then fixed in one batch on a stable picture.
+
+## A spine or a graph — `dw-plan` vs `dw-tickets`
+
+**One artifact shape doesn't fit every scope, so there are two.** `PLAN.md` is a **spine**: an
+ordered status table whose first not-`done` row is the resume point. That shape is what makes
+`dw-resume` deterministic and `dw-build` boring, and it's right for almost everything — one session,
+one order, one place to pick up.
+
+It has a size limit. Past a certain scope the plan outgrows a context window, the single resume point
+serialises work that was never sequential, and a spec whose real structure is "these three are
+blocked on another team, those two are independent cleanups" can't be expressed as a list.
+
+`dw-tickets` keeps the decomposition discipline and changes the topology to a **graph**. Each ticket
+is still a tracer-bullet vertical slice with observable acceptance, but it also declares the tickets
+that block it — so the artifact yields a _frontier_ (everything takeable now) instead of a next row.
+It sits above the loop rather than replacing it: `take <NN>` promotes a ticket into its own run via
+the same `new-run.sh` spine `dw-spec` uses, so `dw-plan` → `dw-build` → `dw-resume` run unchanged and
+nothing downstream had to learn about tickets.
+
+Two consequences worth naming. Ticket **numbers are immutable**, for the same reason committed step
+ids are — edges and taken runs point at them, so renumbering orphans history. And tickets **carry
+verified file anchors**, which the upstream `to-tickets` deliberately omits: a ticket has to be
+executable in a fresh session with no prior conversation, so it needs the grounding a `PLAN.md`
+inherits from the run around it. Anchors are orientation, never an edit script — the implementation
+decision still belongs to the session that takes the ticket.
 
 ## Explicit-only skills
 

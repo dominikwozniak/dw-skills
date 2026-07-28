@@ -79,6 +79,11 @@ ready`).
   wrong split surfaces before the whole build is committed on top of it.
 - **Artifact:** `.ai/runs/<id>/PLAN.md` — the status table `Phase | Step | Title | Status |
 Commit`. Step ids are immutable once committed.
+- **Too big for one plan?** Use `/dw-tickets` instead. It decomposes the same `ready` spec into
+  `.ai/runs/<id>/tickets/NN-slug.md` — tracer-bullet slices that each declare the tickets
+  blocking them, so you read a **frontier** (everything takeable now) rather than a next row.
+  `dw-tickets take <NN>` then promotes one ticket into its own run, and you continue there with
+  `/dw-plan` → `/dw-build` as normal.
 - **Next:** `/dw-build`.
 
 ### 4. Build the next step

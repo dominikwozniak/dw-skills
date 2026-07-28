@@ -38,9 +38,19 @@
     },
     {
       "name": "dw-planning",
-      "version": "0.1.10",
+      "version": "0.1.11",
       "source": "./plugins/dw-planning",
-      "keywords": ["spec", "plan", "planning", "requirements", "workflow", "sync"],
+      "keywords": [
+        "spec",
+        "plan",
+        "planning",
+        "requirements",
+        "workflow",
+        "sync",
+        "tickets",
+        "decompose",
+        "subtasks"
+      ],
       "category": "workflow",
       "tags": ["spec", "planning"]
     },
