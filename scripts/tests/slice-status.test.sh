@@ -6,10 +6,11 @@
 # Structure is base+mutation, like validate-ai-artifacts.test.sh: `mk_graph` builds one
 # canonical 4-slice graph (01 done, blocking 02 and 03; 03 also blocked by 04; 04 free), so
 # the healthy frontier is exactly "02 04". Each malformed case is that graph through a
-# one-line BSD-sed defect, so the defect is the diff.
+# one-line sed defect, so the defect is the diff.
 #
 # Run standalone (`bash scripts/tests/slice-status.test.sh`) or via scripts/validate-artifacts.sh.
-# Exit 0 iff every case behaves as expected. bash 3.2 / macOS + BSD-sed safe.
+# Exit 0 iff every case behaves as expected. bash 3.2, and portable across BSD and GNU sed —
+# see `patch` below for the in-place-edit trap that made the first version pass only on macOS.
 set -uo pipefail
 export LC_ALL=C
 
@@ -63,10 +64,29 @@ EOF
   echo "$d"
 }
 
+# patch <file> <sed-expr> — rewrite <file> through sed. NOT `sed -i`: BSD wants `-i ''` and GNU
+# reads that empty string as a filename, so an in-place edit that works on macOS silently edits
+# nothing on CI — which is exactly how the first version of this file passed locally and reported
+# ten no-op defects as "check passed" on Linux.
+#
+# It also ASSERTS the file changed. A defect that fails to apply makes the graph healthy, so the
+# case reports "check passed" — a false green that looks identical to a working test. Failing here
+# instead means the next portability slip is caught as "defect did not apply", not as a pass.
+patch() {
+  sed "$2" "$1" >"$1.patched" || { echo "  ✗ patch: sed failed on $1 ($2)"; FAIL=$((FAIL + 1)); return 1; }
+  if cmp -s "$1" "$1.patched"; then
+    rm -f "$1.patched"
+    echo "  ✗ patch: defect did not apply to $(basename "$1") ($2) — the case below is a false green"
+    FAIL=$((FAIL + 1))
+    return 1
+  fi
+  mv "$1.patched" "$1"
+}
+
 # defect <file> <sed-expr> — apply a one-line defect to the canonical graph. Prints the dir.
 defect() {
   d="$(mk_graph)"
-  sed -i '' "$2" "$d/$1"
+  patch "$d/$1" "$2"
   echo "$d"
 }
 
@@ -125,7 +145,7 @@ expect_check_fail "index-count-mismatch" "$(defect INDEX.md 's/^slices: 4/slices
 echo "duplicate id (two files claiming 02):"
 d="$(mk_graph)"
 sed 's/^slice: "04"/slice: "02"/' "$d/04-cleanup.md" >"$d/05-dupe.md"
-sed -i '' 's/^slices: 4/slices: 5/' "$d/INDEX.md"
+patch "$d/INDEX.md" 's/^slices: 4/slices: 5/'
 expect_check_fail "duplicate-id" "$d"
 
 echo "no slice files:"
