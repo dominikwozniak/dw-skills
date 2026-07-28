@@ -8,8 +8,13 @@ node_modules/
 /*.local.md
 /research.md
 
-# Vendored external dev tool (improve skill) + worktree scratch — personal, not this repo's product
-/.agents/
+# .agents/ is the cross-agent standard skills path AND a shared namespace: track our own dw-*
+# skill symlinks (Codex/Copilot/Cursor/Gemini scan .agents/skills/), but ignore vendored externals
+# (e.g. the shadcn `improve` skill) and the lockfile — personal, not this repo's product.
+/.agents/*
+!/.agents/skills
+/.agents/skills/*
+!/.agents/skills/dw-*
 /.claude/skills/
 /.claude/worktrees/
 /skills-lock.json

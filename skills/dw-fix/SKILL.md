@@ -40,7 +40,7 @@ Write `fix.md` to `.ai/verify/<branch-slug>/fix.md`. `.ai/` is tracked in git �
 real work documentation, committed alongside the code.
 
 - Branch slug for the folder name —
-  `bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
+  `bash "<this-skill-dir>/scripts/slugify.sh" branch-slug "$(git rev-parse --abbrev-ref HEAD)"`
   (e.g. `ABC-123/password-reset` → `abc-123-password-reset`) — the **same slug** the rest of
   `dw-quality` uses, so `fix.md` lands beside the artifacts it acts on.
 - `mkdir -p .ai/verify/<branch-slug>` before writing.

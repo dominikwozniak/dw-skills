@@ -1,0 +1,1 @@
+../../../scripts/runtime/validate-ai-artifacts.sh
