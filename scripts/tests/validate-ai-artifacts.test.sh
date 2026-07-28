@@ -60,6 +60,20 @@ _assert_fail() {
 expect_pass() { _assert_pass "$1" "$(mk_run "$@")"; }
 expect_fail() { _assert_fail "$1" "$(mk_run "$@")"; }
 
+# expect_slices_{pass,fail} <name> [plan] — a run with SPEC + slices/, optionally also a
+# PLAN.md (which must be rejected: one run, one topology).
+mk_slices_run() {
+  d="$(mktemp -d "$tmp/slices.XXXXXX")"
+  mkdir -p "$d/.ai/runs/x/slices"
+  printf '%s\n' "$(good_spec)" >"$d/.ai/runs/x/SPEC.md"
+  printf '%s\n' "$(good_slice_01)" >"$d/.ai/runs/x/slices/01-fixture.md"
+  printf '%s\n' "$(good_slices_index)" >"$d/.ai/runs/x/slices/INDEX.md"
+  [ "$#" -ge 2 ] && printf '%s\n' "$2" >"$d/.ai/runs/x/PLAN.md"
+  echo "$d"
+}
+expect_slices_pass() { _assert_pass "$1" "$(mk_slices_run "$@")"; }
+expect_slices_fail() { _assert_fail "$1" "$(mk_slices_run "$@")"; }
+
 # expect_verify_{pass,fail} <name> <slug> <branch> — .ai/verify/<slug>/ slug check.
 mk_verify() {
   d="$(mktemp -d "$tmp/verify.XXXXXX")"
@@ -76,6 +90,7 @@ expect_pass "spec-draft-only" "$(spec_draft)"
 expect_pass "plan-todo" "$(good_spec)" "$(good_plan_todo)"
 expect_pass "plan-done" "$(good_spec)" "$(good_plan_done)"
 expect_verify_pass "verify-slug" "my-feature-branch" "my-feature-branch"
+expect_slices_pass "slices-only"
 
 echo "malformed (expect rejection):"
 expect_fail "spec-bad-status" "$(good_spec | sed 's/ready/shipping/')"
@@ -85,6 +100,7 @@ expect_fail "plan-done-no-sha" "$(good_spec)" "$(good_plan_done | sed 's/abc1234
 expect_fail "plan-bad-header" "$(good_spec)" "$(plan_bad_header)"
 expect_fail "plan-nonmonotonic" "$(good_spec)" "$(plan_nonmonotonic)"
 expect_verify_fail "verify-slug-mismatch" "feature-x" "totally-different-branch"
+expect_slices_fail "plan-and-slices-both" "$(good_plan_todo)"
 
 echo
 echo "self-test: $PASS passed, $FAIL failed"

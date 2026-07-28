@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Validate the repo's .ai/ work artifacts against the structural schema, then run every
 # runtime-script self-test under scripts/tests/ (synthetic cases that prove each shipped
-# script behaves — the validator accepts/rejects artifacts, slugify/plan-status derive
-# correctly). Backs `pnpm validate:artifacts` and the validate-ai-artifacts CI workflow.
+# script behaves — the validator accepts/rejects artifacts, slugify/plan-status/slice-status
+# derive correctly). Backs `pnpm validate:artifacts` and the validate-ai-artifacts CI workflow.
 set -uo pipefail
 export LC_ALL=C
 

@@ -80,6 +80,36 @@ sources: none
 EOF
 }
 
+# Slices: the smallest well-formed graph — one free slice plus its INDEX. The graph's own
+# invariants are pinned in slice-status.test.sh; these exist so the validator's run-level
+# wiring (delegation, and the PLAN.md-xor-slices/ rule) can be tested.
+good_slice_01() {
+  cat <<'EOF'
+---
+slice: "01"
+run: 20260101-x
+title: fixture slice
+status: ready
+blocked_by: []
+blocks: []
+---
+
+# 01 — fixture slice
+EOF
+}
+
+good_slices_index() {
+  cat <<'EOF'
+---
+run: 20260101-x
+spec: ../SPEC.md
+slices: 1
+---
+
+# Slices — fixture
+EOF
+}
+
 # Structural-shape defects: explicit builders (a sed would only obscure them).
 plan_bad_header() { # status table missing the Commit column
   cat <<'EOF'

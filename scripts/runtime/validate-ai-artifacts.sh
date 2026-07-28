@@ -15,6 +15,9 @@
 #             each row status in the enum; done rows carry a hex SHA (7-40) in Commit;
 #             step ids well-formed N.M, unique, strictly increasing; AND
 #             plan-status.sh --check passes (frontmatter == derived-from-table).
+#   slices/   delegated to slice-status.sh --check (ids, status enum, reciprocal edges,
+#             INDEX.md count). A run is one topology or the other, so PLAN.md AND slices/
+#             in the same run is a failure: two resume points is no resume point.
 #   verify/   .ai/verify/<dir>/ name == slugify.sh branch-slug <branch:> from a
 #             contained *.md frontmatter.
 #
@@ -28,6 +31,7 @@ export LC_ALL=C
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLAN_STATUS="$SCRIPT_DIR/plan-status.sh"
+SLICE_STATUS="$SCRIPT_DIR/slice-status.sh"
 SLUGIFY="$SCRIPT_DIR/slugify.sh"
 
 FAILED=0
@@ -166,6 +170,24 @@ validate_plan() {
   [ "$FAILED" -eq "$before" ] && ok "$plan"
 }
 
+# --- slices dir ---------------------------------------------------------------
+
+# The graph invariants (ids, enum, reciprocal edges, INDEX count) are derived state and
+# already have one owner in slice-status.sh — delegate, exactly as validate_plan delegates
+# the status derivation to plan-status.sh, so there is one rule and no drift.
+validate_slices_dir() {
+  sdir="${1%/}"
+  before="$FAILED"
+  if [ ! -x "$SLICE_STATUS" ]; then
+    fail "$sdir: slice-status.sh not found or not executable at $SLICE_STATUS"
+    return
+  fi
+  if ! ss_out=$("$SLICE_STATUS" --check "$sdir" 2>&1); then
+    fail "$sdir: $ss_out"
+  fi
+  [ "$FAILED" -eq "$before" ] && ok "$sdir"
+}
+
 # --- verify dir ---------------------------------------------------------------
 
 validate_verify_dir() {
@@ -196,7 +218,11 @@ validate_run_dir() {
   dir="${1%/}"
   if [ ! -d "$dir" ]; then fail "$dir: not a directory"; return; fi
   validate_spec "$dir/SPEC.md"
+  if [ -f "$dir/PLAN.md" ] && [ -d "$dir/slices" ]; then
+    fail "$dir: has both PLAN.md and slices/ — a run is one topology or the other (dw-plan or dw-split), and two resume points is no resume point"
+  fi
   [ -f "$dir/PLAN.md" ] && validate_plan "$dir/PLAN.md"
+  [ -d "$dir/slices" ] && validate_slices_dir "$dir/slices"
 }
 
 # --- main ---------------------------------------------------------------------
