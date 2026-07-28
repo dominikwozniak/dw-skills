@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Self-test for new-run.sh: the run-folder name and SPEC frontmatter (run / ticket / status /
 # created / branch) are the deterministic spine dw-resume and the artifact validator rely on, yet
-# nothing pinned them. This asserts that spine directly — happy path, ticketless, no-clobber, usage
-# guard, and the stdout contract (last line = the run dir callers consume).
+# nothing pinned them. This asserts that spine directly — happy path, ticketless, the optional
+# status arg (default + explicit + rejected), no-clobber, usage guard, and the stdout contract
+# (last line = the run dir callers consume).
 #
 # Each case runs in a throwaway git repo (the script derives root/branch from git). $SLUG_DATE pins
 # the date so the run-id is exact. macOS resolves the mktemp /var -> /private/var symlink in
@@ -96,6 +97,24 @@ if [ "$RC" -ne 0 ] && [ -n "$before" ] && [ "$before" = "$after" ]; then
 else
   note_fail "no-clobber" "rc=$RC mutated=$([ "$before" = "$after" ] && echo no || echo yes)"
 fi
+
+echo "explicit status ready (dw-split take: the slice already passed its gate):"
+repo="$(mk_repo feature-ready)"
+run_newrun "$repo" "ABC-123" "add foo" "ready"
+spec="$repo/.ai/runs/20260620-abc-123-add-foo/SPEC.md"
+if [ "$RC" -eq 0 ] && [ -f "$spec" ]; then note_pass "ready-created"; else note_fail "ready-created" "rc=$RC spec missing"; fi
+fm_eq "$spec" "status: ready" "ready-fm-status"
+
+echo "explicit status open-questions:"
+repo="$(mk_repo feature-oq)"
+run_newrun "$repo" "" "add foo" "open-questions"
+fm_eq "$repo/.ai/runs/20260620-add-foo/SPEC.md" "status: open-questions" "oq-fm-status"
+
+echo "invalid status (-> exit 1, nothing created):"
+repo="$(mk_repo feature-badstatus)"
+run_newrun "$repo" "ABC-123" "add foo" "todo"
+if [ "$RC" -ne 0 ]; then note_pass "bad-status-exit"; else note_fail "bad-status-exit" "expected non-zero"; fi
+if [ -z "$(ls -A "$repo/.ai/runs" 2>/dev/null)" ]; then note_pass "bad-status-no-dir"; else note_fail "bad-status-no-dir" "a run dir was created"; fi
 
 echo "usage guard (missing <desc> -> exit 1, nothing created):"
 repo="$(mk_repo feature-usage)"

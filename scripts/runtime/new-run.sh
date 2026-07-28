@@ -8,7 +8,16 @@
 # dw-spec fills in afterwards — this script owns only the spine.
 #
 # Usage:
-#   new-run.sh <ticket> <desc>     ticket may be '' or 'none' for a ticketless run
+#   new-run.sh <ticket> <desc> [status]
+#     ticket  may be '' or 'none' for a ticketless run
+#     status  one of draft | open-questions | ready; defaults to draft
+#
+# `status` exists for ONE caller: dw-split's `take`, which promotes an already-approved
+# slice into its own run. That slice passed the decomposition gate, so its spec is born
+# planned-ready and dw-plan (which refuses a draft) can pick it up immediately. Everything
+# else — dw-spec above all — takes the draft default and earns `ready` by answering its
+# Open Questions. Keeping the status here rather than letting a skill hand-edit the
+# frontmatter is what keeps this script the single owner of the SPEC spine.
 #
 # Prints the created run directory (absolute path) on the last stdout line.
 # Refuses (exit 1) if the target run directory already exists — never clobbers.
@@ -20,10 +29,18 @@ slugify="$here/slugify.sh"
 
 ticket_raw="${1:-}"
 desc="${2:-}"
+status="${3:-draft}"
 if [ -z "$desc" ]; then
-  echo "usage: new-run.sh <ticket> <desc>" >&2
+  echo "usage: new-run.sh <ticket> <desc> [draft|open-questions|ready]" >&2
   exit 1
 fi
+case "$status" in
+  draft | open-questions | ready) ;;
+  *)
+    echo "new-run.sh: invalid status '$status' (want draft, open-questions or ready)" >&2
+    exit 1
+    ;;
+esac
 
 # The frontmatter `ticket:` keeps the original case (commit/PR subjects use the
 # uppercase [ABC-123]); only the run-id folder is lowercased (slugify does that).
@@ -52,7 +69,7 @@ cat > "$run_dir/SPEC.md" <<EOF
 ---
 run: $run_id
 ticket: $ticket_fm
-status: draft
+status: $status
 created: $created
 branch: $branch
 ---
@@ -60,5 +77,5 @@ branch: $branch
 # Spec — $desc
 EOF
 
-echo "new-run.sh: created $run_dir/SPEC.md (status: draft)" >&2
+echo "new-run.sh: created $run_dir/SPEC.md (status: $status)" >&2
 printf '%s\n' "$run_dir"
