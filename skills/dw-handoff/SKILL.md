@@ -38,7 +38,9 @@ on the plan, not just the prose:
 - Get the current branch (`git rev-parse --abbrev-ref HEAD`).
 - Glob `.ai/runs/*/` and match the run whose frontmatter `branch` equals the
   current branch (the same match `dw-resume` uses).
-- Put that run's `PLAN.md` (and `SPEC.md`) in **Pointers** as a back-pointer.
+- Put that run's `PLAN.md` (and `SPEC.md`) in **Pointers** as a back-pointer. If the
+  run has no `PLAN.md` but has a `slices/` directory, it was split rather than planned
+  — point at `slices/INDEX.md` instead.
 
 If `.ai/runs/` is absent or has no run for this branch, say so in Pointers
 ("no active run") and continue — the handoff still stands on its own.
@@ -110,7 +112,7 @@ up the plan for this branch), or `dw-spec` to start a new one.
 
 ## Pointers
 
-- run: `.ai/runs/<id>/PLAN.md` (active run — or "none")
+- run: `.ai/runs/<id>/PLAN.md` (active run — or `slices/INDEX.md` for a split run, or "none")
 - spec: `.ai/runs/<id>/SPEC.md`
 - PR: <url or path>
 - relevant files: `<path:line>`

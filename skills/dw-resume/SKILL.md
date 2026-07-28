@@ -2,10 +2,10 @@
 name: dw-resume
 description: >-
   Deterministically resume the active run after a `/clear` or in a fresh session: read the
-  persisted `PLAN.md` under `.ai/runs/` for the current branch — and any quality pass under
-  `.ai/verify/` — then report where work stands and the single next step, instead of
-  reconstructing from scrollback. Reports the goal, what's done, the first not-done step (your
-  resume point), and any blockers. Read-only. Use when starting a session, after a `/clear`, or
+  persisted `PLAN.md` (or `slices/` graph) under `.ai/runs/` for the current branch — and any
+  quality pass under `.ai/verify/` — then report where work stands and the single next step,
+  instead of reconstructing from scrollback. Reports the goal, what's done, the first not-done
+  step or the takeable frontier (your resume point), and any blockers. Read-only. Use when starting a session, after a `/clear`, or
   asking "where were we", "what's left", "what next", "resume", or invokes "dw-resume".
 ---
 
@@ -28,6 +28,9 @@ some of:
   (`Phase | Step | Title | Status | Commit`). The resume point lives here.
 - `SPEC.md` — frontmatter (`run/ticket/status/created/branch`) + a `## TLDR` (the
   goal).
+- `slices/` — the alternative to `PLAN.md`: `NN-slug.md` files plus `INDEX.md`,
+  written by `dw-split` when a spec was too big for one plan. A run has a plan **or**
+  slices, never both; with slices the resume point is a _frontier_, not a row.
 - `NOTES.md` — append-only log; its tail carries the latest blockers / quirks.
 
 It also reads the **quality pass** in `.ai/verify/<branch-slug>/` — the artifacts
@@ -68,7 +71,8 @@ result and **stop at the first that applies**:
 
 ### 2. Read the matched run — plan side and quality side
 
-Read `SPEC.md` (goal + status), `PLAN.md` if present, and the tail of `NOTES.md`.
+Read `SPEC.md` (goal + status), `PLAN.md` **or** `slices/INDEX.md` — whichever the run
+has — and the tail of `NOTES.md`.
 Read frontmatter tolerantly (trim quotes / whitespace, ignore trailing
 `# comments`); treat any unreadable value as missing.
 
@@ -119,19 +123,49 @@ the first `todo`). Report:
   Recommend only what the artifacts state — an empty quality folder is itself the signal
   to start reviewing, never a reason to call the change shippable.
 
-**SPEC.md only (no PLAN.md)** — the spec exists but isn't planned yet. Report its
-`status` and goal:
+**`slices/` present (a split run, no PLAN.md)** — check this **before** the SPEC-only case
+below: this run was deliberately split by `dw-split` instead of planned, so recommending
+`dw-plan` here would push it into the topology it was split to avoid. There is no single
+resume point — there is a frontier. Get it from the script rather than reading the edges
+yourself:
 
-- `ready` → **Next:** `dw-plan` to break the spec into a `PLAN.md`.
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/slice-status.sh" --frontier .ai/runs/<id>/slices
+```
+
+Report the **Goal** (SPEC TLDR), the slice counts by status from `INDEX.md`, and then:
+
+- **frontier non-empty** → name every takeable slice (number + title) and, if more than
+  one, say they're independent. **Next:** `dw-split take <NN>` — then `dw-plan` →
+  `dw-build` inside the new run.
+- **frontier empty but slices remain** → everything left is `doing` or `blocked`. Lead
+  with the `blocked` slices and what each waits on (its `## Blocked by` reason plus the
+  `NOTES.md` tail); the next move is clearing a blocker, not taking a slice. A `doing`
+  slice means an in-flight child run — name it, and resume _that_ branch.
+- **every slice `done`** → the split is complete, so the **quality pass** drives the next
+  step; follow the same `.ai/verify/` ladder as the all-rows-`done` case above.
+- **`slice-status.sh --check` fails** (one-sided edge, unresolvable number, `INDEX.md`
+  count mismatch) → lead with that. The graph is the resume point, so report it as broken
+  and stop rather than guessing a frontier from a graph that doesn't hold.
+
+**SPEC.md only (no PLAN.md, no `slices/`)** — the spec exists but isn't decomposed yet.
+Report its `status` and goal:
+
+- `ready` → **Next:** `dw-plan` to break the spec into a `PLAN.md` (or `dw-split` if it's
+  too big for one plan).
 - `open-questions` / `draft` → the spec still has unanswered Open Questions;
   **Next:** finish `dw-spec` before planning.
 - any other / missing `status` → report the raw value and recommend finishing
   `dw-spec`; don't map an unknown status onto a Next action.
 
-**Neither SPEC.md nor PLAN.md** (only `NOTES.md`, or empty), **or PLAN.md present but
-its table is missing / header-only / not the expected columns** → say exactly that,
-fall back to whatever exists (SPEC status, NOTES tail), and recommend `dw-spec` /
+**Neither SPEC.md nor PLAN.md nor `slices/`** (only `NOTES.md`, or empty), **or PLAN.md
+present but its table is missing / header-only / not the expected columns** → say exactly
+that, fall back to whatever exists (SPEC status, NOTES tail), and recommend `dw-spec` /
 re-running `dw-plan`. Never fabricate a goal or a resume point.
+
+**Both PLAN.md and `slices/`** — invalid: two resume points is no resume point, and
+`validate-ai-artifacts.sh` rejects it. Report both artifacts, name the conflict, and stop;
+picking one is the user's call, not a guess to make here.
 
 ### 4. Stop
 
