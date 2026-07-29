@@ -123,40 +123,55 @@ compose through the shared `.ai/` artifacts + a "Next:" pointer at the end of ea
 ## ◇ Task router — which skill for which task
 
 A task may match several rows — read all that apply. `⭑` = explicit-invoke only: say its name (it
-never auto-fires).
+never auto-fires). The phrases that trigger each skill live in its own `description`, not here.
 
-| Skill                                                                                  | Task                                                                                                          | Say                                                         | What you get                                              |
-| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------- |
-| **Setup**                                                                              |                                                                                                               |                                                             |                                                           |
-| [`dw-bootstrap`](skills/dw-bootstrap/SKILL.md) `⭑`                                     | Scaffold a repo for the dw-\* loop: `.ai/`, tracked settings + hooks, `CLAUDE.local.md`, gitignore            | "set up this project", "bootstrap claude"                   | tracked `.ai/` + `.claude/` scaffold                      |
-| [`dw-doctor`](skills/dw-doctor/SKILL.md)                                               | Diagnose the env a dw-\* repo assumes — tools, hooks, `.ai/` sanity; report fixes (read-only)                 | "check my setup", "why aren't my hooks running"             | read-only health report + fixes                           |
-| [`dw-setup-precommit`](skills/dw-setup-precommit/SKILL.md) `⭑`                         | Wire git-level pre-commit hooks (husky + lint-staged) for a pnpm node/ts/js repo — format + lint staged files | "set up pre-commit", "add husky", "configure lint-staged"   | tracked `.husky/` + `.lintstagedrc.json`                  |
-| [`dw-init`](skills/dw-init/SKILL.md) `⭑`                                               | Scaffold a repo for the **solo** lane: `.ai/work/`, `docs/decisions/`, `CONTEXT.md`, guardrail hooks          | "init this project", "set up the solo loop"                 | solo scaffold (smaller than bootstrap)                    |
-| **Solo lane** — one file, one pass (pick this lane _or_ the team lane below, per repo) |                                                                                                               |                                                             |                                                           |
-| [`dw-grill`](skills/dw-grill/SKILL.md)                                                 | Interview a fuzzy idea into decisions — one question at a time, max five, facts looked up not asked           | "grill me", "interview me", "poke holes in this"            | shared understanding (writes nothing)                     |
-| [`dw-shape`](skills/dw-shape/SKILL.md)                                                 | Synthesize the conversation into one `CHANGE.md` — goal, decisions, task checklist, anchors                   | "shape this", "write this up", "let's plan this out"        | `.ai/work/<slug>/CHANGE.md`                               |
-| [`dw-next`](skills/dw-next/SKILL.md)                                                   | Resume point _and_ build step: bare reports from disk, `go` builds the next task and commits                  | "what's next", "where were we", "build the next task"       | code + ticked box + commit                                |
-| [`dw-land`](skills/dw-land/SKILL.md)                                                   | One verdict (correct · fits · blast radius · proven), then promote decisions and drop the scaffolding         | "land this", "wrap this up", "is this ready to merge"       | verdict → `docs/decisions/` · `CONTEXT.md` · `## Gotchas` |
-| **Spec & plan** — team lane                                                            |                                                                                                               |                                                             |                                                           |
-| [`dw-spec`](skills/dw-spec/SKILL.md)                                                   | Start a feature; surface unknowns via an open-questions gate                                                  | "spec this out", "write a spec"                             | `SPEC.md` under `.ai/runs/`                               |
-| [`dw-resume`](skills/dw-resume/SKILL.md)                                               | Pick up after a `/clear`; find the first not-done step                                                        | "where were we", "resume"                                   | read-only status report                                   |
-| [`dw-plan`](skills/dw-plan/SKILL.md)                                                   | Turn a ready spec into thin vertical slices                                                                   | "plan this", "break this into tasks"                        | `PLAN.md` status table                                    |
-| [`dw-split`](skills/dw-split/SKILL.md) `⭑`                                             | Split a spec too big for one plan into a dependency graph of takeable slices                                  | "split the spec", "what can I pick up next"                 | `slices/NN-slug.md` + `INDEX.md`                          |
-| **Build**                                                                              |                                                                                                               |                                                             |                                                           |
-| [`dw-build`](skills/dw-build/SKILL.md)                                                 | Build the next slice: RED → GREEN → regression → commit                                                       | "build the next step", "implement the plan"                 | code + `done` row + SHA                                   |
-| [`dw-sync`](skills/dw-sync/SKILL.md) `⭑`                                               | Re-align the plan with the code after drift                                                                   | "sync the plan", "reconcile plan with commits"              | reconciled `PLAN.md` (consent-gated)                      |
-| **Review & verify**                                                                    |                                                                                                               |                                                             |                                                           |
-| [`dw-review`](skills/dw-review/SKILL.md)                                               | Multi-axis review of a diff (correctness/security/perf/…)                                                     | "review my PR", "code review"                               | `review.md` + verdict                                     |
-| [`dw-conform`](skills/dw-conform/SKILL.md)                                             | Check a change against the repo's existing patterns                                                           | "does this match our patterns", "check for drift"           | `conform.md` drift report                                 |
-| [`dw-fix`](skills/dw-fix/SKILL.md)                                                     | Apply review / conform / risk findings — severity-ordered, one commit per fix                                 | "fix the findings", "address the review", "apply the fixes" | code commits + `fix.md`                                   |
-| [`dw-explain`](skills/dw-explain/SKILL.md)                                             | Explain a change + generate runnable verification scenarios                                                   | "explain this change", "how do I prove this works"          | `explain.md` scenarios                                    |
-| [`dw-verify`](skills/dw-verify/SKILL.md)                                               | Run those scenarios and record PASS/FAIL + evidence                                                           | "verify this change", "prove the fix works"                 | `verify-run.md`                                           |
-| [`dw-risk`](skills/dw-risk/SKILL.md)                                                   | Assess blast radius, out-of-code impact, rollback                                                             | "what's the blast radius", "is this migration safe"         | `risk.md`                                                 |
-| [`dw-prune`](skills/dw-prune/SKILL.md) `⭑`                                             | Trim redundant tests without dropping coverage                                                                | "prune tests", "remove redundant tests"                     | keep/merge/delete plan (consent-gated)                    |
-| **Git**                                                                                |                                                                                                               |                                                             |                                                           |
-| [`dw-git`](skills/dw-git/SKILL.md)                                                     | All git ops — commit / push / PR / sync / branch / stash, by your conventions                                 | "commit", "push", "open PR", "sync with main"               | commits / PR per `CLAUDE.local.md`                        |
-| **Handoff**                                                                            |                                                                                                               |                                                             |                                                           |
-| [`dw-handoff`](skills/dw-handoff/SKILL.md) `⭑`                                         | Compact the session for the next agent                                                                        | "session handoff", "handoff"                                | `.ai/handoffs/<ts>.md`                                    |
+**Setup**
+
+| Skill                                                          | Task                                                        | What you get                     |
+| -------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------- |
+| [`dw-bootstrap`](skills/dw-bootstrap/SKILL.md) `⭑`             | Scaffold a repo for the dw-\* loop: `.ai/`, settings, hooks | tracked `.ai/` + `.claude/`      |
+| [`dw-init`](skills/dw-init/SKILL.md) `⭑`                       | Same for the **solo** lane: `.ai/work/`, `docs/decisions/`  | solo scaffold (smaller)          |
+| [`dw-doctor`](skills/dw-doctor/SKILL.md)                       | Diagnose tools, hooks, `.ai/` sanity (read-only)            | health report + fixes            |
+| [`dw-setup-precommit`](skills/dw-setup-precommit/SKILL.md) `⭑` | Wire husky + lint-staged for a pnpm node/ts/js repo         | `.husky/` + `.lintstagedrc.json` |
+
+**Solo lane** — one file, one pass. Pick this lane _or_ the team lane below, per repo.
+
+| Skill                                  | Task                                                       | What you get                          |
+| -------------------------------------- | ---------------------------------------------------------- | ------------------------------------- |
+| [`dw-grill`](skills/dw-grill/SKILL.md) | Interview a fuzzy idea into decisions — max five questions | shared understanding (writes nothing) |
+| [`dw-shape`](skills/dw-shape/SKILL.md) | Synthesize it into one goal + decisions + task checklist   | `.ai/work/<slug>/CHANGE.md`           |
+| [`dw-next`](skills/dw-next/SKILL.md)   | Resume point _and_ build step (`go` builds and commits)    | code + ticked box + commit            |
+| [`dw-land`](skills/dw-land/SKILL.md)   | One verdict: correct · fits · blast radius · proven        | `docs/decisions/` · `CONTEXT.md`      |
+
+**Team lane** — spec, plan, build.
+
+| Skill                                      | Task                                                         | What you get                     |
+| ------------------------------------------ | ------------------------------------------------------------ | -------------------------------- |
+| [`dw-spec`](skills/dw-spec/SKILL.md)       | Start a feature; surface unknowns via an open-questions gate | `SPEC.md` under `.ai/runs/`      |
+| [`dw-plan`](skills/dw-plan/SKILL.md)       | Turn a ready spec into thin vertical slices                  | `PLAN.md` status table           |
+| [`dw-split`](skills/dw-split/SKILL.md) `⭑` | Spec too big for one plan → a dependency graph of slices     | `slices/NN-slug.md` + `INDEX.md` |
+| [`dw-build`](skills/dw-build/SKILL.md)     | Build the next slice: RED → GREEN → regression → commit      | code + `done` row + SHA          |
+| [`dw-resume`](skills/dw-resume/SKILL.md)   | Pick up after a `/clear`; find the first not-done step       | read-only status report          |
+| [`dw-sync`](skills/dw-sync/SKILL.md) `⭑`   | Re-align the plan with the code after drift                  | reconciled `PLAN.md`             |
+
+**Review & verify** — team lane.
+
+| Skill                                      | Task                                                        | What you get              |
+| ------------------------------------------ | ----------------------------------------------------------- | ------------------------- |
+| [`dw-review`](skills/dw-review/SKILL.md)   | Multi-axis review of a diff (correctness/security/perf/…)   | `review.md` + verdict     |
+| [`dw-conform`](skills/dw-conform/SKILL.md) | Check a change against the repo's existing patterns         | `conform.md` drift report |
+| [`dw-explain`](skills/dw-explain/SKILL.md) | Explain a change + generate runnable verification scenarios | `explain.md` scenarios    |
+| [`dw-verify`](skills/dw-verify/SKILL.md)   | Run those scenarios and record PASS/FAIL + evidence         | `verify-run.md`           |
+| [`dw-risk`](skills/dw-risk/SKILL.md)       | Assess blast radius, out-of-code impact, rollback           | `risk.md`                 |
+| [`dw-fix`](skills/dw-fix/SKILL.md)         | Apply those findings — severity-ordered, one commit per fix | code commits + `fix.md`   |
+| [`dw-prune`](skills/dw-prune/SKILL.md) `⭑` | Trim redundant tests without dropping coverage              | keep/merge/delete plan    |
+
+**Anytime** — either lane.
+
+| Skill                                          | Task                                                     | What you get                       |
+| ---------------------------------------------- | -------------------------------------------------------- | ---------------------------------- |
+| [`dw-git`](skills/dw-git/SKILL.md)             | All git ops — commit / push / PR / sync / branch / stash | commits / PR per `CLAUDE.local.md` |
+| [`dw-handoff`](skills/dw-handoff/SKILL.md) `⭑` | Compact the session for the next agent                   | `.ai/handoffs/<ts>.md`             |
 
 Within Review & verify: `dw-explain → dw-verify` is a chain (verify runs explain's scenarios);
 `dw-review` and `dw-conform` are independent axes; `dw-prune` trims redundant tests on explicit
