@@ -23,9 +23,10 @@ durable layer is the only thing working for you.
 ## What it reads and writes
 
 Reads the diff against the default branch, and `.ai/work/<slug>/CHANGE.md` (found by branch, the same
-way `dw-next` finds it). Writes to three **tracked, durable** places — `docs/decisions/<NNNN>-<slug>.md`,
-`CONTEXT.md`, and the `## Gotchas` section of `CLAUDE.md` — and then deletes the `CHANGE.md`
-scaffolding. `.ai/` is tracked in git; this is the one skill that takes something out of it on purpose.
+way `dw-next` finds it). Writes to four **tracked, durable** places — `docs/decisions/<NNNN>-<slug>.md`,
+`CONTEXT.md`, the `## Gotchas` section of `CLAUDE.md`, and `.ai/BACKLOG.md` — and then deletes the
+`CHANGE.md` scaffolding. `.ai/` is tracked in git; this is the one skill that takes something out of it
+on purpose.
 
 ## Workflow
 
@@ -55,10 +56,11 @@ more attention than it saves.
   than ratifying it. Where a cheap check would settle it, run the project's own command and report the
   real output.
 
-Close with one line: **ready to merge**, **ready with follow-ups**, or **not ready** and why. Then
-**stop.** Do not promote, delete, or open a PR yet — you've just graded the work; the user decides
-what happens next. If the verdict is _not ready_, the honest next step is `dw-next` or a fix, not
-this skill.
+Close with one line: **ready to merge**, **ready with follow-ups**, or **not ready** and why. If it is
+_ready with follow-ups_, **name them** — each one is a line phase 3 parks in `.ai/BACKLOG.md`, and a
+follow-up you don't name is one that dies with the `CHANGE.md` you're about to delete. Then **stop.** Do
+not promote, delete, or open a PR yet — you've just graded the work; the user decides what happens next.
+If the verdict is _not ready_, the honest next step is `dw-next` or a fix, not this skill.
 
 ### 3. Close — only on explicit approval
 
@@ -78,15 +80,24 @@ When the user approves, and only then:
   lives in an auto-loaded file. Apply the same bar as decision records: **not every surprise.** It has
   to have repeated, or have cost real time. A gotchas list that logs every small confusion teaches you
   to stop reading it, and that is the only way this fails.
+- **Promote the follow-ups.** Every follow-up you named in the verdict, plus anything in Decisions or
+  Notes recorded as deliberately left out, becomes one dated line in `.ai/BACKLOG.md` — newest first,
+  in the form `- [YYYY-MM-DD] what it is and why it matters`. `dw-init` seeds that file, but a repo
+  scaffolded before it existed won't have one: create it with a `# Backlog` heading, one line stating
+  the one-month bar below, then the entries — and nothing else. This is the sink the other three don't
+  cover: a follow-up is usually neither a hard-to-reverse decision, nor a term, nor a trap, so without
+  this step it is deleted along with the `CHANGE.md` two bullets down. Apply the same bar as gotchas —
+  **if you wouldn't pick it up within a month, don't write it** — and **zero is a normal answer**.
+  Don't write a placeholder or an empty section to show the step ran.
 - **Drop the scaffolding.** Delete `.ai/work/<slug>/` (`git rm -r`). It was working state; the durable
-  part now lives in the three files above and in the commit history. If anything in it still feels too
-  valuable to delete, that is the signal it belonged in a decision record or a gotcha — promote it
-  first, then delete.
+  part now lives in the four files above and in the commit history. If anything in it still feels too
+  valuable to delete, that is the signal it belonged in a decision record, a gotcha, or the backlog —
+  promote it first, then delete.
 - **Commit** the promotion and the deletion together, by the project's `## Git conventions`.
 
 ### 4. Hand off the PR
 
-Report what was promoted and what was removed. Then point at whatever opens PRs in this project —
+Report what was promoted, what was parked in the backlog, and what was removed. Then point at whatever opens PRs in this project —
 `dw-git` if it's installed, otherwise say so and let the user drive. This skill deliberately does not
 push or open anything: shipping is a decision, not a step.
 

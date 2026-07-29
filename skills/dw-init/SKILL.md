@@ -22,17 +22,18 @@ both.
 
 ## What it writes
 
-| Path                    | Tracked?           | Purpose                                                      |
-| ----------------------- | ------------------ | ------------------------------------------------------------ |
-| `.ai/work/`             | **tracked**        | one folder per change (`dw-shape` writes `CHANGE.md`)        |
-| `.ai/README.md`         | **tracked**        | three lines saying what `.ai/` is and who owns it            |
-| `docs/decisions/`       | **tracked**        | durable decision records (`dw-land` promotes here)           |
-| `CONTEXT.md`            | **tracked**        | the project's glossary — terms only                          |
-| `CLAUDE.md`             | **tracked**        | a `## Gotchas` section — `dw-land` appends to it             |
-| `.claude/settings.json` | **tracked**        | permissions (ask + deny + derived allow), hooks, lane switch |
-| `.claude/hooks/*.sh`    | **tracked**        | the guardrail scripts those settings reference               |
-| `CLAUDE.local.md`       | personal / ignored | your commands, git conventions, and the loop                 |
-| `.gitignore`            | tracked            | a managed marker block for the personal files                |
+| Path                    | Tracked?           | Purpose                                                        |
+| ----------------------- | ------------------ | -------------------------------------------------------------- |
+| `.ai/work/`             | **tracked**        | one folder per change (`dw-shape` writes `CHANGE.md`)          |
+| `.ai/README.md`         | **tracked**        | three lines saying what `.ai/` is and who owns it              |
+| `.ai/BACKLOG.md`        | **tracked**        | follow-ups and parked ideas, between changes                   |
+| `docs/decisions/`       | **tracked**        | durable decision records (`dw-land` promotes here)             |
+| `CONTEXT.md`            | **tracked**        | the project's glossary — terms only                            |
+| `CLAUDE.md`             | **tracked**        | `## Commands` + `## Gotchas` — `dw-land` appends to the latter |
+| `.claude/settings.json` | **tracked**        | permissions (ask + deny + derived allow), hooks, lane switch   |
+| `.claude/hooks/*.sh`    | **tracked**        | the guardrail scripts those settings reference                 |
+| `CLAUDE.local.md`       | personal / ignored | your commands, git conventions, and the loop                   |
+| `.gitignore`            | tracked            | a managed marker block for the personal files                  |
 
 Note what is **absent** versus `dw-bootstrap`: no `.ai/verify/`, no `.ai/handoffs/`. The solo lane has
 one quality pass that writes no artifact, and no one to hand off to.
@@ -74,21 +75,31 @@ rest of the lane is light.
 ### 4. Write
 
 - `mkdir -p .ai/work docs/decisions` and seed each with `.gitkeep`.
-- `.ai/README.md` — write it inline, three or four lines: `.ai/work/<slug>/CHANGE.md` is the live
+- `.ai/README.md` — write it inline, four or five lines: `.ai/work/<slug>/CHANGE.md` is the live
   working state for one change, it is tracked so it survives a `/clear`, and `dw-land` deletes it at
-  merge after promoting anything durable to `docs/decisions/`, `CONTEXT.md` and `CLAUDE.md`. Don't copy the team
-  lane's `templates/ai-README.md` — it documents directories this lane doesn't have.
+  merge after promoting anything durable to `docs/decisions/`, `CONTEXT.md`, `CLAUDE.md` and
+  `.ai/BACKLOG.md`. State the asymmetry plainly, because it's the one thing a reader gets wrong:
+  `CHANGE.md` does not survive a merge, `BACKLOG.md` does. Don't copy the team lane's
+  `templates/ai-README.md` — it documents directories this lane doesn't have.
+- `.ai/BACKLOG.md` — if absent, write the shape below. **If it exists, leave it alone** — it is the one
+  file here that carries real content from earlier changes, and clobbering it loses queued work.
 - `CONTEXT.md` — if absent, create it with a one-line purpose statement (this project's glossary;
   terms only, no implementation detail) and nothing else. If it exists, leave it alone.
 - `${CLAUDE_PLUGIN_ROOT}/templates/settings.json` → `.claude/settings.json`; **prune** the hook
   entries not selected, add the `permissions.allow` list (below), then confirm the file still parses as
   valid JSON.
-- `CLAUDE.md` — seed a `## Gotchas` section: one line of purpose (traps this project has actually
-  sprung, newest first) and nothing else. Create the file with just that section if it's absent; append
-  the section if the file exists without one; leave it alone if it's already there. It goes in tracked
-  `CLAUDE.md` rather than `CLAUDE.local.md` because it has to be **auto-loaded** (so the next session
-  actually reads it), **tracked** (so it outlives the machine), and in **one** place. `dw-land`
-  appends to it.
+- `CLAUDE.md` — seed **two** sections. Idempotency is per-section: create the file with just them if
+  it's absent, append whichever one is missing, and leave an existing one alone. Both go in tracked
+  `CLAUDE.md` rather than `CLAUDE.local.md` because they have to be **auto-loaded** (so the next session
+  actually reads them), **tracked** (so they outlive the machine), and in **one** place.
+  - `## Commands` — the test / lint / typecheck commands **exactly as detected in step 1**, one line
+    each, and `_(none detected)_` where the manifests had none. Same rule as `permissions.allow`:
+    never write a command you didn't find. This is the only copy that survives a fresh clone or is
+    readable by an agent that reads `AGENTS.md` rather than `CLAUDE.local.md`, which is why it is
+    tracked; `CLAUDE.local.md` keeps its own copy because the lint and typecheck **hooks grep that
+    file**, so the two are both load-bearing and must agree.
+  - `## Gotchas` — one line of purpose (traps this project has actually sprung, newest first) and
+    nothing else. `dw-land` appends to it.
 - The selected `${CLAUDE_PLUGIN_ROOT}/templates/hooks/*.sh` → `.claude/hooks/`, `chmod +x` each.
 - `CLAUDE.local.md` — if absent, render `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE.local.md` and
   substitute `{{PROJECT_NAME}}` `{{DEFAULT_BRANCH}}` `{{STACK}}` `{{TEST_COMMAND}}`
@@ -131,6 +142,25 @@ failure as an error. And it **only ever disables**: never run `claude plugin ena
 Enabling is an install-time decision, and a scaffolder that switches plugins on is one that can
 surprise you.
 
+The `.ai/BACKLOG.md` to write — this is the **whole file**, verbatim:
+
+```markdown
+# Backlog
+
+Follow-ups and ideas not being worked on now. Newest first, one line each. The bar: if you would not
+pick it up within a month, don't write it. `dw-land` parks them here when it closes a change;
+`dw-shape` reads this when opening the next one and deletes the line it takes.
+```
+
+**Seed it with no entries** — no example line, no `TODO`, nothing standing in for one. On the next read a
+placeholder is indistinguishable from real queued work, and a backlog you have to first decide isn't
+real is one you stop opening. Entries arrive later, one line each, in the form
+`- [YYYY-MM-DD] what it is and why it matters`.
+
+Keep it exactly this flat. It has **no status column, no priority, no frontmatter** on purpose: the
+moment it grows a schema it is the `PLAN.md` this lane exists to avoid, and nothing validates it —
+`validate-ai-artifacts.sh` sweeps `runs/` and `verify/` only.
+
 The `## Workflow` block to write:
 
 ```markdown
@@ -140,6 +170,7 @@ The `## Workflow` block to write:
 - One change at a time lives in `.ai/work/<slug>/CHANGE.md` — tracked, and deleted by `/dw-land` at merge.
 - `/dw-next` bare answers "where were we" from disk; `/dw-next go` builds the next task.
 - Durable knowledge is promoted out, not accumulated: decisions → `docs/decisions/`, terms → `CONTEXT.md`.
+- Follow-ups and out-of-scope ideas go to `.ai/BACKLOG.md` — `/dw-land` parks them, `/dw-shape` picks the next one up.
 ```
 
 ### 5. Reconcile tracking

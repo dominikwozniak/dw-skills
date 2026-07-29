@@ -46,6 +46,10 @@ decisions belong in `docs/decisions/`, not in a spec nobody will reopen.
   you haven't seen.
 - `CONTEXT.md` and `docs/decisions/` if the project has them — a term already defined or a decision
   already taken is not up for re-litigation, and reusing the established word is free.
+- `.ai/BACKLOG.md` if the project has one — `dw-land` parks follow-ups there. A line that matches this
+  request is **prior context, not a fresh idea**: read it before shaping, and mention it if the request
+  is narrower than what was parked. Neighbouring lines are also candidates, but only offer them; never
+  widen the change on your own.
 - The **real sibling patterns** this change should follow. Confirm each with Read or grep; these
   become the anchors.
 
@@ -75,9 +79,11 @@ obviously doable before task 2, do it. Dependencies here are there to help you p
 
 ### 4. Write the file, then check it back
 
-Write `CHANGE.md` from the shape in `references/CHANGE.md`. Then read the goal and the task list back
-to the user in a few lines and ask whether the breakdown is right — wrong granularity is much cheaper
-to fix now than after two commits. **Wait for that confirmation before building anything.**
+Write `CHANGE.md` from the shape in `references/CHANGE.md`. If this change takes a line from
+`.ai/BACKLOG.md`, **delete that line** — live work must not also sit in the backlog, or the next
+`dw-shape` offers you what you're already building. Then read the goal and the task list back to the
+user in a few lines and ask whether the breakdown is right — wrong granularity is much cheaper to fix
+now than after two commits. **Wait for that confirmation before building anything.**
 
 Going straight from here to `dw-next` is the normal path. There is no intermediate approval artifact
 by design.

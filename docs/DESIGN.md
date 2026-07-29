@@ -55,6 +55,12 @@ commands it needs (test, lint, run, db-console, server URL) in this order:
 Stack is detected by which manifest is present, never branched on by name. With no declared commands a
 skill auto-detects and **states its assumption, asking when ambiguous** — it never guesses silently.
 
+Tier 1 is populated, not hoped for: both scaffolders (`dw-bootstrap`, `dw-init`) seed `## Commands` in
+**tracked** `CLAUDE.md` from the commands they actually found in the manifests. Tracked matters — a copy
+that lives only in the gitignored `CLAUDE.local.md` is invisible on a fresh clone and to any agent that
+reads `AGENTS.md`. That file keeps its own copy anyway, because the lint and typecheck hooks grep it for
+those names, so the two must be updated together.
+
 Verification scenarios are _typed_, so the skill stays stack-neutral and the project fills in the
 concrete command:
 
@@ -222,11 +228,18 @@ Three things the solo lane drops, and what replaces each:
 - **Durability by default.** The team lane tracks specs forever because they're shared work
   documentation. The solo lane splits the two ideas: `CHANGE.md` is **persistent but disposable** —
   tracked so a week-long gap and a `/clear` change nothing, deleted by `dw-land` at merge — while what
-  is genuinely durable is **promoted out** to `docs/decisions/`, `CONTEXT.md`, and the `## Gotchas`
-  section of `CLAUDE.md` (the one target that is auto-loaded, so the next session reads it unasked —
-  which is why the traps go there and not into a doc nobody opens). Without that closing
-  step a private repo accumulates stale specs _and_ loses the decisions worth keeping, which is the
-  one failure the thin lane would otherwise introduce.
+  is genuinely durable is **promoted out** to four targets: `docs/decisions/`, `CONTEXT.md`, the
+  `## Gotchas` section of `CLAUDE.md` (the one target that is auto-loaded, so the next session reads it
+  unasked — which is why the traps go there and not into a doc nobody opens), and `.ai/BACKLOG.md`.
+  Without that closing step a private repo accumulates stale specs _and_ loses the decisions worth
+  keeping, which is the one failure the thin lane would otherwise introduce.
+
+  The backlog is the fourth target because the other three each have a high bar — hard-to-reverse
+  decision, domain term, trap that cost real time — and an ordinary follow-up clears none of them. In
+  the team lane it would be redundant: a shared repo has a tracker, and `NOTES.md` outlives the run. In
+  a private repo with neither, a verdict of "ready with follow-ups" would otherwise be deleted along
+  with the `CHANGE.md` that held it. It stays a flat, unvalidated list on purpose — the moment it grows
+  a status column it is the `PLAN.md` this lane exists to avoid.
 
 ## Explicit-only skills
 

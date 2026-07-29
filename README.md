@@ -89,7 +89,7 @@ For repos only you read. One artifact instead of three, one quality pass instead
   /dw-grill →   /dw-shape   →   /dw-next     →        /dw-land         →      (open PR — /dw-git)
   fuzzy idea    one CHANGE.md   ↺ /dw-next (bare =    verdict, then promote
                 + task list       resume from disk)   decisions & drop the doc
-  └────── .ai/work/<slug>/CHANGE.md (deleted at merge) ──────┘  └→ docs/decisions/ · CONTEXT.md · ## Gotchas (kept)
+  └────── .ai/work/<slug>/CHANGE.md (deleted at merge) ──────┘  └→ docs/decisions/ · CONTEXT.md · ## Gotchas · .ai/BACKLOG.md (kept)
 ```
 
 **Pick one lane per repo** — installing both means two skills compete for "start a feature". Why the
@@ -136,12 +136,12 @@ never auto-fires). The phrases that trigger each skill live in its own `descript
 
 **Solo lane** — one file, one pass. Pick this lane _or_ the team lane below, per repo.
 
-| Skill                                  | Task                                                       | What you get                          |
-| -------------------------------------- | ---------------------------------------------------------- | ------------------------------------- |
-| [`dw-grill`](skills/dw-grill/SKILL.md) | Interview a fuzzy idea into decisions — max five questions | shared understanding (writes nothing) |
-| [`dw-shape`](skills/dw-shape/SKILL.md) | Synthesize it into one goal + decisions + task checklist   | `.ai/work/<slug>/CHANGE.md`           |
-| [`dw-next`](skills/dw-next/SKILL.md)   | Resume point _and_ build step (`go` builds and commits)    | code + ticked box + commit            |
-| [`dw-land`](skills/dw-land/SKILL.md)   | One verdict: correct · fits · blast radius · proven        | `docs/decisions/` · `CONTEXT.md`      |
+| Skill                                  | Task                                                       | What you get                                        |
+| -------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------- |
+| [`dw-grill`](skills/dw-grill/SKILL.md) | Interview a fuzzy idea into decisions — max five questions | shared understanding (writes nothing)               |
+| [`dw-shape`](skills/dw-shape/SKILL.md) | Synthesize it into one goal + decisions + task checklist   | `.ai/work/<slug>/CHANGE.md`                         |
+| [`dw-next`](skills/dw-next/SKILL.md)   | Resume point _and_ build step (`go` builds and commits)    | code + ticked box + commit                          |
+| [`dw-land`](skills/dw-land/SKILL.md)   | One verdict: correct · fits · blast radius · proven        | `docs/decisions/` · `CONTEXT.md` · `.ai/BACKLOG.md` |
 
 **Team lane** — spec, plan, build.
 
@@ -198,7 +198,8 @@ Then **one lane per repo** — the two below, or the one after them:
 - **`dw-solo`** — the thin lane, for repos only you read. `dw-init` · `dw-grill` · `dw-shape` ·
   `dw-next` · `dw-land`. One `CHANGE.md` instead of spec+plan+notes, one `dw-land` pass instead of
   five auditors, and durable knowledge promoted out to `docs/decisions/` + `CONTEXT.md` + `CLAUDE.md`'s
-  `## Gotchas` rather than accumulated. Artifacts: `.ai/work/<slug>/`.
+  `## Gotchas` + `.ai/BACKLOG.md` (the follow-ups you're not doing now) rather than accumulated.
+  Artifacts: `.ai/work/<slug>/`.
 
 ## ⚙ How it works — the design in one screen
 

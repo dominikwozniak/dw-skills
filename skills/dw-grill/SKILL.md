@@ -77,6 +77,11 @@ order.
 Stop when the remaining unknowns wouldn't change what gets built. Say so, and play back the shared
 understanding in a few lines: what we're building, what we decided, what we deliberately left out.
 
+Keep that last list explicit and separate — `dw-shape` is what turns it into something durable, either
+as a Decision in `CHANGE.md` or as a line in `.ai/BACKLOG.md`. **This skill still writes nothing**: a
+playback the next step can act on is the deliverable, and an interviewer that also files things is one
+you can't run to think out loud.
+
 **Do not start implementing.** Getting agreement is the whole job here — writing it down is
 `dw-shape`'s, and building it is `dw-next`'s.
 

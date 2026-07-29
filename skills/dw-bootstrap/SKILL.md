@@ -27,6 +27,7 @@ thrown away.
 | ----------------------------------------- | ------------------ | ----------------------------------------------------------------------- |
 | `.ai/runs/` `.ai/handoffs/` `.ai/verify/` | **tracked**        | memory the dw-\* skills read/write (`.gitkeep` seeds empty dirs)        |
 | `.ai/README.md`                           | **tracked**        | self-documents the `.ai/` layout for teammates + non-Claude tools       |
+| `CLAUDE.md`                               | **tracked**        | a `## Commands` section — the portable copy of the detected commands    |
 | `.claude/settings.json`                   | **tracked**        | permissions ask-list + hook wiring (shared with the team)               |
 | `.claude/hooks/*.sh`                      | **tracked**        | guardrail scripts the committed settings reference                      |
 | `CLAUDE.local.md`                         | personal / ignored | your About-me, preferences, project specifics, git conventions          |
@@ -92,6 +93,14 @@ skill's `references/` (see **Templates** below).
 - `mkdir -p .ai/{runs,handoffs,verify}` and seed each with `.gitkeep`. Copy
   `${CLAUDE_PLUGIN_ROOT}/templates/ai-README.md` → `.ai/README.md` (static — no
   substitution).
+- `CLAUDE.md` — seed a `## Commands` section with the test / lint / typecheck
+  commands **exactly as detected in step 1**, one line each, `_(none detected)_`
+  where the manifests had none. Create the file with just that section if it's
+  absent, append the section if the file exists without one, leave it alone if it's
+  already there. This is the tier-1 lookup every skill tries first, and the only
+  copy that is **tracked** — so it works on a fresh clone and for an agent reading
+  `AGENTS.md`. `CLAUDE.local.md` keeps its own copy below because the lint and
+  typecheck **hooks grep that file**; both are load-bearing and must agree.
 - Copy `${CLAUDE_PLUGIN_ROOT}/templates/settings.json` → `.claude/settings.json`;
   **prune** the hook entries the user didn't select, then confirm the file still
   parses as valid JSON.
@@ -110,8 +119,8 @@ skill's `references/` (see **Templates** below).
 
 The split is the whole point — enforce it after writing:
 
-- Ensure `.ai/`, `.claude/settings.json`, `.claude/hooks/` are **not** ignored. If
-  a pre-existing rule ignores any of them, remove it.
+- Ensure `.ai/`, `CLAUDE.md`, `.claude/settings.json`, `.claude/hooks/` are **not**
+  ignored. If a pre-existing rule ignores any of them, remove it.
 - Ensure `CLAUDE.local.md` and `.claude/settings.local.json` **are** ignored.
 
 ### 7. Report + hand off

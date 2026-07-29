@@ -65,7 +65,10 @@ Hook scripts live in `.claude/hooks/` and are **tracked** (so teammates get the 
 This file is the source of truth for the agent _and_ the hooks. If any of these change, update the
 matching line here in the same commit:
 
-- Test / lint / typecheck command → `## Project specifics` (the hooks read those names).
+- Test / lint / typecheck command → **two places, same commit**: `## Project specifics` here, because
+  the lint and typecheck hooks grep this file for those exact names, **and** `## Commands` in tracked
+  `CLAUDE.md`, which is the copy that survives a fresh clone and is readable by an agent that reads
+  `AGENTS.md`. Both are load-bearing; if they disagree, the hooks and the skills disagree.
 - Default branch renamed → `## Git conventions` (`dw-git` reads it).
 - Stack, key directories, deployment target shifts → `## Project specifics`.
 - New tool installed (MCP server, CLI) or one removed → `## Tools active in this session`.

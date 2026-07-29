@@ -21,7 +21,8 @@ Everything comes from disk. Never reconstruct state from the conversation — th
 ## What it reads and writes
 
 Reads `.ai/work/<slug>/CHANGE.md` (written by `dw-shape`). Writes code, ticks that file's checkboxes,
-appends to its Notes, and commits. `.ai/` is tracked in git.
+appends to its Notes, and commits — plus a line in `.ai/BACKLOG.md` for an idea that belongs to a
+different change. `.ai/` is tracked in git.
 
 Find the active change by branch, not by guessing:
 
@@ -58,7 +59,9 @@ your control, take the later one and say why.
 One task per invocation unless the mode says otherwise.
 
 - **Narrow and complete.** A vertical slice through whatever layers it needs, not a whole layer.
-  Resist widening scope mid-task; a second task is free, a sprawling commit is not.
+  Resist widening scope mid-task; a second task is free, a sprawling commit is not. An idea that
+  belongs to a **different change** isn't a task here at all — it's one dated line in `.ai/BACKLOG.md`,
+  which is how you drop it without losing it.
 - **Test the way the project does.** Read the test command from `CLAUDE.md` / `CLAUDE.local.md` /
   `AGENTS.md`, else the manifests. Where the project has a real test suite and the task has a
   meaningful assertion, write the failing test first and make it pass — where it genuinely doesn't
@@ -77,7 +80,7 @@ One task per invocation unless the mode says otherwise.
 - Append to Notes only what a future session would actually need: a surprise, a dead end, a decision
   taken while building. Not a narration of what the diff already shows.
 - Commit by the project's `## Git conventions` — stage by name, never `git add -A`. One task, one
-  commit.
+  commit; a `.ai/BACKLOG.md` line added while building ships in that same commit.
 
 ### 5. Report and stop
 
