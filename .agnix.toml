@@ -9,10 +9,13 @@ exclude = [
     # Local agent state (gitignored) — not part of the marketplace surface,
     # so agnix doesn't lint the local drops.
     ".claude/**",
-    # Skill template payloads — inert files copied verbatim INTO a target
-    # project (e.g. dw-bootstrap's settings.json / hooks / CLAUDE.local.md).
-    # They reference `.claude/` paths and hook scripts that only exist once
-    # dropped, so they're not validatable in place — same rationale as above.
+    # Template payloads — inert files copied verbatim INTO a target project
+    # (settings.json / hooks / CLAUDE.local.md, plus the artifact shapes under
+    # skills/*/references/templates/). They reference `.claude/` paths and hook
+    # scripts that only exist once dropped, so they're not validatable in
+    # place — same rationale as above. `templates/` is the shared canon: both
+    # dw-bootstrap (team lane) and dw-init (solo lane) copy from it.
+    "templates/**",
     "skills/*/references/templates/**",
 ]
 

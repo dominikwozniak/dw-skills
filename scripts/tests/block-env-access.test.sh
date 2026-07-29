@@ -12,7 +12,7 @@ export LC_ALL=C
 command -v jq >/dev/null || { echo "SKIP: jq missing (hooks no-op without it)"; exit 0; }
 
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-HOOK="$ROOT/skills/dw-bootstrap/references/templates/hooks/block-env-access.sh"
+HOOK="$ROOT/templates/hooks/block-env-access.sh"
 
 PASS=0
 FAIL=0
