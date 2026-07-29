@@ -3,11 +3,9 @@ name: dw-plan
 description: >-
   Turn the active run's ready `SPEC.md` into a persistent, gated `PLAN.md` status table under
   `.ai/runs/` — thin vertical slices, each with acceptance criteria and a verify command read from
-  the project. Presents the breakdown for approval before writing, so a wrong decomposition
-  surfaces early; the `PLAN.md` it writes is what `dw-resume` and `dw-build` read (first not-done
-  row = resume point), and step ids are immutable once committed. Use when a spec is ready to break
-  into steps, or someone says "plan this", "break this into tasks", "make a build plan", or invokes
-  "dw-plan".
+  the project. What `dw-resume` and `dw-build` read back: first not-done row = the resume point.
+  Use when a spec is ready to break into steps, or someone says "plan this", "break this into
+  tasks", "make a build plan".
 ---
 
 # dw-plan — turn a ready spec into a persistent, gated plan

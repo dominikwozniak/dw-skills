@@ -1,12 +1,12 @@
 ---
 name: dw-review
 description: >-
-  Review a change across five axes — correctness, readability, architecture, security,
-  performance — and write a durable `review.md` to `.ai/verify/`: an overall verdict plus
-  findings, each a real `file:line`, a severity (critical / high / medium / low), and a concrete
-  fix. Reads the project's own conventions instead of imposing a generic standard. Read-only. Use
-  when a change is ready for review or about to merge, or when someone says "review this change",
-  "review my PR", "code review", or invokes "dw-review".
+  Review a change across five axes — correctness, readability, architecture, security, performance
+  — and write a durable `review.md` to `.ai/verify/`: an overall verdict plus findings, each a
+  real `file:line`, a severity (critical / high / medium / low), and a concrete fix. Reads the
+  project's own conventions instead of imposing a generic standard. Read-only. Use when a change
+  is ready for review or about to merge, or when someone says "review this change", "review my
+  PR", "code review".
 argument-hint: "What should I review? (working diff, branch, or PR)"
 ---
 

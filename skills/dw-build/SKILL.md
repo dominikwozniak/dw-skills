@@ -1,13 +1,10 @@
 ---
 name: dw-build
 description: >-
-  Build the active run's `PLAN.md` one step at a time: take the first not-done row and ship it as
-  a thin end-to-end slice — RED → GREEN → regression → commit — then flip the row to `done` + SHA
-  and append `NOTES.md`. Reads acceptance and the project's own test / lint / commit conventions
-  from the run — never assuming a framework. One step by default; `auto` runs the whole plan,
-  pausing before anything irreversible. Never renumbers a committed step (that's `dw-sync`). Use
-  when a `PLAN.md` is ready to build, or someone says "build the next step", "implement the plan",
-  or invokes "dw-build".
+  Build the active run's `PLAN.md` one step at a time: take the first not-done row, ship it as a
+  thin end-to-end slice, then flip the row to `done` + SHA. Reads acceptance and the project's own
+  test / lint / commit conventions from the run — never assuming a framework. Use when a `PLAN.md`
+  is ready to build, or someone says "build the next step", "implement the plan".
 argument-hint: "empty = next not-done step; 'auto' = build the whole plan"
 ---
 

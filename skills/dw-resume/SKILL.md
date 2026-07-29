@@ -3,10 +3,10 @@ name: dw-resume
 description: >-
   Deterministically resume the active run after a `/clear` or in a fresh session: read the
   persisted `PLAN.md` (or `slices/` graph) under `.ai/runs/` for the current branch — and any
-  quality pass under `.ai/verify/` — then report where work stands and the single next step,
-  instead of reconstructing from scrollback. Reports the goal, what's done, the first not-done
-  step or the takeable frontier (your resume point), and any blockers. Read-only. Use when starting a session, after a `/clear`, or
-  asking "where were we", "what's left", "what next", "resume", or invokes "dw-resume".
+  quality pass under `.ai/verify/` — then report the goal, what's done, the single next step or
+  takeable frontier, and any blockers, instead of reconstructing from scrollback. Read-only. Use
+  when starting a session, after a `/clear`, or asking "where were we", "what's left", "what
+  next", "resume".
 ---
 
 # dw-resume — resume the active run and point to the next step

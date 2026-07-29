@@ -1,14 +1,11 @@
 ---
 name: dw-init
 description: >-
-  Scaffold a private/solo repo for the `dw-grill → dw-shape → dw-next → dw-land` loop — `.ai/work/`,
-  `docs/decisions/`, `CONTEXT.md`, a `## Gotchas` section in `CLAUDE.md`, the guardrail hooks plus a
-  permissions allowlist derived from the project's own commands, and a short workflow block in
-  `CLAUDE.local.md`. Deliberately smaller than `dw-bootstrap`: no verify dirs, no handoff dir, no
-  status-table machinery. Explicit-invoke only. Use when setting up one of your own projects for the
-  solo lane, or when someone says "init this project", "set up the solo loop", or invokes "dw-init".
-  Prefer `dw-bootstrap` instead for a shared/team repo running the `dw-spec → dw-plan → dw-build`
-  loop.
+  Scaffold a private/solo repo for the `dw-grill → dw-shape → dw-next → dw-land` loop —
+  `.ai/work/`, `docs/decisions/`, `CONTEXT.md`, a `## Gotchas` section in `CLAUDE.md`, and the
+  guardrail hooks. Deliberately smaller than `dw-bootstrap`, which is the one for a shared/team
+  repo. Explicit-invoke only. Use when setting up one of your own projects for the solo lane, or
+  when someone says "init this project", "set up the solo loop".
 argument-hint: "any project context to seed (stack, what it is)"
 disable-model-invocation: true
 ---

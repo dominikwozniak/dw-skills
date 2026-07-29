@@ -1,12 +1,11 @@
 ---
 name: dw-next
 description: >-
-  The solo lane's build step and its resume point in one skill. Called bare it reports where the
-  active `.ai/work/<slug>/CHANGE.md` stands and what the next unchecked task is — read from disk, so
-  it survives a `/clear`. Called with `go` it builds that one task as a thin vertical slice, runs the
-  project's own tests, ticks the box and commits. Use when picking work back up or moving it forward,
-  or when someone says "what's next", "where were we", "build the next task", "keep going", or
-  invokes "dw-next". Prefer this over `dw-resume` + `dw-build` in a solo repo.
+  The solo lane's build step and its resume point in one skill. Bare, it reports where the active
+  `.ai/work/<slug>/CHANGE.md` stands and what the next unchecked task is — read from disk, so it
+  survives a `/clear`. With `go` it builds that task and commits. Use when picking work back up or
+  moving it forward, or when someone says "what's next", "where were we", "build the next task",
+  "keep going". Prefer this over `dw-resume` + `dw-build` in a solo repo.
 argument-hint: "bare to report status · go to build the next task · all to keep going"
 ---
 

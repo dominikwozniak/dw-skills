@@ -1,13 +1,11 @@
 ---
 name: dw-prune
 description: >-
-  Prune the tests around a change — trim the redundant, overlapping, dead, and low-value ones —
-  and, only with explicit consent, merge or delete them without losing coverage. Writes a durable
-  `prune.md` to `.ai/verify/`: a keep / merge / delete plan where every merge or delete names the
-  retained test (`file:line`) that still catches the behavior. The only dw-quality skill that
-  mutates — it proposes the plan and STOPS, edits only on your word, then re-runs the project's
-  test suite. Explicit-invoke only. Use for "prune tests", "remove redundant tests", "trim the
-  test suite", or "dw-prune".
+  Prune the tests around a change — the redundant, overlapping, dead and low-value ones — writing
+  a keep / merge / delete plan to `prune.md` under `.ai/verify/` where every merge or delete names
+  the retained test (`file:line`) that still catches the behavior. The only dw-quality skill that
+  mutates, and only on explicit consent. Explicit-invoke only. Use for "prune tests", "remove
+  redundant tests", "trim the test suite".
 argument-hint: "Which tests to prune? (working diff, branch, PR, or a path to widen the scope)"
 disable-model-invocation: true
 ---

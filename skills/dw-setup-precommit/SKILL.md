@@ -1,12 +1,11 @@
 ---
 name: dw-setup-precommit
 description: >-
-  Wire git-level pre-commit hooks for a pnpm node/ts/js repo — husky + lint-staged — so every
-  `git commit` auto-formats and lints the staged files with the tools the project already has.
-  Team-shared config committed to the repo (fires for every developer on commit), distinct from
-  `.claude/hooks/*.sh` which only run inside a Claude session. pnpm-only. Explicit-invoke only. Use
-  for "set up pre-commit", "add husky", "configure lint-staged", "format and lint on commit", or
-  "dw-setup-precommit".
+  Wire git-level pre-commit hooks for a pnpm node/ts/js repo — husky + lint-staged — so every `git
+  commit` auto-formats and lints the staged files with the tools the project already has. Team-
+  shared config committed to the repo, distinct from `.claude/hooks/*.sh` which only run inside a
+  Claude session. pnpm-only. Explicit-invoke only. Use for "set up pre-commit", "add husky",
+  "configure lint-staged", "format and lint on commit".
 argument-hint: "optional: 'with-typecheck' / 'with-test' to add those hook steps"
 disable-model-invocation: true
 ---

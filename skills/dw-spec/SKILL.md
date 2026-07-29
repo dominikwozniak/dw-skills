@@ -3,9 +3,9 @@ name: dw-spec
 description: >-
   Write a persistent feature/change spec under `.ai/runs/` before planning or coding. Opens with a
   skeleton plus numbered Open Questions and HARD STOPS until you answer them, so wrong assumptions
-  surface before they cost a rewrite. Reads stack, commands, and patterns from the project — never
+  surface before they cost a rewrite. Reads stack, commands and patterns from the project — never
   assumes a framework. Use when starting a new feature, ticket, or non-trivial change, or when
-  someone says "spec this out", "write a spec", "define requirements", or invokes "dw-spec".
+  someone says "spec this out", "write a spec", "define requirements".
 argument-hint: "What feature or change are you speccing?"
 ---
 

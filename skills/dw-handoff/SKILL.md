@@ -1,11 +1,10 @@
 ---
 name: dw-handoff
 description: >-
-  Compact the current conversation into a handoff document under `.ai/handoffs/` so another agent —
-  a fresh Claude Code session, Codex, or a teammate — can continue without re-reading the
-  transcript. Links back to the active `.ai/runs/` run when one exists. Explicit-invoke only. Use
-  when wrapping up or pausing a session; trigger phrases: "session handoff", "handoff", "summarise
-  for next session", or invokes "dw-handoff".
+  Compact the current conversation into a handoff document under `.ai/handoffs/` so another agent
+  — a fresh Claude Code session, Codex, or a teammate — can continue without re-reading the
+  transcript. Explicit-invoke only. Use when wrapping up or pausing a session; trigger phrases:
+  "session handoff", "handoff", "summarise for next session".
 argument-hint: "What will the next session focus on?"
 disable-model-invocation: true
 ---

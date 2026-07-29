@@ -3,10 +3,8 @@ name: dw-doctor
 description: >-
   Read-only environment diagnostic for a dw-* repo: check whether the tools the hooks and skills
   assume are installed and whether the repo's guardrails will actually fire, then report each gap
-  with a copy-paste fix. Probes git / jq / gh and the stack's own tools, and sanity-checks
-  `.claude/settings.json` + hooks, `.ai/`, and plugin manifests. Mutates nothing. Use when setting
-  up or inheriting a repo, or when someone asks "check my setup", "why aren't my hooks running",
-  "diagnose the repo", or invokes "dw-doctor".
+  with a copy-paste fix. Mutates nothing. Use when setting up or inheriting a repo, or when
+  someone asks "check my setup", "why aren't my hooks running", "diagnose the repo".
 ---
 
 # dw-doctor — read-only environment diagnostic

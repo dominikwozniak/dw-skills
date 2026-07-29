@@ -2,12 +2,10 @@
 name: dw-grill
 description: >-
   Interview the user to sharpen a fuzzy idea into decisions before anything gets written — one
-  question at a time, each with a recommended answer, facts looked up rather than asked. Bounded:
-  at most five questions, hardest-first. Writes nothing; the shared understanding it reaches is the
-  input to `dw-shape`. Use when an idea is still vague, when a request could be read two ways, or
-  when someone says "grill me", "interview me", "poke holes in this", "help me think this through",
-  or invokes "dw-grill". Prefer this over guessing at intent, and over dumping a numbered list of
-  questions in one message.
+  question at a time, at most five, hardest-first, each with a recommended answer. Writes nothing;
+  the shared understanding it reaches is the input to `dw-shape`. Use when an idea is still vague,
+  when a request could be read two ways, or when someone says "grill me", "interview me", "poke
+  holes in this", "help me think this through". Prefer this over guessing at intent.
 argument-hint: "What should I grill you about?"
 ---
 

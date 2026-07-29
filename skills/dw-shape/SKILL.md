@@ -2,12 +2,10 @@
 name: dw-shape
 description: >-
   Turn a request or a finished `dw-grill` conversation into one durable `CHANGE.md` under
-  `.ai/work/` — goal, decisions taken, a task checklist, and anchors in real files. Depth scales
-  with size: a small change gets a goal and two checkboxes, not a spec. The solo lane's single
-  planning artifact, read back by `dw-next` after a `/clear`. Use when starting work on a private
-  project, or when someone says "shape this", "write this up", "let's plan this out", or invokes
-  "dw-shape". Prefer this over `dw-spec` + `dw-plan` in a solo repo — one file instead of three, no
-  status table.
+  `.ai/work/` — goal, decisions taken, a task checklist, anchors in real files. Depth scales with
+  size: a small change gets two checkboxes, not a spec. Read back by `dw-next` after a `/clear`.
+  Use when starting work on a private project, or when someone says "shape this", "write this up",
+  "let's plan this out". Prefer this over `dw-spec` + `dw-plan` in a solo repo.
 argument-hint: "What change are we shaping?"
 ---
 

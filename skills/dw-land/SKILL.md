@@ -1,13 +1,11 @@
 ---
 name: dw-land
 description: >-
-  Close out a change in the solo lane, in two phases. Verdict — one pass over the diff for
-  correctness, fit with the repo's own patterns, blast radius and one-way doors, and whether the
-  ticked boxes are actually proven rather than assumed. Close, on your approval — promote the durable
-  residue to `docs/decisions/`, `CONTEXT.md` and `CLAUDE.md`, then delete the working `CHANGE.md`. Use when a
-  change is finished, or when someone says "land this", "wrap this up", "is this ready to merge",
-  "close this out", or invokes "dw-land". Prefer this over the `dw-review` / `dw-conform` / `dw-risk`
-  / `dw-explain` / `dw-verify` pipeline in a solo repo — one pass instead of five artifacts.
+  Close out a change in the solo lane: one verdict pass over the diff — correctness, fit with the
+  repo's patterns, blast radius, and whether the ticked boxes are actually proven — then, on
+  approval, promote the durable residue to `docs/decisions/` and `CONTEXT.md`. Use when a change
+  is finished, or when someone says "land this", "wrap this up", "is this ready to merge", "close
+  this out". Prefer this over the five-artifact `dw-review` → `dw-verify` pipeline in a solo repo.
 argument-hint: "bare for the verdict · close to promote and clean up"
 ---
 

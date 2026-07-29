@@ -4,10 +4,9 @@ description: >-
   Assess a change's blast radius and out-of-code impact, and write a durable `risk.md` to
   `.ai/verify/`: what it touches in impact tiers; out-of-code work (DB migrations, env vars,
   feature flags, infra, secrets); and follow-ups plus rollback, with every irreversible step
-  flagged as a one-way door. Reads the diff and any neighbouring `review.md` / `conform.md`, and
-  never executes anything. Read-only. Use when a change is about to merge or deploy, or when
+  flagged as a one-way door. Read-only. Use when a change is about to merge or deploy, or when
   someone says "what's the blast radius", "what could this break", "is this migration safe",
-  "what's the rollback plan", or invokes "dw-risk".
+  "what's the rollback plan".
 argument-hint: "What should I assess for risk? (working diff, branch, or PR)"
 ---
 

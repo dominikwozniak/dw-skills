@@ -1,14 +1,12 @@
 ---
 name: dw-split
 description: >-
-  Split a run's ready `SPEC.md` into independently takeable slices under
-  `.ai/runs/<id>/slices/` — tracer-bullet vertical slices, each declaring the slices that block it,
-  each sized for one fresh context window. Reach for it instead of `dw-plan` when a spec is too big
-  for one `PLAN.md`: a plan is one sequential spine, slices are a dependency graph with a frontier
-  many sessions can pull from. Presents the breakdown and its edges for approval before writing;
-  `take <NN>` then promotes a slice into its own run so `dw-plan` → `dw-build` runs on it unchanged.
-  Explicit-invoke only. Use when a ready spec is too large to plan in one go, or someone says "split
-  the spec", "break this into slices", "what can I pick up next", or invokes "dw-split".
+  Split a run's ready `SPEC.md` into a dependency graph of independently takeable slices under
+  `.ai/runs/<id>/slices/`, each sized for one fresh context window. Reach for it instead of `dw-
+  plan` when a spec is too big for one `PLAN.md`: a plan is one sequential spine, slices are a
+  graph with a frontier many sessions can pull from. Explicit-invoke only. Use when a ready spec
+  is too large to plan in one go, or someone says "split the spec", "break this into slices",
+  "what can I pick up next".
 disable-model-invocation: true
 argument-hint: "empty = split the active run's spec; 'take <NN>'; 'status'; or a path to a SPEC.md"
 ---
