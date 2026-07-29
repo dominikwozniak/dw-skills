@@ -84,6 +84,20 @@ mk_verify() {
 expect_verify_pass() { _assert_pass "$1" "$(mk_verify "$@")"; }
 expect_verify_fail() { _assert_fail "$1" "$(mk_verify "$@")"; }
 
+# mk_work — a valid run PLUS a .ai/work/ change doc whose frontmatter deliberately
+# violates the SPEC/PLAN schema (solo `status: shaping`, no run:/ticket: keys). The
+# solo lane owns .ai/work/ and has no invariants worth gating, so the sweep must not
+# reach into it. Pinning that as a test, not a comment: if a future --all learns to
+# glob .ai/work/*, this case fails instead of silently rejecting every solo repo.
+mk_work() {
+  d="$(mktemp -d "$tmp/work.XXXXXX")"
+  mkdir -p "$d/.ai/runs/x" "$d/.ai/work/some-change"
+  printf '%s\n' "$(good_spec)" >"$d/.ai/runs/x/SPEC.md"
+  printf '%s\n' "---" "change: some-change" "status: shaping" "---" "# Change" \
+    >"$d/.ai/work/some-change/CHANGE.md"
+  echo "$d"
+}
+
 # --- cases --------------------------------------------------------------------
 echo "good (expect pass):"
 expect_pass "spec-draft-only" "$(spec_draft)"
@@ -91,6 +105,7 @@ expect_pass "plan-todo" "$(good_spec)" "$(good_plan_todo)"
 expect_pass "plan-done" "$(good_spec)" "$(good_plan_done)"
 expect_verify_pass "verify-slug" "my-feature-branch" "my-feature-branch"
 expect_slices_pass "slices-only"
+_assert_pass "work-dir-not-swept" "$(mk_work)"
 
 echo "malformed (expect rejection):"
 expect_fail "spec-bad-status" "$(good_spec | sed 's/ready/shipping/')"

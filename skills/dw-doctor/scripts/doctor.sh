@@ -200,7 +200,7 @@ fi
 if [ -d "$ROOT/.ai" ]; then
   report ok ".ai/" "present"
 else
-  report warn ".ai/" "absent — run dw-bootstrap, or dw-spec to start a run"
+  report warn ".ai/" "absent — team lane: dw-bootstrap / dw-spec; solo lane: dw-init / dw-shape"
 fi
 
 if [ -f "$ROOT/CLAUDE.local.md" ]; then
