@@ -25,9 +25,11 @@ disable-model-invocation: true # ONLY for explicit-invoke-only skills (see below
   the body, to decide whether to fire. Spec/review show the bar.
 - **`argument-hint`** — a short hint string. Read-only skills that take no real argument may omit it
   (e.g. `dw-resume`).
-- **`disable-model-invocation: true`** — set this _only_ on skills that compact or mutate state, or
-  that act on an explicit drift signal, so the model never reaches for them unbidden:
-  **`dw-bootstrap`, `dw-handoff`, `dw-prune`, `dw-sync`**. Everything else is model-invocable.
+- **`disable-model-invocation: true`** — set this _only_ on skills that scaffold a repo, install shared
+  tooling, compact or mutate state, act on an explicit drift signal, or pick an irreversible artifact
+  topology — so the model never reaches for them unbidden: **`dw-bootstrap`, `dw-handoff`, `dw-init`,
+  `dw-prune`, `dw-setup-precommit`, `dw-split`, `dw-sync`**. Everything else is model-invocable. This
+  list is CI-enforced against the README and `DESIGN.md` by `pnpm validate:docs`.
 
 ## Body order
 

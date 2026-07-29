@@ -5,6 +5,12 @@ situations, and the decisions you'll hit along the way. The [README](../README.m
 index (what each skill is, one row each); [`DESIGN.md`](DESIGN.md) is the _why_; this is
 the _how_.
 
+> **Scope: the team lane** (`dw-planning` + `dw-quality`) — `dw-spec → dw-plan → dw-build`, artifacts
+> under `.ai/runs/` and `.ai/verify/`. The solo lane (`dw-solo`: `dw-grill → dw-shape → dw-next →
+dw-land`) is short enough that its whole tour is the diagram in the
+> [README](../README.md#the-same-loop-solo-lane); what it drops and why is in
+> [`DESIGN.md`](DESIGN.md), "Two lanes, one toolbox".
+
 ---
 
 ## The idea in one line

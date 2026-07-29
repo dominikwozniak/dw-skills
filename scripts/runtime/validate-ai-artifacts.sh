@@ -21,6 +21,12 @@
 #   verify/   .ai/verify/<dir>/ name == slugify.sh branch-slug <branch:> from a
 #             contained *.md frontmatter.
 #
+# NOT validated: .ai/work/ — the solo lane (dw-shape / dw-next / dw-land) keeps one
+# CHANGE.md per change there. It has no machine-parsed status table, no SHA column and
+# no edge graph, so there is nothing that can break silently and nothing worth gating.
+# The --all sweep globs runs/ and verify/ only; scripts/tests/validate-ai-artifacts.test.sh
+# pins that (case: work-dir-not-swept) so the omission stays deliberate.
+#
 # Usage:
 #   validate-ai-artifacts.sh <run-dir>      validate one .ai/runs/<id>/ (SPEC required, PLAN if present)
 #   validate-ai-artifacts.sh --all [root]   sweep every .ai/runs/*/ and .ai/verify/*/ under root (default: git root)

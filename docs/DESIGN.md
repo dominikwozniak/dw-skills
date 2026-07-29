@@ -17,6 +17,7 @@ choices below are what make those answers hold:
 | The plan silently drifts from the code    | One writer, branch-matched runs, immutable step ids           |
 | The work is too big for one plan          | A slice graph with a frontier, each slice its own run         |
 | One skill grows into a do-everything blob | One skill, one job — they compose through `.ai/`, not chains  |
+| The process outweighs the change          | Two lanes — team ceremony, or one file and one pass           |
 
 Each section below states the choice in one line, then the detail.
 
@@ -159,10 +160,47 @@ doesn't have — every edge recorded on both ends, every number resolvable. `dw-
 both call it rather than re-deriving in-context, so a one-sided edge fails loudly instead of silently
 hiding the dependency the graph existed to expose.
 
+## Two lanes, one toolbox
+
+**The amount of process a change deserves depends on who reads the artifacts, so there are two
+lanes.** They share this repo, the runtime scripts, the `templates/` canon and every convention above —
+they differ only in how much ceremony they impose.
+
+|                    | Team lane (`dw-planning` + `dw-quality`)            | Solo lane (`dw-solo`)               |
+| ------------------ | --------------------------------------------------- | ----------------------------------- |
+| Loop               | `dw-spec → dw-plan → dw-build`                      | `dw-grill → dw-shape → dw-next`     |
+| Planning artifacts | `SPEC.md` + `PLAN.md` + `NOTES.md` (+ `slices/`)    | one `CHANGE.md`                     |
+| Quality            | 5 auditors + `dw-fix`, up to 7 artifacts            | one `dw-land` pass, no artifact     |
+| Resume point       | `dw-resume` → first not-`done` row, or the frontier | `dw-next` bare → first unticked box |
+| Scaffolder         | `dw-bootstrap`                                      | `dw-init`                           |
+| Assumes            | other people read this, and assume nothing          | you are the only reader             |
+
+**Install one lane per repo, not both.** Two lanes in one project means two skills competing for
+"start a feature", and no description wording fixes that reliably. Claude Code scopes plugins per
+project, which is the right place to make the choice once.
+
+Three things the solo lane drops, and what replaces each:
+
+- **The auditor/writer separation.** `dw-review` and friends never edit code because an auditor that
+  can also patch under-reports what it couldn't fix. Solo, you read every finding before anything
+  happens, so the honesty is enforced by you instead — `dw-land` reports first and mutates only after
+  an explicit approval, with the gate between the two phases doing the work the skill boundary did.
+- **The validated status table.** `PLAN.md`'s SHA column and immutable step ids exist so a second
+  reader can trust the record. A checklist has no invariants that can break silently, which is why
+  `validate-ai-artifacts.sh` deliberately never sweeps `.ai/work/`.
+- **Durability by default.** The team lane tracks specs forever because they're shared work
+  documentation. The solo lane splits the two ideas: `CHANGE.md` is **persistent but disposable** —
+  tracked so a week-long gap and a `/clear` change nothing, deleted by `dw-land` at merge — while what
+  is genuinely durable is **promoted out** to `docs/decisions/`, `CONTEXT.md`, and the `## Gotchas`
+  section of `CLAUDE.md` (the one target that is auto-loaded, so the next session reads it unasked —
+  which is why the traps go there and not into a doc nobody opens). Without that closing
+  step a private repo accumulates stale specs _and_ loses the decisions worth keeping, which is the
+  one failure the thin lane would otherwise introduce.
+
 ## Explicit-only skills
 
-`dw-bootstrap`, `dw-handoff`, `dw-prune`, `dw-split`, `dw-sync`, and `dw-setup-precommit` are invoked
-by name and never auto-trigger — they scaffold a repo, install shared tooling, compact or mutate state,
+`dw-bootstrap`, `dw-handoff`, `dw-init`, `dw-prune`, `dw-split`, `dw-sync`, and `dw-setup-precommit`
+are invoked by name and never auto-trigger — they scaffold a repo, install shared tooling, compact or mutate state,
 or act on an explicit drift signal, so the model shouldn't reach for them unbidden. `dw-split` is here
 for a different reason: it picks the artifact _topology_ for a spec, and that pick is effectively
 irreversible (numbers are immutable, `slices/` is never overwritten, and a graph excludes a plan). A
