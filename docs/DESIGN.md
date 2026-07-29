@@ -84,6 +84,37 @@ not a line budget; bulky detail loads on demand from `references/`.
 The harness stays thin, so every model upgrade improves the skills for free. This shape is the direct
 application of **"Fat Skills"** (Garry Tan) — see [Inspiration](#inspiration--further-reading) below.
 
+The same budget applies to a skill's `description`. Every installed skill's description sits in the
+context window of every session, whether or not the skill fires — so it carries routing signal only:
+what the skill does, how it differs from its nearest sibling, and the phrases that should trigger it.
+Procedure detail belongs in the body, which is paid for once, on invoke.
+
+## The symlink canon — one file, many plugins
+
+**A skill or a shipped script exists once, and plugins reach it through git-tracked symlinks.** The
+canon is `skills/<name>/` and `scripts/runtime/<script>.sh`; `plugins/<plugin>/skills/<name>` and
+`plugins/<plugin>/scripts/<script>.sh` are mode-120000 symlinks back to it.
+
+This works because `claude plugin install` **dereferences** symlinks — each plugin gets its own real
+copy in the plugin cache (verified: the installed cache contains 0 symlinks). So a skill body invokes
+a shipped script through the unchanged `${CLAUDE_PLUGIN_ROOT}/scripts/<script>.sh` and the path
+resolves to a real file.
+
+Two consequences:
+
+- **One canonical script can serve several plugins** with no duplication — `slugify.sh` is symlinked
+  into both `dw-planning` and `dw-quality`. A script used by only _one_ skill needs no canon: it
+  stays bundled in `skills/<name>/scripts/` and is invoked via `<this-skill-dir>/…`, as `dw-doctor`
+  does.
+- **`templates/` is a canon for the same reason.** Both scaffolders (`dw-bootstrap` for the team
+  lane, `dw-init` for the solo lane) copy the same hooks and `settings.json` into a target project,
+  so the payload lives once and is read as `${CLAUDE_PLUGIN_ROOT}/templates/…`.
+  `scripts/tests/hooks-in-sync.test.sh` pins this repo's own `.claude/hooks/` to that canon, so the
+  hooks you run are the hooks you ship.
+
+The cost is one rule, and it is absolute: **never edit through a `plugins/…` path** — you would be
+editing the canon by accident on a dev checkout, and writing to a private copy after install.
+
 ## Composable, not chained
 
 **Skills stay separate and connect through artifacts — never a forced sequence.** Different jobs,
