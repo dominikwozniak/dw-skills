@@ -16,11 +16,21 @@ agent (and CI) already read it.
 ## Before you push
 
 ```bash
-pnpm lint && pnpm format && pnpm validate:manifests
+pnpm lint && pnpm format && pnpm validate:manifests && pnpm validate:artifacts && pnpm validate:docs
 ```
 
-CI runs the same gates (agnix lint, prettier, manifest + version-sync validation, trufflehog secrets
-scan) on every PR and push to `main`. The gates are listed in [`AGENTS.md`](AGENTS.md).
+CI runs those five plus a secrets scan on every PR and push to `main`:
+
+| Gate                      | What it checks                                                              |
+| ------------------------- | --------------------------------------------------------------------------- |
+| `pnpm lint`               | `agnix` validates `CLAUDE.md` / `SKILL.md` frontmatter, hooks, manifests    |
+| `pnpm format`             | `prettier --check` (`printWidth: 100`, `proseWrap: preserve`)               |
+| `pnpm validate:manifests` | `claude plugin validate`, marketplace↔plugin version sync, runtime symlinks |
+| `pnpm validate:artifacts` | `.ai/` artifact schema + the runtime-script self-tests in `scripts/tests/`  |
+| `pnpm validate:docs`      | README / `DESIGN.md` ↔ skills sync — dead links, undocumented skills, `⭑`   |
+| `trufflehog`              | secrets scan                                                                |
+
+The validators name the exact missing entry, so run them instead of re-deriving the checklist.
 
 ## Design rationale
 
