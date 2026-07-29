@@ -1,11 +1,11 @@
 ---
-change: <slug>
-branch: <git branch this work lives on>
-created: <YYYY-MM-DD>
+change: slug-of-this-change
+branch: my-feature-branch
+created: YYYY-MM-DD
 status: shaping # shaping | building | landed
 ---
 
-# <Title — what changes, in one line>
+# Change — [title, one line: what changes]
 
 ## Goal
 
@@ -17,24 +17,24 @@ One short paragraph: what changes, and how you'd know it worked. Observable, not
 Only decisions actually taken, with the one-line reason. Delete the section if none were needed —
 an empty heading is noise.
 
-- `<decision>` — `<why>`
+- [decision] — [why]
 
 ## Tasks
 
 Thin vertical slices, each independently committable and leaving the project green. Order is a hint,
 not a gate. `dw-next` ticks these.
 
-- [ ] 1. `<slice>`
-- [ ] 2. `<slice>`
+- [ ] 1. [slice]
+- [ ] 2. [slice]
 
 ## Anchors
 
 Real referents this change follows or touches, each confirmed with Read or grep. Delete for a small
 change.
 
-- `path/to/file.ext:42` — `<what it is and why it matters here>`
+- `path/to/file.ext:42` — [what it is and why it matters here]
 
 ## Notes
 
 Appended while building — surprises, dead ends, things the next session needs. `dw-land` reads this
-when deciding what is durable enough to promote to `docs/decisions/` or `CONTEXT.md`.
+when deciding what is durable enough to promote to `docs/decisions/`, `CONTEXT.md`, or `## Gotchas`.

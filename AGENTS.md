@@ -25,22 +25,16 @@ code project.
     `validate-manifests.sh` / `validate-artifacts.sh` backing `pnpm validate:*`, `lint.sh`).
   - **`scripts/tests/`** — bash self-tests for the runtime scripts (`<script>.sh` ↔
     `<script>.test.sh`), run via `pnpm validate:artifacts`.
-- **`templates/`** — canonical home for the **shared template payload** copied verbatim INTO a target
-  project: `hooks/*.sh`, `settings.json`, `CLAUDE.local.md`, `ai-README.md`,
-  `gitignore-block.txt`. Same symlink pattern as `scripts/runtime/`: `plugins/<name>/templates` →
-  `../../templates` (mode 120000), read from skill bodies as `${CLAUDE_PLUGIN_ROOT}/templates/…`. It
-  is a canon rather than a skill payload because **two** scaffolders copy the same guardrail hooks —
-  `dw-bootstrap` (team lane) and `dw-init` (solo lane). Edit the canon, never a plugin's copy;
-  `scripts/tests/hooks-in-sync.test.sh` pins this repo's own `.claude/hooks/` to it.
+- **`templates/`** — the **shared template payload** copied verbatim INTO a target project (hooks,
+  `settings.json`, `CLAUDE.local.md`, …). Symlinked per plugin like `scripts/runtime/`, read as
+  `${CLAUDE_PLUGIN_ROOT}/templates/…`. A canon because both scaffolders (`dw-bootstrap`, `dw-init`)
+  copy the same hooks — edit the canon; `hooks-in-sync.test.sh` pins this repo's `.claude/hooks/` to it.
 - **`.claude-plugin/marketplace.json`** — makes this repo installable as a Claude Code plugin
   source.
 
-**Two lanes.** `dw-planning` + `dw-quality` are the team lane (`dw-spec → dw-plan → dw-build`,
-artifacts under `.ai/runs/` + `.ai/verify/`); `dw-solo` is the thin lane for repos only the author
-reads (`dw-grill → dw-shape → dw-next → dw-land`, one `CHANGE.md` under `.ai/work/`). `dw-misc` is
-lane-independent. A new skill belongs to one lane — say which in its description, and don't add a
-cross-plugin dependency between lanes. Rationale: [`docs/DESIGN.md`](docs/DESIGN.md), "Two lanes, one
-toolbox".
+**Two lanes.** `dw-planning` + `dw-quality` (team; `.ai/runs/` + `.ai/verify/`) · `dw-solo` (thin; one
+`CHANGE.md` in `.ai/work/`) · `dw-misc` (both). A new skill picks one lane — say which in its
+description, and keep lanes free of cross-dependencies. Why: [`docs/DESIGN.md`](docs/DESIGN.md).
 
 ## Conventions
 
