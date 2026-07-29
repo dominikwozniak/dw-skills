@@ -2,7 +2,7 @@
 # Self-test pinning the "templates ≡ installed copies" invariant: this repo is
 # itself a bootstrapped instance of dw-bootstrap, so every hook in
 # .claude/hooks/ must be a byte-identical, executable copy of its template
-# under skills/dw-bootstrap/references/templates/hooks/ — and every template
+# under templates/hooks/ — and every template
 # must be executable (install does `chmod +x`, but a template committed
 # without the executable bit would ship broken via `git archive`/checkout).
 #
@@ -12,7 +12,7 @@ set -uo pipefail
 export LC_ALL=C
 
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-TEMPLATES="$ROOT/skills/dw-bootstrap/references/templates/hooks"
+TEMPLATES="$ROOT/templates/hooks"
 INSTALLED="$ROOT/.claude/hooks"
 
 PASS=0

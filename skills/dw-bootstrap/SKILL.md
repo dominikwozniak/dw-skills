@@ -88,19 +88,23 @@ a wrong clobber is expensive. Do not write before the user confirms.
 
 ### 5. Write
 
+Templates live at `${CLAUDE_PLUGIN_ROOT}/templates/` — the shared canon, not this
+skill's `references/` (see **Templates** below).
+
 - `mkdir -p .ai/{runs,handoffs,verify}` and seed each with `.gitkeep`. Copy
-  `references/templates/ai-README.md` → `.ai/README.md` (static — no substitution).
-- Copy `references/templates/settings.json` → `.claude/settings.json`; **prune**
-  the hook entries the user didn't select, then confirm the file still parses as
-  valid JSON.
-- Copy the selected `references/templates/hooks/*.sh` → `.claude/hooks/` and
-  `chmod +x` each.
-- Render `references/templates/CLAUDE.local.md` → `CLAUDE.local.md`: substitute
+  `${CLAUDE_PLUGIN_ROOT}/templates/ai-README.md` → `.ai/README.md` (static — no
+  substitution).
+- Copy `${CLAUDE_PLUGIN_ROOT}/templates/settings.json` → `.claude/settings.json`;
+  **prune** the hook entries the user didn't select, then confirm the file still
+  parses as valid JSON.
+- Copy the selected `${CLAUDE_PLUGIN_ROOT}/templates/hooks/*.sh` → `.claude/hooks/`
+  and `chmod +x` each.
+- Render `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE.local.md` → `CLAUDE.local.md`: substitute
   `{{PROJECT_NAME}}` `{{DEFAULT_BRANCH}}` `{{STACK}}` `{{TEST_COMMAND}}`
   `{{LINT_COMMAND}}` `{{TYPECHECK_COMMAND}}`, and build `{{HOOKS_INSTALLED}}` from
   the selected hooks. In tuned mode, also fill the About-me / specifics / git
   sections from the interview.
-- Append `references/templates/gitignore-block.txt` to `.gitignore`, fenced by
+- Append `${CLAUDE_PLUGIN_ROOT}/templates/gitignore-block.txt` to `.gitignore`, fenced by
   its `>>> dw-bootstrap managed block >>>` markers. **Idempotent**: if the markers
   are already present, replace the block in place — never duplicate it.
 
@@ -123,7 +127,11 @@ scaffold.
 
 ## Templates
 
-`references/templates/` holds the exact files to copy:
+`${CLAUDE_PLUGIN_ROOT}/templates/` holds the exact files to copy. It is the **shared
+canon** at the repo root, symlinked into this plugin — the same layout as
+`scripts/runtime/`, because `dw-init` (the solo lane's scaffolder) copies the same
+guardrail hooks. Edit the canon, never a plugin's copy; `scripts/tests/hooks-in-sync.test.sh`
+pins this repo's own `.claude/hooks/` to it.
 
 - `CLAUDE.local.md` — the personal-memory template (placeholders + prompts).
 - `ai-README.md` — the static `.ai/` layout doc, copied verbatim to `.ai/README.md`.
