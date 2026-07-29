@@ -5,9 +5,12 @@ on:
     paths:
       - ".ai/**"
       - scripts/tests/**
-      - plugins/dw-planning/scripts/validate-ai-artifacts.sh
-      - plugins/dw-planning/scripts/plan-status.sh
-      - plugins/dw-planning/scripts/slugify.sh
+      # Filter on the canon, never the plugin symlinks: editing scripts/runtime/<s>.sh
+      # leaves each plugins/<p>/scripts/<s>.sh blob (the link target string) untouched,
+      # so a plugins/** filter never fires for it and the self-tests would be skipped.
+      - scripts/runtime/**
+      # hooks-in-sync + the two hook self-tests read templates/hooks/ directly.
+      - templates/**
       - scripts/validate-artifacts.sh
       - .github/workflows/validate-ai-artifacts.yaml
   push:
@@ -15,9 +18,12 @@ on:
     paths:
       - ".ai/**"
       - scripts/tests/**
-      - plugins/dw-planning/scripts/validate-ai-artifacts.sh
-      - plugins/dw-planning/scripts/plan-status.sh
-      - plugins/dw-planning/scripts/slugify.sh
+      # Filter on the canon, never the plugin symlinks: editing scripts/runtime/<s>.sh
+      # leaves each plugins/<p>/scripts/<s>.sh blob (the link target string) untouched,
+      # so a plugins/** filter never fires for it and the self-tests would be skipped.
+      - scripts/runtime/**
+      # hooks-in-sync + the two hook self-tests read templates/hooks/ directly.
+      - templates/**
       - scripts/validate-artifacts.sh
       - .github/workflows/validate-ai-artifacts.yaml
 
