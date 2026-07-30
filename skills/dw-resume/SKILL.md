@@ -63,8 +63,8 @@ result and **stop at the first that applies**:
 2. **Detached HEAD** (branch resolves to the literal `HEAD`) → say so, list every
    run with its recorded `branch:`, ask which to resume. Stop.
 3. **Exactly one run matches the branch** → use it (go to step 2).
-4. **More than one matches** → use the newest by `<YYYYMMDD>` prefix; list the
-   others so nothing is hidden. (Same-date tie → list both, ask.)
+4. **More than one matches** → the script picks the most recently modified and says
+   so on stderr; use that one and list the others so nothing is hidden.
 5. **Zero matches but runs exist** → don't guess. Name the run(s) and their
    recorded `branch:` (mark any run lacking `branch:` frontmatter as "unmatched")
    and ask which to resume. Stop.
@@ -135,13 +135,19 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/slice-status.sh" --frontier .ai/runs/<id>/sl
 
 Report the **Goal** (SPEC TLDR), the slice counts by status from `INDEX.md`, and then:
 
-- **frontier non-empty** → name every takeable slice (number + title) and, if more than
-  one, say they're independent. **Next:** `dw-split take <NN>` — then `dw-plan` →
-  `dw-build` inside the new run.
-- **frontier empty but slices remain** → everything left is `doing` or `blocked`. Lead
+- **frontier non-empty** → name every slice it lists (number + title) and, if more than
+  one, say they're independent. The frontier excludes only `done` and `blocked`, so a
+  `doing` slice appears in it — report that one as already in flight (see below), never as
+  takeable. **Next:** `dw-split take <NN>` on a `ready` one — then `dw-plan` → `dw-build`
+  inside the new run.
+- **frontier holds no `ready` slice but slices remain** → everything left is `doing` or
+  `blocked`. Lead
   with the `blocked` slices and what each waits on (its `## Blocked by` reason plus the
   `NOTES.md` tail); the next move is clearing a blocker, not taking a slice. A `doing`
-  slice means an in-flight child run — name it, and resume _that_ branch.
+  slice means an in-flight child run — read its `taken_run:` and name that run and its
+  branch, so the user can resume _there_. If the key is absent (a slice taken before it
+  existed), find the child by its `parent_slice:` —
+  `grep -l "parent_slice: \"NN\"" .ai/runs/*/SPEC.md` — and say you derived it.
 - **every slice `done`** → the split is complete, so the **quality pass** drives the next
   step; follow the same `.ai/verify/` ladder as the all-rows-`done` case above.
 - **`slice-status.sh --check` fails** (one-sided edge, unresolvable number, `INDEX.md`

@@ -196,11 +196,10 @@ Three consequences worth naming:
 - **One run, one topology.** A run holding both a `PLAN.md` and a `slices/` has two resume points,
   which is none, so `validate-ai-artifacts.sh` fails it. The two compose the other way: each slice
   taken from the graph gets its own run and its own plan.
-- **Slices carry verified file anchors**, which the upstream `to-tickets` deliberately omits: a slice
-  has to be executable in a fresh session with no prior conversation, so it needs the grounding a
-  `PLAN.md` inherits from the run around it. Anchors are orientation, never an edit script — and the
-  session that _takes_ a slice re-verifies them, because verification at write time doesn't survive
-  two weeks of other people's commits.
+- **Slices carry verified file anchors.** A slice has to be executable in a fresh session with no
+  prior conversation, so it needs the grounding a `PLAN.md` inherits from the run around it. Anchors
+  are orientation, never an edit script — and the session that _takes_ a slice re-verifies them,
+  because verification at write time doesn't survive two weeks of other people's commits.
 
 The graph's derived state gets the same treatment as a plan's: `plan-status.sh` owns "the resume point
 is the first not-`done` row", and `slice-status.sh` owns the frontier plus the invariants a list
