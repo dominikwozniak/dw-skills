@@ -27,7 +27,7 @@ different change. `.ai/` is tracked in git.
 Find the active change by branch, not by guessing:
 
 ```
-grep -l "^branch: $(git branch --show-current)$" .ai/work/*/CHANGE.md 2>/dev/null
+grep -l "^branch: $(git rev-parse --abbrev-ref HEAD)$" .ai/work/*/CHANGE.md 2>/dev/null
 ```
 
 - **One match** — that's it.
@@ -35,6 +35,8 @@ grep -l "^branch: $(git branch --show-current)$" .ai/work/*/CHANGE.md 2>/dev/nul
 - **None** — say so plainly. If exactly one non-`landed` change exists on another branch, offer it
   (you may simply be on the wrong branch). Otherwise point at `dw-shape`. **Never invent a task
   list** to have something to do.
+- **Detached HEAD** (the branch resolves to the literal `HEAD`) — say so, list every `CHANGE.md` with
+  its recorded `branch:`, and ask which one to build. Stop; don't guess.
 
 ## Workflow
 

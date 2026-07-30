@@ -26,11 +26,17 @@ week-long gap between sessions — but this one is **working scaffolding, not a 
 `dw-land` deletes it at merge after promoting anything durable out of it. That split is deliberate;
 decisions belong in `docs/decisions/`, not in a spec nobody will reopen.
 
-1. **Don't start a second change on the same branch.** Look for an existing one first:
-   `grep -l "^branch: $(git branch --show-current)\$" .ai/work/*/CHANGE.md 2>/dev/null`. If one turns
-   up and its `status:` isn't `landed`, **continue that file** — only open a new change for genuinely
-   separate work. When unsure, ask.
-2. **Derive the slug, don't invent it:**
+1. **Resolve the branch first — it is the key every other solo skill uses.**
+   `git rev-parse --abbrev-ref HEAD`, the primitive the rest of the catalog uses. That value goes into
+   the `branch:` frontmatter **verbatim**: `dw-next` and `dw-land` find this file by grepping for it, so
+   a placeholder left in place orphans the change. If it resolves to the literal `HEAD` — detached, e.g.
+   a `git worktree add` without `-b`, a bisect, a tag checkout — **say so and ask which branch to
+   record.** Never write `HEAD`.
+2. **Don't start a second change on the same branch.** Look for an existing one first:
+   `grep -l "^branch: $(git rev-parse --abbrev-ref HEAD)\$" .ai/work/*/CHANGE.md 2>/dev/null`. If one
+   turns up and its `status:` isn't `landed`, **continue that file** — only open a new change for
+   genuinely separate work. When unsure, ask.
+3. **Derive the slug, don't invent it:**
    `bash "${CLAUDE_PLUGIN_ROOT}/scripts/slugify.sh" slug "<short description>"`. Same script the
    whole catalog uses, so casing never drifts. (`${CLAUDE_PLUGIN_ROOT}` is the env var Claude Code
    substitutes to this plugin's install dir.)

@@ -33,7 +33,10 @@ on purpose.
 ### 1. Establish what actually changed
 
 - `git diff <default-branch>...HEAD` plus `git log --oneline <default-branch>..HEAD`. Read the default
-  branch from `## Git conventions`, don't assume `main`.
+  branch from `## Git conventions`, don't assume `main`. Prefer `origin/<default-branch>` when it
+  exists, falling back to the local ref: a local default branch that has fallen behind makes the
+  merge-base older than your branch point, so the diff swallows commits you didn't write — and
+  `git log <default-branch>..HEAD` lists them outright.
 - Read the `CHANGE.md`: the goal, the ticked tasks, the Notes.
 - Read `CONTEXT.md` and `docs/decisions/` if present, so the verdict is against this project's
   established choices rather than a generic standard.

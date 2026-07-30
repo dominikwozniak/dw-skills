@@ -1,6 +1,6 @@
 ---
 change: slug-of-this-change
-branch: my-feature-branch
+branch: FILL-FROM git rev-parse --abbrev-ref HEAD (verbatim; never HEAD, never this placeholder)
 created: YYYY-MM-DD
 status: shaping # shaping | building | landed
 ---
