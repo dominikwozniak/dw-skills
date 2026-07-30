@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "dw-misc",
-      "version": "0.3.8",
+      "version": "0.3.9",
       "source": "./plugins/dw-misc",
       "keywords": [
         "bootstrap",
@@ -57,7 +57,7 @@
     },
     {
       "name": "dw-solo",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "source": "./plugins/dw-solo",
       "keywords": [
         "solo",

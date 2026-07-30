@@ -61,6 +61,17 @@ that lives only in the gitignored `CLAUDE.local.md` is invisible on a fresh clon
 reads `AGENTS.md`. That file keeps its own copy anyway, because the lint and typecheck hooks grep it for
 those names, so the two must be updated together.
 
+Being gitignored has one more consequence, and it is the reason the `link-local-memory` hook exists: a
+`git worktree` checkout receives only **tracked** files, so `CLAUDE.local.md` is simply absent there.
+`.claude/settings.json`, `.claude/hooks/` and `.ai/` are tracked and do materialise, but without that
+file `dw-git` loses the repo's `## Git conventions` — commit format, trailer policy, the signing rule —
+and falls back to generic defaults. The visible symptom is a worktree commit carrying a trailer the main
+tree forbids. The hook closes it by symlinking the main tree's copy in at `SessionStart`, detecting the
+worktree via `--git-dir` vs `--git-common-dir` (a path compare would misfire: in the main tree
+`--git-common-dir` returns a relative `.git`). It also prints a pointer, because nothing guarantees the
+symlink lands before memory files are read — without that line the conventions would only reach context
+in the _next_ session.
+
 Verification scenarios are _typed_, so the skill stays stack-neutral and the project fills in the
 concrete command:
 

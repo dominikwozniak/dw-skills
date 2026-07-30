@@ -57,11 +57,13 @@ this plugin's install dir.)
 
 ### 2. Pick the hooks
 
-Two are always offered because they're pure guardrails: `block-dangerous-commands` and
-`block-env-access`. Add the stack-specific ones only where the stack is actually present —
-`block-non-pnpm`, `lint-on-edit`, `typecheck-on-stop` for JS/TS, `lint-on-edit-rb` for Ruby. On a
-stack with no lint or typecheck hook, offer the two guards alone and say the rest are stack-specific
-rather than silently writing nothing.
+Three are always offered because they're stack-agnostic: `block-dangerous-commands`,
+`block-env-access`, and `link-local-memory` (a `SessionStart` hook that symlinks the main tree's
+gitignored `CLAUDE.local.md` into a `git worktree`, so `dw-git` and the lint/typecheck hooks still see
+the project's conventions there — a silent no-op outside a worktree). Add the stack-specific ones only
+where the stack is actually present — `block-non-pnpm`, `lint-on-edit`, `typecheck-on-stop` for JS/TS,
+`lint-on-edit-rb` for Ruby. On a stack with no lint or typecheck hook, offer the three alone and say
+the rest are stack-specific rather than silently writing nothing.
 
 ### 3. HARD STOP — show what you're about to write
 

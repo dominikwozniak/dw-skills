@@ -1,6 +1,6 @@
 {
   "name": "dw-solo",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The thin lane, for your own projects. One artifact per change instead of three, one quality pass instead of five. Skills: dw-init (scaffold a solo repo), dw-grill (bounded interview, one question at a time), dw-shape (one CHANGE.md with a task checklist), dw-next (resume point and build step in one), dw-land (verdict, then promote decisions and drop the scaffolding). Install this instead of dw-planning + dw-quality — not alongside them.",
   "author": {
     "name": "Dominik Wozniak"

@@ -8,16 +8,19 @@ node_modules/
 /*.local.md
 /research.md
 
-# Vendored external dev tool (improve skill) + worktree scratch — personal, not this repo's product
+# Vendored external dev tool (improve skill) — personal, not this repo's product
+# (worktree scratch is in the managed block below)
 /.agents/
 /.claude/skills/
-/.claude/worktrees/
 /skills-lock.json
 
 # >>> dw-bootstrap managed block >>>
 # Personal agent memory & local overrides — never committed.
 /CLAUDE.local.md
 /.claude/settings.local.json
+
+# Worktree scratch — `claude --worktree` / `git worktree add` land here.
+/.claude/worktrees/
 
 # Editor / OS scratch.
 .DS_Store

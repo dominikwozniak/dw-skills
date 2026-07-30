@@ -3,6 +3,9 @@
 /CLAUDE.local.md
 /.claude/settings.local.json
 
+# Worktree scratch — `claude --worktree` / `git worktree add` land here.
+/.claude/worktrees/
+
 # Editor / OS scratch.
 .DS_Store
 *.swp

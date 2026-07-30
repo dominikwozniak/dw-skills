@@ -66,10 +66,10 @@ there first (step 1) and present a diff before writing (step 4).
 - Mode **A skeleton** vs **B tuned**.
 - Features to write (default all): `.ai/` memory (dirs + `README.md`) ·
   `settings.json` + hooks · `CLAUDE.local.md` · `.gitignore` block.
-- Hooks, filtered by detected stack: `block-dangerous-commands` + `block-env-access`
-  (always), `block-non-pnpm` + `lint-on-edit` + `typecheck-on-stop` (JS/TS),
-  `lint-on-edit-rb` (Ruby). On stacks with no lint/typecheck hook, offer the two
-  always-on guards alone and note the rest are stack-specific (see
+- Hooks, filtered by detected stack: `block-dangerous-commands`, `block-env-access` and
+  `link-local-memory` (always); `block-non-pnpm` + `lint-on-edit` + `typecheck-on-stop`
+  (JS/TS), `lint-on-edit-rb` (Ruby). On stacks with no lint/typecheck hook, offer the
+  three always-on hooks alone and note the rest are stack-specific (see
   `references/bootstrap.md` → _Stack → hooks_).
 
 ### 3. (Mode B only) Interview — fill the prose
@@ -145,8 +145,8 @@ pins this repo's own `.claude/hooks/` to it.
 - `settings.json` — tracked permissions + hooks (prune unselected hooks).
 - `gitignore-block.txt` — the marker-fenced managed block.
 - `hooks/block-dangerous-commands.sh` · `hooks/block-env-access.sh` ·
-  `hooks/block-non-pnpm.sh` · `hooks/lint-on-edit.sh` · `hooks/lint-on-edit-rb.sh` ·
-  `hooks/typecheck-on-stop.sh`.
+  `hooks/link-local-memory.sh` · `hooks/block-non-pnpm.sh` · `hooks/lint-on-edit.sh` ·
+  `hooks/lint-on-edit-rb.sh` · `hooks/typecheck-on-stop.sh`.
 
 ## References
 
