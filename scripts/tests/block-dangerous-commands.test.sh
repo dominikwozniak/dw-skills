@@ -66,6 +66,14 @@ blocked "rtk-branch-D"        "rtk git branch -D feature"
 blocked "rtk-stash-clear"     "rtk git stash clear"
 blocked "rtk-proxy-push"      "rtk proxy git push --force"
 blocked "rtk-chained"         "cd subdir && rtk git push --force"
+# `rtk run` is a raw `sh -c`; err/summary/test run the command and filter output —
+# every one of them is a live exec path, not just the `proxy` the regex once knew.
+blocked "rtk-run-push"        "rtk run git push --force"
+blocked "rtk-run-quoted"      'rtk run "git push --force"'
+blocked "rtk-err-push"        "rtk err git push --force"
+blocked "rtk-summary-push"    "rtk summary git push --force"
+blocked "sudo-rtk-run-push"   "sudo rtk run git push --force"
+blocked "rtk-run-rm-home"     "rtk run rm -rf ~"
 
 echo "allowed (exit 0):"
 allowed "plain-push"          "git push"
@@ -84,6 +92,8 @@ allowed "find-no-delete"      "find . -name '*.pyc'"
 allowed "rtk-status"          "rtk git status"
 allowed "rtk-plain-push"      "rtk git push"
 allowed "rtk-gain"            "rtk gain"
+allowed "rtk-run-tests"       "rtk run pnpm test"
+allowed "rtk-summary-status"  "rtk summary git status"
 allowed "empty-input"         ""
 
 echo

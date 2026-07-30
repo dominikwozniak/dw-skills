@@ -18,14 +18,17 @@ COMMAND=$(jq -r '.tool_input.command // empty' <<<"$INPUT")
 [[ -z "$COMMAND" ]] && exit 0
 
 # See through wrapper prefixes: a destructive command stays destructive when run
-# via sudo or wrapped by RTK's auto-rewrite (`rtk <cmd>` / `rtk proxy <cmd>`).
+# via sudo or wrapped by RTK — `rtk <cmd>` (the auto-rewrite), `rtk proxy <cmd>`,
+# and the subcommands that execute an arbitrary command themselves (`rtk run` is
+# a raw `sh -c`; `err`, `summary`, `test` run it and filter the output). One
+# optional word after `rtk` covers every form, present and future.
 # Consume zero or more wrappers right after a boundary so `rtk git push --force`
 # matches the same as `git push --force`.
-WRAPPER='(sudo[[:space:]]+|rtk[[:space:]]+(proxy[[:space:]]+)?)*'
+WRAPPER='(sudo[[:space:]]+|rtk[[:space:]]+([a-z-]+[[:space:]]+)?)*'
 
-# Start-of-command boundary: line start, or right after ; & | (chain/pipe),
-# then any wrapper prefixes.
-BOUNDARY="(^|[;&|][[:space:]]*)${WRAPPER}"
+# Start-of-command boundary: line start, or right after ; & | (chain/pipe), then
+# any wrapper prefixes, then an optional quote (`rtk run "git push --force"`).
+BOUNDARY="(^|[;&|][[:space:]]*)${WRAPPER}[\"']?"
 
 DANGEROUS_PATTERNS=(
   'git push( [^;&|]*)?( --force| -f\b)'                   # force push, any arg order (incl. --force-with-lease)
