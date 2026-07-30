@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
-# validate-docs.sh — guard the README / DESIGN ↔ skills contract that AGENTS.md's add-a-skill
-# checklist otherwise keeps by hand. CI already validates manifests and .ai/ artifacts but never the
-# prose, so a skill added / renamed / removed — or an explicit-invoke flag flipped — can ship with
-# the docs silently out of sync. Three mechanical, no-judgement checks:
+# validate-docs.sh — guard the docs ↔ skills contract that AGENTS.md's add-a-skill checklist
+# otherwise keeps by hand. CI already validates manifests and .ai/ artifacts but never the prose, so
+# a skill added / renamed / removed — or an explicit-invoke flag flipped — can ship with the docs
+# silently out of sync. Three mechanical, no-judgement checks:
 #   1. no dead skill links   — every skills/<x>/SKILL.md linked in README exists on disk
 #   2. no undocumented skill — every skills/<x>/ on disk is linked in the README task-router
 #   3. explicit-invoke sync  — a skill's `disable-model-invocation: true` <=> it is marked `⭑` in
-#                              the task-router AND named in the README + DESIGN explicit-only lists
+#                              the task-router AND named in EVERY doc carrying an explicit list
+#
+# Check 3 iterates EXPLICIT_LIST_DOCS rather than hardcoding a pair of files. It used to cover
+# README + DESIGN only, and docs/WORKFLOWS.md drifted unnoticed to 5 of 7 explicit skills precisely
+# because it wasn't in the loop. Adding a doc that lists skills is now one edit here.
+#
 # Run from the repo root (`pnpm validate:docs`) or via CI. Exit 0 iff the docs match the skills.
 set -uo pipefail
 export LC_ALL=C
@@ -16,6 +21,9 @@ cd "$ROOT" || exit 1
 
 README="README.md"
 DESIGN="docs/DESIGN.md"
+WORKFLOWS="docs/WORKFLOWS.md"
+# Every doc carrying an explicit-only list. Add a doc here when it grows one.
+EXPLICIT_LIST_DOCS="$README $DESIGN $WORKFLOWS"
 FAILED=0
 
 # in_list <needle> <space-separated-haystack> — exit 0 if present.
@@ -70,20 +78,34 @@ for name in $disk_skills; do
     star_rows="$star_rows $name"
   fi
 done
-readme_line="$(grep -F '**Explicit-only skills**' "$README" || true)"
-design_section="$(awk '/^## Explicit-only skills/{f=1;next} f&&/^## /{exit} f{print}' "$DESIGN")"
+# explicit_list_text <doc> — the prose naming explicit-only skills in that doc. DESIGN keeps it as
+# an "## Explicit-only skills" section; README and WORKFLOWS keep it as a bolded paragraph. Read the
+# whole paragraph (marker line through the next blank line), not just the marker line — prettier
+# wraps at 100 cols, so the names routinely continue onto the following lines.
+explicit_list_text() {
+  case "$1" in
+    "$DESIGN") awk '/^## Explicit-only skills/{f=1;next} f&&/^## /{exit} f{print}' "$1" ;;
+    *) awk '/\*\*Explicit-only skills\*\*/{f=1} f&&/^[[:space:]]*$/{exit} f{print}' "$1" ;;
+  esac
+}
 
 # contains_name <text> <skill> — text mentions `<skill>` (backtick-wrapped).
 contains_name() { case "$1" in *"\`$2\`"*) return 0 ;; *) return 1 ;; esac; }
 
-# forward: each explicit-on-disk skill must appear in all three doc places.
+# forward: each explicit-on-disk skill must carry ⭑ and appear in every listing doc.
 for name in $explicit_disk; do
   in_list "$name" "$star_rows" \
     || { echo "::error::$name is explicit (disable-model-invocation) but has no \`⭑\` in the $README task-router"; FAILED=1; }
-  contains_name "$readme_line" "$name" \
-    || { echo "::error::$name is explicit but is not named in the $README \"Explicit-only skills\" list"; FAILED=1; }
-  contains_name "$design_section" "$name" \
-    || { echo "::error::$name is explicit but is not named in $DESIGN's \"Explicit-only skills\" section"; FAILED=1; }
+  for doc in $EXPLICIT_LIST_DOCS; do
+    text="$(explicit_list_text "$doc")"
+    if [ -z "$text" ]; then
+      echo "::error::$doc has no explicit-only list for this check to read"
+      FAILED=1
+    elif ! contains_name "$text" "$name"; then
+      echo "::error::$name is explicit but is not named in $doc's explicit-only list"
+      FAILED=1
+    fi
+  done
 done
 
 # reverse: nothing may claim explicit status it doesn't actually have on disk.
@@ -91,14 +113,13 @@ for name in $star_rows; do
   in_list "$name" "$explicit_disk" \
     || { echo "::error::$name carries \`⭑\` in $README but its SKILL.md is not disable-model-invocation: true"; FAILED=1; }
 done
-for name in $(printf '%s\n' "$readme_line" | grep -oE 'dw-[a-z-]+' | sort -u); do
-  in_list "$name" "$explicit_disk" \
-    || { echo "::error::$name is listed in the $README \"Explicit-only skills\" sentence but is not explicit on disk"; FAILED=1; }
+for doc in $EXPLICIT_LIST_DOCS; do
+  for name in $(explicit_list_text "$doc" | grep -oE 'dw-[a-z-]+' | sort -u); do
+    in_list "$name" "$explicit_disk" \
+      || { echo "::error::$name is listed in $doc's explicit-only list but is not explicit on disk"; FAILED=1; }
+  done
 done
-for name in $(printf '%s\n' "$design_section" | grep -oE 'dw-[a-z-]+' | sort -u); do
-  in_list "$name" "$explicit_disk" \
-    || { echo "::error::$name is listed in $DESIGN's \"Explicit-only skills\" section but is not explicit on disk"; FAILED=1; }
-done
+[ "$FAILED" -eq 0 ] && echo "OK  explicit-invoke lists agree across:$EXPLICIT_LIST_DOCS"
 
 echo
 if [ "$FAILED" -eq 0 ]; then

@@ -27,9 +27,10 @@ disable-model-invocation: true # ONLY for explicit-invoke-only skills (see below
   (e.g. `dw-resume`).
 - **`disable-model-invocation: true`** — set this _only_ on skills that scaffold a repo, install shared
   tooling, compact or mutate state, act on an explicit drift signal, or pick an irreversible artifact
-  topology — so the model never reaches for them unbidden: **`dw-bootstrap`, `dw-handoff`, `dw-init`,
-  `dw-prune`, `dw-setup-precommit`, `dw-split`, `dw-sync`**. Everything else is model-invocable. This
-  list is CI-enforced against the README and `DESIGN.md` by `pnpm validate:docs`.
+  topology — so the model never reaches for them unbidden. The authoritative list lives in
+  [`DESIGN.md`](DESIGN.md), "Explicit-only skills", and is CI-enforced against the README,
+  `DESIGN.md` and `WORKFLOWS.md` by `pnpm validate:docs` — this file deliberately doesn't restate it,
+  so there's one place fewer to drift.
 
 ## Body order
 

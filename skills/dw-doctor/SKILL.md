@@ -33,14 +33,13 @@ the repo declares, so nothing about a stack is assumed:
 - `Gemfile` — whether `standard` / `rubocop` is declared (drives the Ruby checks).
 - `tsconfig.json`, `.nvmrc` — presence informs the `tsc` / node checks.
 - `.claude/settings.json` — parsed for every wired hook command; each referenced
-  `*.sh` is checked for existence + the executable bit. Plus `enabledPlugins` in a
-  solo repo, to confirm the team-lane plugins really are disabled — a hand-written
-  key with a wrong marketplace id is silently ignored, so it's worth asserting.
-- `.ai/work/` vs `.ai/runs/` — **which lane this repo runs**, which gates the checks
-  below it. Both present is flagged: one lane per repo.
-- `docs/decisions/`, `CONTEXT.md`, and `CLAUDE.md`'s `## Gotchas` / `## Commands`
-  sections — solo lane only, since that's where `dw-land` promotes. `.ai/verify/` —
-  team lane only.
+  `*.sh` is checked for existence + the executable bit.
+- `.ai/runs/` and `.ai/verify/` — this catalog's two artifact homes, and the check
+  that the repo is scaffolded. `.ai/work/` belongs to the thin lane (`dw-solo`, its
+  own marketplace); finding it here means the wrong plugins are installed for this
+  repo, so it's reported rather than ignored.
+- `CLAUDE.md`'s `## Commands` section — the only tracked copy of test/lint/typecheck,
+  so a fresh clone and an `AGENTS.md`-reading agent can still find them.
 - `CLAUDE.local.md` — the file the hooks and `dw-git` read for commands/conventions.
 - `.claude-plugin/marketplace.json` — only if present (a marketplace repo); a
   light plugin/version-sync glance.
@@ -75,15 +74,15 @@ they can copy-paste, but do not run them yourself.
 Report and hand off. Fixing the environment is the user's action; `dw-doctor`
 only diagnoses.
 
-**Next:** follow the `lane` line the report prints, not a default — pointing a solo
-repo at the team loop is the one wrong turn available here.
+**Next:** follow the `lane` line the report prints.
 
-- **solo** (`.ai/work/`) — `dw-init` if the scaffold is incomplete, else `dw-shape`
-  for a new change or `dw-next` to pick the active one back up.
-- **team** (`.ai/runs/`) — `dw-bootstrap` if the scaffold is incomplete, else
-  `dw-spec` to open the first run, or `dw-resume` if one already exists.
-- **neither** — the repo isn't set up yet: `dw-init` for your own repo,
-  `dw-bootstrap` for a shared one.
+- **`.ai/runs/` present** — `dw-bootstrap` if the scaffold is incomplete (a warned
+  `.ai/verify/` or `## Commands`), else `dw-spec` to open the first run, or
+  `dw-resume` if one already exists.
+- **`.ai/runs/` absent** — the repo isn't set up for this loop yet: `dw-bootstrap`.
+- **`.ai/work/` reported** — this repo runs the thin lane, so `dw-planning` +
+  `dw-quality` are the wrong plugins for it; install `dw-solo` from the
+  `dw-solo-skills` marketplace instead.
 
 ## Guardrails
 

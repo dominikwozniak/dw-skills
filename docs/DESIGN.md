@@ -55,8 +55,8 @@ commands it needs (test, lint, run, db-console, server URL) in this order:
 Stack is detected by which manifest is present, never branched on by name. With no declared commands a
 skill auto-detects and **states its assumption, asking when ambiguous** — it never guesses silently.
 
-Tier 1 is populated, not hoped for: both scaffolders (`dw-bootstrap`, `dw-init`) seed `## Commands` in
-**tracked** `CLAUDE.md` from the commands they actually found in the manifests. Tracked matters — a copy
+Tier 1 is populated, not hoped for: `dw-bootstrap` seeds `## Commands` in
+**tracked** `CLAUDE.md` from the commands it actually found in the manifests. Tracked matters — a copy
 that lives only in the gitignored `CLAUDE.local.md` is invisible on a fresh clone and to any agent that
 reads `AGENTS.md`. That file keeps its own copy anyway, because the lint and typecheck hooks grep it for
 those names, so the two must be updated together.
@@ -123,11 +123,12 @@ Two consequences:
   into both `dw-planning` and `dw-quality`. A script used by only _one_ skill needs no canon: it
   stays bundled in `skills/<name>/scripts/` and is invoked via `<this-skill-dir>/…`, as `dw-doctor`
   does.
-- **`templates/` is a canon for the same reason.** Both scaffolders (`dw-bootstrap` for the team
-  lane, `dw-init` for the solo lane) copy the same hooks and `settings.json` into a target project,
-  so the payload lives once and is read as `${CLAUDE_PLUGIN_ROOT}/templates/…`.
-  `scripts/tests/hooks-in-sync.test.sh` pins this repo's own `.claude/hooks/` to that canon, so the
-  hooks you run are the hooks you ship.
+- **`templates/` is a canon for the same reason.** `dw-bootstrap` copies the hooks and
+  `settings.json` into a target project, so the payload lives once and is read as
+  `${CLAUDE_PLUGIN_ROOT}/templates/…`. `scripts/tests/hooks-in-sync.test.sh` pins this repo's own
+  `.claude/hooks/` to that canon, so the hooks you run are the hooks you ship. The same hooks are
+  **vendored** by `dw-solo-skills`; that copy is byte-identical today and no test can see across the
+  repo boundary, so a fix here has to be applied there too.
 
 The cost is one rule, and it is absolute: **never edit through a `plugins/…` path** — you would be
 editing the canon by accident on a dev checkout, and writing to a private copy after install.
@@ -207,13 +208,14 @@ doesn't have — every edge recorded on both ends, every number resolvable. `dw-
 both call it rather than re-deriving in-context, so a one-sided edge fails loudly instead of silently
 hiding the dependency the graph existed to expose.
 
-## Two lanes, one toolbox
+## Two lanes, two repos
 
 **The amount of process a change deserves depends on who reads the artifacts, so there are two
-lanes.** They share this repo, the runtime scripts, the `templates/` canon and every convention above —
-they differ only in how much ceremony they impose.
+lanes.** This repo is the **team lane** — it assumes other people read the artifacts and assume
+nothing. The thin lane lives in its own marketplace,
+[`dw-solo-skills`](https://github.com/dominikwozniak/dw-solo-skills), for repos only you read.
 
-|                    | Team lane (`dw-planning` + `dw-quality`)            | Solo lane (`dw-solo`)               |
+|                    | This repo (`dw-planning` + `dw-quality`)            | `dw-solo-skills`                    |
 | ------------------ | --------------------------------------------------- | ----------------------------------- |
 | Loop               | `dw-spec → dw-plan → dw-build`                      | `dw-grill → dw-shape → dw-next`     |
 | Planning artifacts | `SPEC.md` + `PLAN.md` + `NOTES.md` (+ `slices/`)    | one `CHANGE.md`                     |
@@ -224,36 +226,42 @@ they differ only in how much ceremony they impose.
 
 **Install one lane per repo, not both.** Two lanes in one project means two skills competing for
 "start a feature", and no description wording fixes that reliably. Claude Code scopes plugins per
-project, which is the right place to make the choice once.
+project, which is the right place to make the choice once — `dw-doctor` reports when it finds
+`.ai/work/` in a repo running this lane.
 
-Three things the solo lane drops, and what replaces each:
+### Why they're separate repos
+
+They shared this repo until the `templates/` canon became the problem. The payload here is shaped for
+`dw-bootstrap`, and the thin lane paid for it at runtime: its scaffolder had to replace a whole
+`## Workflow` section in `CLAUDE.local.md` after copying it, skip `templates/ai-README.md` entirely
+(it documents `runs/`/`verify/`/`handoffs/`, directories that lane never creates) and hand-write a
+replacement inline, and append a gitignore block whose markers read `dw-bootstrap managed block`.
+Three work-arounds-in-prose that a lane-owned `templates/` deletes outright.
+
+The cost, recorded rather than discovered later: `templates/hooks/*.sh` and
+`scripts/runtime/slugify.sh` are **vendored byte-identical copies** in the other repo. A fix here does
+not reach it, and nothing across the boundary can detect drift — `hooks-in-sync.test.sh` only pins
+this repo's `.claude/hooks/` to its own canon. `dw-git`, `dw-doctor` and `dw-setup-precommit` exist as
+deliberately simplified forks there and are expected to diverge.
+
+Two things the thin lane drops, and why that's safe there:
 
 - **The auditor/writer separation.** `dw-review` and friends never edit code because an auditor that
-  can also patch under-reports what it couldn't fix. Solo, you read every finding before anything
-  happens, so the honesty is enforced by you instead — `dw-land` reports first and mutates only after
-  an explicit approval, with the gate between the two phases doing the work the skill boundary did.
+  can also patch under-reports what it couldn't fix. With one reader, you read every finding before
+  anything happens, so the honesty is enforced by you instead — a single gated pass reports first and
+  mutates only after explicit approval, with the gate doing the work the skill boundary did.
 - **The validated status table.** `PLAN.md`'s SHA column and immutable step ids exist so a second
   reader can trust the record. A checklist has no invariants that can break silently, which is why
-  `validate-ai-artifacts.sh` deliberately never sweeps `.ai/work/`.
-- **Durability by default.** The team lane tracks specs forever because they're shared work
-  documentation. The solo lane splits the two ideas: `CHANGE.md` is **persistent but disposable** —
-  tracked so a week-long gap and a `/clear` change nothing, deleted by `dw-land` at merge — while what
-  is genuinely durable is **promoted out** to four targets: `docs/decisions/`, `CONTEXT.md`, the
-  `## Gotchas` section of `CLAUDE.md` (the one target that is auto-loaded, so the next session reads it
-  unasked — which is why the traps go there and not into a doc nobody opens), and `.ai/BACKLOG.md`.
-  Without that closing step a private repo accumulates stale specs _and_ loses the decisions worth
-  keeping, which is the one failure the thin lane would otherwise introduce.
+  `validate-ai-artifacts.sh` deliberately never sweeps `.ai/work/` — a sweep kept after the split, so
+  that a repo with both lanes installed still doesn't get its `CHANGE.md` files failed here.
 
-  The backlog is the fourth target because the other three each have a high bar — hard-to-reverse
-  decision, domain term, trap that cost real time — and an ordinary follow-up clears none of them. In
-  the team lane it would be redundant: a shared repo has a tracker, and `NOTES.md` outlives the run. In
-  a private repo with neither, a verdict of "ready with follow-ups" would otherwise be deleted along
-  with the `CHANGE.md` that held it. It stays a flat, unvalidated list on purpose — the moment it grows
-  a status column it is the `PLAN.md` this lane exists to avoid.
+The idea this repo takes _from_ that lane is `.ai/BACKLOG.md`: a flat list of follow-ups. It stays
+there and not here because a shared repo already has the two things that make it redundant — a
+tracker, and a `NOTES.md` that outlives the run.
 
 ## Explicit-only skills
 
-`dw-bootstrap`, `dw-handoff`, `dw-init`, `dw-prune`, `dw-split`, `dw-sync`, and `dw-setup-precommit`
+`dw-bootstrap`, `dw-handoff`, `dw-prune`, `dw-split`, `dw-sync`, and `dw-setup-precommit`
 are invoked by name and never auto-trigger — they scaffold a repo, install shared tooling, compact or mutate state,
 or act on an explicit drift signal, so the model shouldn't reach for them unbidden. `dw-split` is here
 for a different reason: it picks the artifact _topology_ for a spec, and that pick is effectively

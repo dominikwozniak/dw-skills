@@ -21,11 +21,13 @@
 #   verify/   .ai/verify/<dir>/ name == slugify.sh branch-slug <branch:> from a
 #             contained *.md frontmatter.
 #
-# NOT validated: .ai/work/ — the solo lane (dw-shape / dw-next / dw-land) keeps one
-# CHANGE.md per change there. It has no machine-parsed status table, no SHA column and
-# no edge graph, so there is nothing that can break silently and nothing worth gating.
-# The --all sweep globs runs/ and verify/ only; scripts/tests/validate-ai-artifacts.test.sh
-# pins that (case: work-dir-not-swept) so the omission stays deliberate.
+# NOT validated: .ai/work/ — that directory belongs to the thin lane (`dw-solo`, shipped
+# from its own marketplace), which keeps one CHANGE.md per change there. It has no
+# machine-parsed status table, no SHA column and no edge graph, so there is nothing that
+# can break silently and nothing worth gating. The --all sweep globs runs/ and verify/
+# only, and scripts/tests/validate-ai-artifacts.test.sh pins that (case:
+# work-dir-not-swept) — kept after the lane moved out, so a repo that has both lanes
+# installed still doesn't get its CHANGE.md files failed by this validator.
 #
 # Usage:
 #   validate-ai-artifacts.sh <run-dir>      validate one .ai/runs/<id>/ (SPEC required, PLAN if present)

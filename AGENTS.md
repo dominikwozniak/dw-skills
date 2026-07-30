@@ -23,9 +23,16 @@ dereferences the symlink, so the path resolves. A script used by only **one** sk
 bundle it in `skills/<name>/scripts/` and invoke it via `<this-skill-dir>/…`, as `dw-doctor` does.
 Why it's built this way: [`docs/DESIGN.md`](docs/DESIGN.md), "The symlink canon".
 
-**Two lanes.** `dw-planning` + `dw-quality` (team; `.ai/runs/` + `.ai/verify/`) · `dw-solo` (thin; one
-`CHANGE.md` in `.ai/work/`) · `dw-misc` (both). A new skill picks one lane — say which in its
-description, and keep lanes free of cross-dependencies. Why: [`docs/DESIGN.md`](docs/DESIGN.md).
+**This repo is the team lane** — `dw-planning` + `dw-quality` (artifacts in `.ai/runs/` +
+`.ai/verify/`), plus `dw-misc` for setup and everyday helpers. It assumes **other people read the
+artifacts**. The thin lane, for repos only you read, lives in its own marketplace:
+[`dw-solo-skills`](https://github.com/dominikwozniak/dw-solo-skills). A skill that only pays off with
+one reader belongs there, not here. Why they're split: [`docs/DESIGN.md`](docs/DESIGN.md).
+
+**Vendored downstream — fix in both.** `templates/hooks/*.sh` and `scripts/runtime/slugify.sh` exist as
+byte-identical copies in `dw-solo-skills`. Nothing across the repo boundary can detect drift, so a fix
+here has to be applied there too. `dw-git`, `dw-doctor` and `dw-setup-precommit` also have simplified
+forks there which are **expected** to diverge — don't try to re-sync those.
 
 ## Adding a skill
 

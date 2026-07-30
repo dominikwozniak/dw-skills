@@ -29,7 +29,7 @@ is_env_file() {
 }
 
 block() {
-  echo "BLOCKED: $1 touches '$2' — .env files hold secrets and must not be read or modified by the agent (.env.example / .env.sample / .env.template are fine). Refused by dw-bootstrap guardrail. If this is genuinely needed (e.g. 'cp .env.example .env'), ask the user to run it manually." >&2
+  echo "BLOCKED: $1 touches '$2' — .env files hold secrets and must not be read or modified by the agent (.env.example / .env.sample / .env.template are fine). Refused by a dw-* guardrail hook. If this is genuinely needed (e.g. 'cp .env.example .env'), ask the user to run it manually." >&2
   exit 2
 }
 

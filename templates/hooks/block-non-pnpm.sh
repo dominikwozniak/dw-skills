@@ -27,7 +27,7 @@ NORMALIZED="${COMMAND#sudo }"
 
 for pattern in "${BLOCKED_PATTERNS[@]}"; do
   if echo "$NORMALIZED" | grep -qE "$pattern"; then
-    echo "BLOCKED: '$COMMAND' uses npm/yarn/bun. dw-bootstrap enforces pnpm. Use 'pnpm install', 'pnpm add <pkg>', 'pnpm dlx <cmd>', or 'npx <cmd>' (npx is fine — it's not npm install)." >&2
+    echo "BLOCKED: '$COMMAND' uses npm/yarn/bun. This repo enforces pnpm. Use 'pnpm install', 'pnpm add <pkg>', 'pnpm dlx <cmd>', or 'npx <cmd>' (npx is fine — it's not npm install)." >&2
     exit 2
   fi
 done

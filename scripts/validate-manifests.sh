@@ -78,13 +78,13 @@ for s in $RUNTIME_SCRIPTS; do
   check_symlink "plugins/dw-planning/scripts/$s"
 done
 check_symlink "plugins/dw-quality/scripts/slugify.sh"
-check_symlink "plugins/dw-solo/scripts/slugify.sh"
 
 # The template payloads (settings.json, hooks/, CLAUDE.local.md, …) live once at the repo
-# root in templates/ and are exposed to each consuming plugin by a git-tracked symlink
+# root in templates/ and are exposed to the consuming plugin by a git-tracked symlink
 # plugins/<p>/templates -> ../../templates, so ${CLAUDE_PLUGIN_ROOT}/templates/ resolves
-# after install dereferences it. Two lanes copy the same guardrail hooks — dw-bootstrap
-# (team) and dw-init (solo) — which is why this is a canon and not a per-skill payload.
+# after install dereferences it. It stays a canon (rather than a payload bundled inside
+# dw-bootstrap) because the same hooks are also vendored by the thin lane's own repo,
+# dw-solo-skills — a copy there, so a fix here must be applied in both.
 echo
 echo "Checking plugin templates symlinks resolve to the canon..."
 if [ ! -d templates/hooks ]; then
@@ -93,7 +93,7 @@ if [ ! -d templates/hooks ]; then
 else
   echo "OK  templates/ (canon)"
 fi
-for p in dw-misc dw-solo; do
+for p in dw-misc; do
   link="plugins/$p/templates"
   if [ ! -L "$link" ]; then
     echo "::error::$link must be a symlink to ../../templates (real dir or missing)"

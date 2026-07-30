@@ -5,11 +5,10 @@ situations, and the decisions you'll hit along the way. The [README](../README.m
 index (what each skill is, one row each); [`DESIGN.md`](DESIGN.md) is the _why_; this is
 the _how_.
 
-> **Scope: the team lane** (`dw-planning` + `dw-quality`) — `dw-spec → dw-plan → dw-build`, artifacts
-> under `.ai/runs/` and `.ai/verify/`. The solo lane (`dw-solo`: `dw-grill → dw-shape → dw-next →
-dw-land`) is short enough that its whole tour is the diagram in the
-> [README](../README.md#the-same-loop-solo-lane); what it drops and why is in
-> [`DESIGN.md`](DESIGN.md), "Two lanes, one toolbox".
+> **Scope: this repo's loop** — `dw-spec → dw-plan → dw-build`, artifacts under `.ai/runs/` and
+> `.ai/verify/`. The thin lane for repos only you read ships separately as
+> [`dw-solo`](https://github.com/dominikwozniak/dw-solo-skills) and has its own docs; what it drops
+> and what the split costs is in [`DESIGN.md`](DESIGN.md), "Two lanes, two repos".
 
 ---
 
@@ -174,10 +173,11 @@ already matches the code" is a complete, common result.
 that also patched things would be tempted to under-report what it couldn't fix. Diagnosis
 and treatment are separate skills.
 
-**Explicit-invoke-only skills** never auto-fire — say their name: `dw-bootstrap`,
-`dw-handoff`, `dw-prune`, `dw-sync`, `dw-setup-precommit`. They scaffold a repo, install
-shared tooling, compact or mutate state, or act on an explicit drift signal — so the model
-shouldn't reach for them unbidden. Everything else can be model-invoked when the task fits.
+**Explicit-only skills** never auto-fire — say their name: `dw-bootstrap`, `dw-handoff`,
+`dw-prune`, `dw-split`, `dw-sync`, `dw-setup-precommit`. They scaffold a repo, install
+shared tooling, compact or mutate state, act on an explicit drift signal, or pick an
+irreversible artifact topology — so the model shouldn't reach for them unbidden. Everything
+else can be model-invoked when the task fits.
 
 ---
 

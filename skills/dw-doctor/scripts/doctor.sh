@@ -197,77 +197,36 @@ else
   report warn ".claude/settings.json" "absent — no hooks/guardrails in this repo"
 fi
 
-# Lane detection. `.ai/work/` is the solo lane's home, `.ai/runs/` the team lane's;
-# every check below it is conditional on which one this repo actually uses, so
-# neither lane is warned about the other's directories. Both present is the one
-# documented mistake (docs/DESIGN.md, "Two lanes, one toolbox").
-LANE=none
-if [ -d "$ROOT/.ai/work" ] && [ -d "$ROOT/.ai/runs" ]; then
-  LANE=both
-elif [ -d "$ROOT/.ai/work" ]; then
-  LANE=solo
-elif [ -d "$ROOT/.ai/runs" ]; then
-  LANE=team
-fi
-
-case "$LANE" in
-  solo) report ok "lane" "solo — .ai/work/ (dw-shape / dw-next / dw-land)" ;;
-  team) report ok "lane" "team — .ai/runs/ (dw-spec / dw-plan / dw-build)" ;;
-  both) report warn "lane" "both .ai/work/ and .ai/runs/ — one lane per repo; two skills now compete for \"start a feature\"" ;;
-  none)
-    if [ -d "$ROOT/.ai" ]; then
-      report warn ".ai/" "present but neither work/ nor runs/ — team lane: dw-bootstrap; solo lane: dw-init"
-    else
-      report warn ".ai/" "absent — team lane: dw-bootstrap / dw-spec; solo lane: dw-init / dw-shape"
-    fi
-    ;;
-esac
-
-# Team lane: the quality pipeline writes under .ai/verify/<branch-slug>/.
-if [ "$LANE" = team ] || [ "$LANE" = both ]; then
+# This catalog's home is `.ai/runs/` (planning) plus `.ai/verify/` (quality).
+# `.ai/work/` belongs to the thin lane, which ships from its own marketplace
+# (dw-solo-skills) — finding it here means the wrong plugins are installed for this
+# repo, so it's reported rather than silently ignored.
+if [ -d "$ROOT/.ai/runs" ]; then
+  report ok "lane" "team — .ai/runs/ (dw-spec / dw-plan / dw-build)"
+  if [ -d "$ROOT/.ai/work" ]; then
+    report warn "lane" ".ai/work/ also present — that's the thin lane; one lane per repo, or two skills compete for \"start a feature\""
+  fi
   if [ -d "$ROOT/.ai/verify" ]; then
     report ok ".ai/verify/" "present"
   else
     report warn ".ai/verify/" "absent — dw-review / dw-verify write here; fix: dw-bootstrap"
   fi
+elif [ -d "$ROOT/.ai/work" ]; then
+  report warn "lane" ".ai/work/ but no .ai/runs/ — this repo runs the thin lane; install dw-solo from the dw-solo-skills marketplace instead"
+elif [ -d "$ROOT/.ai" ]; then
+  report warn ".ai/" "present but no runs/ — fix: dw-bootstrap"
+else
+  report warn ".ai/" "absent — fix: dw-bootstrap, then dw-spec"
 fi
 
-# Solo lane: dw-land promotes into these, so their absence breaks the closing step.
-if [ "$LANE" = solo ] || [ "$LANE" = both ]; then
-  if [ -d "$ROOT/docs/decisions" ]; then
-    report ok "docs/decisions/" "present"
+if [ -f "$ROOT/CLAUDE.md" ]; then
+  if grep -qE '^##[[:space:]]+Commands' "$ROOT/CLAUDE.md" 2>/dev/null; then
+    report ok "CLAUDE.md ## Commands" "present"
   else
-    report warn "docs/decisions/" "absent — dw-land promotes decision records here; fix: dw-init"
+    report warn "CLAUDE.md ## Commands" "section missing — the only tracked copy of test/lint/typecheck; fix: dw-bootstrap"
   fi
-  if [ -f "$ROOT/CONTEXT.md" ]; then
-    report ok "CONTEXT.md" "present"
-  else
-    report warn "CONTEXT.md" "absent — dw-land promotes domain terms here; fix: dw-init"
-  fi
-  if [ -f "$ROOT/CLAUDE.md" ]; then
-    if grep -qE '^##[[:space:]]+Gotchas' "$ROOT/CLAUDE.md" 2>/dev/null; then
-      report ok "CLAUDE.md ## Gotchas" "present"
-    else
-      report warn "CLAUDE.md ## Gotchas" "section missing — dw-land appends traps there; fix: dw-init"
-    fi
-    if grep -qE '^##[[:space:]]+Commands' "$ROOT/CLAUDE.md" 2>/dev/null; then
-      report ok "CLAUDE.md ## Commands" "present"
-    else
-      report warn "CLAUDE.md ## Commands" "section missing — the only tracked copy of test/lint/typecheck; fix: dw-init"
-    fi
-  else
-    report warn "CLAUDE.md" "absent — dw-land has nowhere to promote gotchas; fix: dw-init"
-  fi
-  # The lane switch dw-init sets. A hand-written enabledPlugins key with a wrong
-  # marketplace id is silently ignored, so this is worth asserting rather than assuming.
-  if [ -f "$settings" ] && have jq; then
-    n_off="$(jq -r '.enabledPlugins // {} | to_entries[] | select(.value == false) | .key' "$settings" 2>/dev/null | grep -cE '^(dw-planning|dw-quality)@' || true)"
-    if [ "${n_off:-0}" -ge 1 ]; then
-      report ok "lane switch" "$n_off team-lane plugin(s) disabled for this project"
-    else
-      report warn "lane switch" "dw-planning/dw-quality not disabled here — harmless if neither is installed, else: claude plugin disable dw-planning --scope project"
-    fi
-  fi
+else
+  report warn "CLAUDE.md" "absent — no tracked copy of the project's commands; fix: dw-bootstrap"
 fi
 
 if [ -f "$ROOT/CLAUDE.local.md" ]; then

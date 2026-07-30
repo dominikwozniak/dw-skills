@@ -56,25 +56,6 @@
       "tags": ["spec", "planning"]
     },
     {
-      "name": "dw-solo",
-      "version": "0.1.2",
-      "source": "./plugins/dw-solo",
-      "keywords": [
-        "solo",
-        "personal",
-        "lightweight",
-        "grill",
-        "interview",
-        "shape",
-        "change",
-        "checklist",
-        "workflow",
-        "init"
-      ],
-      "category": "workflow",
-      "tags": ["solo", "workflow", "lightweight"]
-    },
-    {
       "name": "dw-quality",
       "version": "0.1.10",
       "source": "./plugins/dw-quality",

@@ -50,7 +50,7 @@ document-producing one.
    `git add .` / `git add -A` unless the user explicitly asks.
 3. Exclude sensitive files (`.env`, credentials, keys) — warn, don't stage.
 4. `git diff --staged` — review what's actually staged.
-5. Ticket key from branch: `git branch --show-current | grep -oE '^[A-Z]+-[0-9]+'`.
+5. Ticket key from branch: `git rev-parse --abbrev-ref HEAD | grep -oE '^[A-Z]+-[0-9]+'`.
    If found, prefix `[KEY] `.
 6. Commit — `-m` for the subject, repeat `-m` for the body (no heredoc needed for a
    short body). Use plain `git commit` and follow the project's signing convention
@@ -69,9 +69,9 @@ document-producing one.
 
 **Workflow:**
 
-1. `git branch --show-current`. If it's a protected branch, confirm before pushing.
+1. `git rev-parse --abbrev-ref HEAD`. If it's a protected branch, confirm before pushing.
 2. Upstream check: `git rev-parse --abbrev-ref @{u} 2>/dev/null`.
-3. No upstream → `git push -u origin "$(git branch --show-current)"`; else `git push`.
+3. No upstream → `git push -u origin "$(git rev-parse --abbrev-ref HEAD)"`; else `git push`.
 4. Report the result.
 
 ### PR — "open PR", "create pull request"
@@ -121,6 +121,10 @@ Always with a message: `git stash push -m "<what's being saved>"`. Never bare
   If it isn't, manually refuse the same patterns (force-push, hard-reset,
   `clean -d`/`-f`).
 - Modern verbs throughout: `git switch` / `git restore` over `git checkout`.
+- Every branch read uses `git rev-parse --abbrev-ref HEAD`, never
+  `git branch --show-current` — the latter prints an empty string on a detached
+  HEAD, which silently turns a branch check into a no-match. This is the primitive
+  the rest of the catalog already uses, so branch resolution agrees everywhere.
 
 **Next:** `dw-review` to weigh the diff before opening the PR, or `dw-handoff` to
 pack the session for the next agent once the work is pushed.

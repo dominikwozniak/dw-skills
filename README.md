@@ -10,8 +10,8 @@
 
 <p align="center">
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-111111?style=flat-square">
-  <img alt="23 skills" src="https://img.shields.io/badge/skills-23-111111?style=flat-square">
-  <img alt="4 plugins" src="https://img.shields.io/badge/plugins-4-111111?style=flat-square">
+  <img alt="18 skills" src="https://img.shields.io/badge/skills-18-111111?style=flat-square">
+  <img alt="3 plugins" src="https://img.shields.io/badge/plugins-3-111111?style=flat-square">
   <img alt="Claude Code plugin" src="https://img.shields.io/badge/Claude_Code-plugin-111111?style=flat-square">
   <a href="https://github.com/dominikwozniak/dw-skills/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/dominikwozniak/dw-skills/validate-plugin-manifests.yaml?style=flat-square&label=ci&color=111111"></a>
 </p>
@@ -39,28 +39,29 @@ the catalog is the set of reusable steps I pulled out of that loop. Each skill k
 - **Review findings have nowhere to land** — `dw-fix` applies them: the one writer in the quality
   pipeline, severity-gated (blockers first), one commit per fix.
 - **The test suite bloats** — `dw-prune` trims redundant tests without dropping coverage.
-- **The process outweighs the change** — a repo only you read doesn't need three planning artifacts and
-  five audits. `dw-solo` is the same loop at one file and one pass.
 
 The _why_ behind each design choice is in [`docs/DESIGN.md`](docs/DESIGN.md).
+
+> **Working alone?** A repo only you read doesn't need three planning artifacts and five audits.
+> [**dw-solo-skills**](https://github.com/dominikwozniak/dw-solo-skills) is the same idea at one file
+> and one pass — same conventions, far less ceremony. Install that instead of the two lane plugins
+> below; see [`docs/DESIGN.md`](docs/DESIGN.md), "Two lanes, two repos".
 
 ## ▸ Quick start
 
 ```
 claude plugin marketplace add git@github.com:dominikwozniak/dw-skills.git
 claude plugin install dw-misc       # bootstrap · git · handoff · doctor · setup-precommit
-
-# then pick ONE lane per repo — see "Two lanes" below
-claude plugin install dw-planning   # team: spec → plan → split → build → resume → sync
-claude plugin install dw-quality    # team: review · conform · fix · prune · explain · verify · risk
-claude plugin install dw-solo       # solo: init · grill · shape · next · land
+claude plugin install dw-planning   # spec → plan → split → build → resume → sync
+claude plugin install dw-quality    # review · conform · fix · prune · explain · verify · risk
 ```
 
-**Team repo** — `/dw-bootstrap` once, then start a feature with `/dw-spec` and resume after a `/clear`
-with `/dw-resume`.
+Then `/dw-bootstrap` once per repo, start a feature with `/dw-spec`, and resume after a `/clear` with
+`/dw-resume`.
 
-**Your own repo** — `/dw-init` once, then `/dw-shape` and `/dw-next`. `/dw-next` bare is also the
-resume path.
+For a repo only you read, install
+[`dw-solo`](https://github.com/dominikwozniak/dw-solo-skills) instead of `dw-planning` +
+`dw-quality` — one lane per repo, or two skills compete for "start a feature".
 
 ## ↻ The workflow
 
@@ -69,7 +70,7 @@ resume path.
 > `/clear`, review before a PR, fix findings, reconcile drift), and the decisions between
 > skills. The map below; that's the tour.
 
-### The core loop — team lane
+### The core loop
 
 ```
   SPEC         PLAN         BUILD                   REVIEW · VERIFY           SHIP
@@ -80,20 +81,10 @@ resume path.
   └────────────── .ai/runs/<id>/ ──────────────┘    └─ .ai/verify/<branch-slug>/ ─┘
 ```
 
-### The same loop, solo lane
-
-For repos only you read. One artifact instead of three, one quality pass instead of five.
-
-```
-  (GRILL)       SHAPE           BUILD                 LAND                    SHIP
-  /dw-grill →   /dw-shape   →   /dw-next     →        /dw-land         →      (open PR — /dw-git)
-  fuzzy idea    one CHANGE.md   ↺ /dw-next (bare =    verdict, then promote
-                + task list       resume from disk)   decisions & drop the doc
-  └────── .ai/work/<slug>/CHANGE.md (deleted at merge) ──────┘  └→ docs/decisions/ · CONTEXT.md · ## Gotchas · .ai/BACKLOG.md (kept)
-```
-
-**Pick one lane per repo** — installing both means two skills compete for "start a feature". Why the
-two exist and what the solo lane drops: [`docs/DESIGN.md`](docs/DESIGN.md), "Two lanes, one toolbox".
+**One lane per repo** — installing this alongside
+[`dw-solo`](https://github.com/dominikwozniak/dw-solo-skills) means two skills compete for "start a
+feature". Why the two exist, what the thin lane drops, and what the split costs:
+[`docs/DESIGN.md`](docs/DESIGN.md), "Two lanes, two repos".
 
 `<branch-slug>` = the current branch slugified, e.g. `ABC-123/password-reset` →
 `abc-123-password-reset`. SHIP — deciding when to open the PR, plus the deploy/CI that follows — is
@@ -130,20 +121,10 @@ never auto-fires). The phrases that trigger each skill live in its own `descript
 | Skill                                                          | Task                                                        | What you get                     |
 | -------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------- |
 | [`dw-bootstrap`](skills/dw-bootstrap/SKILL.md) `⭑`             | Scaffold a repo for the dw-\* loop: `.ai/`, settings, hooks | tracked `.ai/` + `.claude/`      |
-| [`dw-init`](skills/dw-init/SKILL.md) `⭑`                       | Same for the **solo** lane: `.ai/work/`, `docs/decisions/`  | solo scaffold (smaller)          |
 | [`dw-doctor`](skills/dw-doctor/SKILL.md)                       | Diagnose tools, hooks, `.ai/` sanity (read-only)            | health report + fixes            |
 | [`dw-setup-precommit`](skills/dw-setup-precommit/SKILL.md) `⭑` | Wire husky + lint-staged for a pnpm node/ts/js repo         | `.husky/` + `.lintstagedrc.json` |
 
-**Solo lane** — one file, one pass. Pick this lane _or_ the team lane below, per repo.
-
-| Skill                                  | Task                                                       | What you get                                        |
-| -------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------- |
-| [`dw-grill`](skills/dw-grill/SKILL.md) | Interview a fuzzy idea into decisions — max five questions | shared understanding (writes nothing)               |
-| [`dw-shape`](skills/dw-shape/SKILL.md) | Synthesize it into one goal + decisions + task checklist   | `.ai/work/<slug>/CHANGE.md`                         |
-| [`dw-next`](skills/dw-next/SKILL.md)   | Resume point _and_ build step (`go` builds and commits)    | code + ticked box + commit                          |
-| [`dw-land`](skills/dw-land/SKILL.md)   | One verdict: correct · fits · blast radius · proven        | `docs/decisions/` · `CONTEXT.md` · `.ai/BACKLOG.md` |
-
-**Team lane** — spec, plan, build.
+**Plan & build** — spec, plan, build.
 
 | Skill                                      | Task                                                         | What you get                     |
 | ------------------------------------------ | ------------------------------------------------------------ | -------------------------------- |
@@ -154,7 +135,7 @@ never auto-fires). The phrases that trigger each skill live in its own `descript
 | [`dw-resume`](skills/dw-resume/SKILL.md)   | Pick up after a `/clear`; find the first not-done step       | read-only status report          |
 | [`dw-sync`](skills/dw-sync/SKILL.md) `⭑`   | Re-align the plan with the code after drift                  | reconciled `PLAN.md`             |
 
-**Review & verify** — team lane.
+**Review & verify**
 
 | Skill                                      | Task                                                        | What you get              |
 | ------------------------------------------ | ----------------------------------------------------------- | ------------------------- |
@@ -166,7 +147,7 @@ never auto-fires). The phrases that trigger each skill live in its own `descript
 | [`dw-fix`](skills/dw-fix/SKILL.md)         | Apply those findings — severity-ordered, one commit per fix | code commits + `fix.md`   |
 | [`dw-prune`](skills/dw-prune/SKILL.md) `⭑` | Trim redundant tests without dropping coverage              | keep/merge/delete plan    |
 
-**Anytime** — either lane.
+**Anytime**
 
 | Skill                                          | Task                                                     | What you get                       |
 | ---------------------------------------------- | -------------------------------------------------------- | ---------------------------------- |
@@ -179,27 +160,24 @@ consent; `dw-risk` reads whatever neighbours exist and closes the pipeline. `dw-
 writer — it applies the findings the auditors record (blockers first), then you re-audit to confirm
 (required after blockers, optional after a medium/low-only pass).
 
-## ▣ Plugins — install what you need (4)
+## ▣ Plugins — install what you need (3)
 
-Four plugins, grouped by job. The [task router](#-task-router--which-skill-for-which-task) above says
+Three plugins, grouped by job. The [task router](#-task-router--which-skill-for-which-task) above says
 what each skill does — here's which plugin ships it and where its artifacts land.
 
-- **`dw-misc`** — repo setup + everyday helpers, lane-independent. `dw-bootstrap` · `dw-git` ·
-  `dw-handoff` · `dw-doctor` · `dw-setup-precommit`.
-
-Then **one lane per repo** — the two below, or the one after them:
-
+- **`dw-misc`** — repo setup + everyday helpers. `dw-bootstrap` · `dw-git` · `dw-handoff` ·
+  `dw-doctor` · `dw-setup-precommit`.
 - **`dw-planning`** — the spec→plan→build loop. `dw-spec` · `dw-resume` · `dw-plan` · `dw-split` ·
   `dw-build` · `dw-sync`. `dw-split` is the escape hatch when a spec is too big for one `PLAN.md`.
   Artifacts: `.ai/runs/<id>/`.
 - **`dw-quality`** — the change-quality pipeline. `dw-review` · `dw-conform` · `dw-fix` · `dw-prune` ·
   `dw-explain` · `dw-verify` · `dw-risk`. The auditors diagnose (read-only); `dw-fix` is the one
   writer. Artifacts: `.ai/verify/<branch-slug>/`.
-- **`dw-solo`** — the thin lane, for repos only you read. `dw-init` · `dw-grill` · `dw-shape` ·
-  `dw-next` · `dw-land`. One `CHANGE.md` instead of spec+plan+notes, one `dw-land` pass instead of
-  five auditors, and durable knowledge promoted out to `docs/decisions/` + `CONTEXT.md` + `CLAUDE.md`'s
-  `## Gotchas` + `.ai/BACKLOG.md` (the follow-ups you're not doing now) rather than accumulated.
-  Artifacts: `.ai/work/<slug>/`.
+
+For a repo only you read, [`dw-solo`](https://github.com/dominikwozniak/dw-solo-skills) is the thin
+alternative to `dw-planning` + `dw-quality` — one `CHANGE.md` instead of spec+plan+notes, one gated
+pass instead of five auditors. It ships from its own marketplace; install it **instead of** those two,
+not alongside.
 
 ## ⚙ How it works — the design in one screen
 
@@ -217,10 +195,11 @@ Full design rationale — the _why_ behind each choice — lives in [`docs/DESIG
 - **Composable, not chained.** Skills stay separate and link through shared `.ai/` artifacts + a
   "Next:" pointer — a recommendation, never a forced sequence. Why there's no autonomous loop closing
   this is in [`docs/DESIGN.md`](docs/DESIGN.md), "Loops vs persistence."
-- **Two lanes, one toolbox.** How much process a change deserves depends on who reads the artifacts, so
-  the same loop ships at two weights — `dw-planning` + `dw-quality` for shared repos, `dw-solo` for your
-  own. They share the runtime scripts and the `templates/` canon; install one lane per repo.
-- **Explicit-only skills** (`dw-bootstrap`, `dw-handoff`, `dw-init`, `dw-prune`, `dw-split`, `dw-sync`, `dw-setup-precommit`) are invoked by name and never auto-trigger; the rest can be model-invoked when the task fits.
+- **Two lanes, two repos.** How much process a change deserves depends on who reads the artifacts, so
+  the same idea ships at two weights — this repo for shared work,
+  [`dw-solo-skills`](https://github.com/dominikwozniak/dw-solo-skills) for your own. Install one lane
+  per repo; what the split costs is recorded in [`docs/DESIGN.md`](docs/DESIGN.md).
+- **Explicit-only skills** (`dw-bootstrap`, `dw-handoff`, `dw-prune`, `dw-split`, `dw-sync`, `dw-setup-precommit`) are invoked by name and never auto-trigger; the rest can be model-invoked when the task fits.
 
 ## ▤ Project structure
 
