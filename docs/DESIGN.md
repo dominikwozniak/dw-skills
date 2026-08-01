@@ -217,7 +217,7 @@ nothing. The thin lane lives in its own marketplace,
 
 |                    | This repo (`dw-planning` + `dw-quality`)            | `dw-solo-skills`                    |
 | ------------------ | --------------------------------------------------- | ----------------------------------- |
-| Loop               | `dw-spec → dw-plan → dw-build`                      | `dw-grill → dw-shape → dw-next`     |
+| Loop               | `dw-spec → dw-plan → dw-build`                      | `dw-shape → dw-next → dw-ship`      |
 | Planning artifacts | `SPEC.md` + `PLAN.md` + `NOTES.md` (+ `slices/`)    | one `CHANGE.md`                     |
 | Quality            | 5 auditors + `dw-fix`, up to 7 artifacts            | one `dw-land` pass, no artifact     |
 | Resume point       | `dw-resume` → first not-`done` row, or the frontier | `dw-next` bare → first unticked box |
